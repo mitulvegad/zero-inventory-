@@ -20,6 +20,7 @@ const AdminPage = () => {
   const [newShopSlug, setNewShopSlug] = useState('');
   const [newShopRegion, setNewShopRegion] = useState('Central US');
   const [showSaasKeyAlert, setShowSaasKeyAlert] = useState(true);
+  const [customAlert, setCustomAlert] = useState({ show: false, title: '', message: '', type: 'info' });
 
   // Get active user data
   const email = user?.email || registeredEmail || 'admin@yourshops.com';
@@ -87,17 +88,27 @@ const AdminPage = () => {
     }
   };
 
+  const triggerAlert = (title, message, type = 'info') => {
+    if (type === 'error') {
+      playSynthSound('error');
+    } else if (type === 'success') {
+      playSynthSound('success');
+    } else {
+      playSynthSound('click');
+    }
+    setCustomAlert({ show: true, title, message, type });
+  };
+
   const handleCopyCode = () => {
     playSynthSound('click');
     navigator.clipboard.writeText(saasCode);
-    alert('SaaS access key copied to clipboard!');
+    triggerAlert('Key Copied', 'SaaS access key copied to clipboard!', 'success');
   };
 
   const handleAddShopClick = () => {
     playSynthSound('click');
     if (shops.length >= maxShops) {
-      playSynthSound('error');
-      alert(`Capacity reached! Your '${planName}' plan allows a maximum of ${maxShops} shops. Please upgrade your plan for unlimited capacity.`);
+      triggerAlert('Capacity Reached', `Your '${planName}' plan allows a maximum of ${maxShops} shops. Please upgrade your plan for unlimited capacity.`, 'error');
       return;
     }
     setShowModal(true);
@@ -108,8 +119,7 @@ const AdminPage = () => {
     if (!newShopName || !newShopSlug) return;
 
     if (shops.length >= maxShops) {
-      playSynthSound('error');
-      alert('Maximum shop connection limit reached.');
+      triggerAlert('Limit Reached', 'Maximum shop connection limit reached.', 'error');
       setShowModal(false);
       return;
     }
@@ -292,7 +302,7 @@ const AdminPage = () => {
                       </span>
                     </td>
                     <td className="text-end">
-                      <button className="btn btn-sm btn-outline-info me-2" onClick={() => { playSynthSound('click'); alert(`Opening secure session redirect for ${shop.name}...`); }}>
+                      <button className="btn btn-sm btn-outline-info me-2" onClick={() => triggerAlert('Secure Redirect', `Opening secure session redirect for ${shop.name}...`, 'info')}>
                         <i className="fa-solid fa-right-to-bracket me-1"></i>Enter Shop
                       </button>
                     </td>
@@ -359,6 +369,27 @@ const AdminPage = () => {
                 <i className="fa-solid fa-cloud-arrow-up me-2"></i>Provision & Connect Shop
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Alert Modal Overlay */}
+      {customAlert.show && (
+        <div className="modal-overlay active d-flex" style={{ background: 'rgba(2, 6, 23, 0.85)', zIndex: 9999, position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="modal-content-wrapper p-4 text-center" style={{ backgroundColor: '#111827', border: '1px solid #1e293b', borderRadius: '16px', maxWidth: '400px', width: '90%' }}>
+            <div className="mb-3" style={{ fontSize: '3rem', color: customAlert.type === 'success' ? '#10b981' : customAlert.type === 'error' ? '#ef4444' : '#0ea5e9' }}>
+              {customAlert.type === 'success' && <i className="fa-solid fa-circle-check"></i>}
+              {customAlert.type === 'error' && <i className="fa-solid fa-circle-xmark"></i>}
+              {customAlert.type === 'info' && <i className="fa-solid fa-circle-info"></i>}
+            </div>
+            <h4 className="text-white mb-2" style={{ fontFamily: 'Outfit', fontWeight: '700' }}>{customAlert.title || 'Notification'}</h4>
+            <p className="small text-secondary mb-4">{customAlert.message}</p>
+            <button 
+              className="btn btn-premium-primary px-4 py-2 w-100" 
+              onClick={() => { playSynthSound('click'); setCustomAlert({ ...customAlert, show: false }); }}
+            >
+              OK
+            </button>
           </div>
         </div>
       )}
