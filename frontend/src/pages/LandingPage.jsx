@@ -139,7 +139,7 @@ const LandingPage = () => {
               >
                 <div className="plan-icon"><i className="fa-solid fa-shop"></i></div>
                 <h3 className="plan-name">Starter Shop</h3>
-                <div className="plan-price">$19<span>/month</span></div>
+                <div className="plan-price">₹1,999<span>/year</span></div>
                 <ul className="plan-features">
                   <li><i className="fa-solid fa-circle-check text-info"></i> 1 Connected Shop</li>
                   <li><i className="fa-solid fa-circle-check text-info"></i> Up to 100 Products</li>
@@ -164,7 +164,7 @@ const LandingPage = () => {
               >
                 <div className="plan-icon"><i className="fa-solid fa-store text-info"></i></div>
                 <h3 className="plan-name">Growth Shop</h3>
-                <div className="plan-price">$49<span>/month</span></div>
+                <div className="plan-price">₹9,999<span>/year</span></div>
                 <ul className="plan-features">
                   <li><i className="fa-solid fa-circle-check text-info"></i> 3 Connected Shops</li>
                   <li><i className="fa-solid fa-circle-check text-info"></i> Up to 1,000 Products</li>
@@ -189,7 +189,7 @@ const LandingPage = () => {
               >
                 <div className="plan-icon"><i className="fa-solid fa-warehouse"></i></div>
                 <h3 className="plan-name">Enterprise Shop</h3>
-                <div className="plan-price">$99<span>/month</span></div>
+                <div className="plan-price">₹19,999<span>/year</span></div>
                 <ul className="plan-features">
                   <li><i className="fa-solid fa-circle-check text-info"></i> Unlimited Shops</li>
                   <li><i className="fa-solid fa-circle-check text-info"></i> Unlimited Products</li>

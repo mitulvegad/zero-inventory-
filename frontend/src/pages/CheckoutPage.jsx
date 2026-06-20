@@ -23,11 +23,11 @@ const CheckoutPage = () => {
   }, [email, password, plan_name, navigate]);
 
   // Compute plan price
-  let price = 19.00;
+  let price = 1999;
   if (plan_name === 'Growth Shop') {
-    price = 49.00;
+    price = 9999;
   } else if (plan_name === 'Enterprise Shop') {
-    price = 99.00;
+    price = 19999;
   }
 
   const handlePayNow = () => {
@@ -111,7 +111,7 @@ const CheckoutPage = () => {
             
             <div className="mt-4 p-2 bg-black bg-opacity-40 rounded border border-secondary border-opacity-10">
               <span className="text-secondary small d-block mb-1">Transaction Value</span>
-              <span className="text-info fw-bold fs-5">${price.toFixed(2)} USD</span>
+              <span className="text-info fw-bold fs-5">₹{price.toLocaleString('en-IN')} INR</span>
             </div>
           </div>
         </div>
@@ -140,18 +140,18 @@ const CheckoutPage = () => {
           </div>
           <div className="summary-row">
             <span>Currency:</span>
-            <span className="summary-value">USD</span>
+            <span className="summary-value">INR (₹)</span>
           </div>
           
           <div className="summary-row border-top border-secondary pt-3 mt-3">
             <span>Total Amount:</span>
-            <span className="summary-value summary-total" style={{ color: '#0ea5e9', fontWeight: 'bold', fontSize: '1.25rem' }}>${price.toFixed(2)}</span>
+            <span className="summary-value summary-total" style={{ color: '#0ea5e9', fontWeight: 'bold', fontSize: '1.25rem' }}>₹{price.toLocaleString('en-IN')}</span>
           </div>
         </div>
 
         {/* Pay Now Button */}
         <button className="btn btn-premium-primary w-100 py-3 mb-4 fs-5" onClick={handlePayNow}>
-          <i className="fa-solid fa-credit-card me-2"></i>Pay Now (${price.toFixed(2)})
+          <i className="fa-solid fa-credit-card me-2"></i>Pay Now (₹{price.toLocaleString('en-IN')})
         </button>
 
         <div className="text-center mt-4 border-top border-secondary pt-3" style={{ borderColor: 'rgba(255, 255, 255, 0.1) !important' }}>
