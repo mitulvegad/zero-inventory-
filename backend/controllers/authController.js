@@ -84,7 +84,11 @@ exports.register = async (req, res) => {
     );
   } catch (err) {
     console.error('Registration error:', err.message);
-    res.status(500).json({ message: 'Server error during registration' });
+    res.status(500).json({ 
+      message: 'Server error during registration',
+      error: err.message,
+      stack: err.stack
+    });
   }
 };
 
