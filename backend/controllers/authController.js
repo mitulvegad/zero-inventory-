@@ -67,21 +67,16 @@ exports.register = async (req, res) => {
       }
     };
 
-    jwt.sign(
-      payload,
-      process.env.JWT_SECRET,
-      { expiresIn: '30d' },
-      (err, token) => {
-        if (err) throw err;
-        res.status(201).json({
-          token,
-          saas_code,
-          email: user.email,
-          plan_name: user.plan_name,
-          message: 'Registration successful! Your SaaS access code is generated.'
-        });
-      }
-    );
+    const secret = process.env.JWT_SECRET || 'supersecret_zero_inventory_key_12345';
+    const token = jwt.sign(payload, secret, { expiresIn: '30d' });
+
+    res.status(201).json({
+      token,
+      saas_code,
+      email: user.email,
+      plan_name: user.plan_name,
+      message: 'Registration successful! Your SaaS access code is generated.'
+    });
   } catch (err) {
     console.error('Registration error:', err.message);
     res.status(500).json({ 
@@ -128,23 +123,18 @@ exports.login = async (req, res) => {
       }
     };
 
-    jwt.sign(
-      payload,
-      process.env.JWT_SECRET,
-      { expiresIn: '30d' },
-      (err, token) => {
-        if (err) throw err;
-        res.json({
-          token,
-          user: {
-            id: user.id,
-            email: user.email,
-            plan_name: user.plan_name,
-            saas_code: user.saas_code
-          }
-        });
+    const secret = process.env.JWT_SECRET || 'supersecret_zero_inventory_key_12345';
+    const token = jwt.sign(payload, secret, { expiresIn: '30d' });
+
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        plan_name: user.plan_name,
+        saas_code: user.saas_code
       }
-    );
+    });
   } catch (err) {
     console.error('Login error:', err.message);
     res.status(500).json({ message: 'Server error during login' });
