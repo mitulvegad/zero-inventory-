@@ -15,6 +15,7 @@ app.use(express.json());
 // Mount Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/comments', require('./routes/comments'));
+app.use('/api/dashboard', require('./routes/dashboard'));
 
 // Basic Health Check Route
 app.get('/api/health', (req, res) => {
