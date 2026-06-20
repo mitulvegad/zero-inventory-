@@ -5,6 +5,40 @@
 This guide explains how to deploy your Zero Inventory SaaS application. The backend (Express API & MongoDB) will be hosted on Render, and the frontend (Vite React SPA) will be hosted on Vercel.
 
 ------------------------------------------------------------------------
+PRE-REQUISITE: Set Up MongoDB Atlas Database
+------------------------------------------------------------------------
+To host your database in the cloud, you will need a free MongoDB Atlas cluster:
+
+1. Create a MongoDB Atlas Account:
+   - Visit https://www.mongodb.com/cloud/atlas and sign up for a free account.
+
+2. Create a Free Cluster:
+   - Follow the setup wizard to deploy a new database. 
+   - Select the "M0 Free" shared tier, choose your preferred cloud provider (e.g., AWS), and pick your closest region.
+
+3. Configure Database Security (User Access):
+   - Create a Database User by choosing a Username and a strong Password. 
+   - Save these credentials! (Note: Avoid using special characters like '@', ':', or '/' in your database password, as these require URL-encoding in the connection string).
+
+4. Configure Network Access (CRITICAL FOR RENDER):
+   - Go to "Network Access" under the "Security" menu on the left side.
+   - Click "Add IP Address".
+   - Click "Allow Access From Anywhere" (which adds the IP: 0.0.0.0/0). 
+   - (CRITICAL: Render's free tier uses dynamic IP addresses, so you must allow access from anywhere to ensure Render can connect to your database).
+
+5. Copy Your Connection String:
+   - Go to the "Database" menu on the left side, and click "Connect" next to your cluster.
+   - Select "Drivers" (or "Connect your application").
+   - Copy the connection string. It will look like this:
+     mongodb+srv://<username>:<password>@cluster0.xxxx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+
+6. Format Your Connection String (Your MONGO_URI):
+   - Replace `<username>` with your database username.
+   - Replace `<password>` with your database user password.
+   - Specify your target database name in the path after the slash `/` and before the `?` (e.g., `...mongodb.net/zero_inventory?retryWrites...`).
+   - Use this final formatted string as your MONGO_URI environment variable on Render in STEP 1.
+
+------------------------------------------------------------------------
 STEP 1: Deploy the Backend on Render
 ------------------------------------------------------------------------
 Render (https://render.com) is a great free hosting provider for Node.js backends.
