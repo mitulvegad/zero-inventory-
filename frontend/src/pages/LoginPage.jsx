@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 const LoginPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { login, token, user, loading } = useContext(AuthContext);
+  const { showToast } = useToast();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -63,7 +65,7 @@ const LoginPage = () => {
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(generatedCode);
-    alert('SaaS Code copied to clipboard!');
+    showToast('SaaS Code copied to clipboard!', 'success');
   };
 
   return (

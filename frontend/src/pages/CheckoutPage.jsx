@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 const CheckoutPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { register, setToken, setUser } = useContext(AuthContext);
+  const { showToast } = useToast();
 
   // Retrieve state parameters passed from Landing Page
   const { email, password, plan_name } = location.state || {};
@@ -82,7 +84,7 @@ const CheckoutPage = () => {
       } else {
         setLoading(false);
         setPaymentSuccess(false);
-        alert(result.message || 'Registration failed. Please try again.');
+        showToast(result.message || 'Registration failed. Please try again.', 'error');
       }
     }, 6500);
   };
@@ -92,7 +94,26 @@ const CheckoutPage = () => {
       
       {/* Screen Payment Animation Overlay */}
       {loading && (
-        <div id="paymentAnimationOverlay" className="payment-overlay active" style={{ display: 'flex', background: 'rgba(2, 6, 23, 0.95)', backdropFilter: 'blur(15px)', zIndex: 9999 }}>
+        <div 
+          id="paymentAnimationOverlay" 
+          className="payment-overlay active" 
+          style={{ 
+            display: 'flex', 
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100vw',
+            height: '100vh',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(2, 6, 23, 0.8)', 
+            backdropFilter: 'blur(16px)', 
+            WebkitBackdropFilter: 'blur(16px)',
+            zIndex: 9999 
+          }}
+        >
           <div className="payment-modal">
             <div className="mb-4" style={{ height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {!paymentSuccess ? (
