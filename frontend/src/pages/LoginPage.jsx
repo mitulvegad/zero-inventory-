@@ -18,7 +18,8 @@ const LoginPage = () => {
   // Read registration success states if redirected from Checkout
   const { successMessage, generatedCode, registeredEmail } = location.state || {};
 
-  // Redirect to dashboard/admin if user is already logged in
+  // Redirect to dashboard/admin if user is already logged in (Disabled to allow explicit login page navigation)
+  /*
   useEffect(() => {
     if (token && !loading && user) {
       const userPlan = user.plan_name || 'Starter Shop';
@@ -29,6 +30,7 @@ const LoginPage = () => {
       }
     }
   }, [token, loading, user, navigate]);
+  */
 
   // Pre-fill email from registration state if available
   useEffect(() => {
