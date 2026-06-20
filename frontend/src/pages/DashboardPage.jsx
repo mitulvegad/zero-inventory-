@@ -162,7 +162,7 @@ const DashboardPage = () => {
   };
 
   return (
-    <div className="dashboard-container" style={{ background: 'radial-gradient(circle at bottom right, rgba(14, 165, 233, 0.12), transparent), #030712', color: '#94a3b8', minHeight: '100vh', display: 'flex', fontFamily: "'Inter', sans-serif", fontSize: '0.85rem' }}>
+    <div className="dashboard-container" style={{ backgroundColor: '#f8fafc', color: '#475569', minHeight: '100vh', display: 'flex', fontFamily: "'Inter', sans-serif", fontSize: '0.85rem' }}>
       <style>{`
         /* Webkit scrollbars for tables */
         .table-responsive::-webkit-scrollbar {
@@ -170,10 +170,10 @@ const DashboardPage = () => {
           height: 5px;
         }
         .table-responsive::-webkit-scrollbar-track {
-          background: rgba(2, 6, 23, 0.3);
+          background: #f1f5f9;
         }
         .table-responsive::-webkit-scrollbar-thumb {
-          background: #1e293b;
+          background: #cbd5e1;
           border-radius: 3px;
         }
         .table-responsive::-webkit-scrollbar-thumb:hover {
@@ -182,15 +182,15 @@ const DashboardPage = () => {
 
         /* Sidebar item hovers */
         .hover-light-bg:hover {
-          background-color: rgba(14, 165, 233, 0.1) !important;
-          color: #ffffff !important;
+          background-color: #f1f5f9 !important;
+          color: #0f172a !important;
         }
 
         /* Quick Navigation item overrides */
         .quick-action-item {
-          background-color: #0d1222 !important;
-          border: 1px solid #1e293b !important;
-          color: #94a3b8 !important;
+          background-color: #f8fafc !important;
+          border: 1px solid #e2e8f0 !important;
+          color: #475569 !important;
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
           border-radius: 8px !important;
           display: flex !important;
@@ -208,10 +208,10 @@ const DashboardPage = () => {
           transition: transform 0.3s ease !important;
         }
         .quick-action-item:hover {
-          background-color: rgba(14, 165, 233, 0.08) !important;
+          background-color: #ffffff !important;
           border-color: #0ea5e9 !important;
-          color: #ffffff !important;
-          box-shadow: 0 0 10px rgba(14, 165, 233, 0.12) !important;
+          color: #0ea5e9 !important;
+          box-shadow: 0 8px 16px -6px rgba(14, 165, 233, 0.25) !important;
           transform: translateY(-1.5px) !important;
         }
         .quick-action-item:hover i {
@@ -219,23 +219,23 @@ const DashboardPage = () => {
         }
 
         /* Table hovering and coloring - increased density */
-        .table-hover-dark tbody tr {
-          border-bottom: 1px solid #1e293b !important;
+        .table-hover-light tbody tr {
+          border-bottom: 1px solid #e2e8f0 !important;
           transition: all 0.2s ease !important;
         }
-        .table-hover-dark tbody tr:hover {
-          background-color: rgba(255, 255, 255, 0.02) !important;
+        .table-hover-light tbody tr:hover {
+          background-color: #f8fafc !important;
         }
-        .table-hover-dark th {
-          color: #94a3b8 !important;
-          border-bottom: 2px solid #1e293b !important;
+        .table-hover-light th {
+          color: #475569 !important;
+          border-bottom: 2px solid #e2e8f0 !important;
           font-weight: 600 !important;
           font-family: 'Outfit', sans-serif !important;
           padding: 0.45rem 0.5rem !important;
           font-size: 0.75rem !important;
         }
-        .table-hover-dark td {
-          color: #ffffff !important;
+        .table-hover-light td {
+          color: #0f172a !important;
           border: none !important;
           padding: 0.4rem 0.5rem !important;
           font-size: 0.75rem !important;
@@ -245,28 +245,28 @@ const DashboardPage = () => {
         .form-control-premium-dark {
           width: 100%;
           padding: 0.5rem 0.75rem;
-          background-color: #0d1222 !important;
-          border: 1px solid #1e293b !important;
+          background-color: #ffffff !important;
+          border: 1px solid #e2e8f0 !important;
           border-radius: 6px;
           font-family: 'Inter', sans-serif;
           font-size: 0.85rem;
-          color: #ffffff !important;
+          color: #0f172a !important;
           transition: all 0.3s ease !important;
         }
         .form-control-premium-dark:focus {
           outline: none !important;
-          background-color: #090d16 !important;
+          background-color: #ffffff !important;
           border-color: #0ea5e9 !important;
-          box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.25) !important;
+          box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15) !important;
         }
         .form-control-premium-dark::placeholder {
-          color: #64748b;
+          color: #94a3b8;
         }
 
         /* Styled select */
         select.form-control-premium-dark {
           appearance: none;
-          background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+          background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23475569' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
           background-position: right 0.75rem center;
           background-repeat: no-repeat;
           background-size: 1.1rem;
@@ -275,50 +275,50 @@ const DashboardPage = () => {
       `}</style>
       
       {/* Sidebar navigation */}
-      <aside className="new-sidebar" style={{ width: '220px', backgroundColor: '#020617', display: 'flex', flexDirection: 'column', height: '100vh', position: 'fixed', zIndex: 100, borderRight: '1px solid #1e293b' }}>
-        <div className="logo-area" style={{ padding: '1rem', borderBottom: '1px solid #1e293b' }}>
+      <aside className="new-sidebar" style={{ width: '220px', backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column', height: '100vh', position: 'fixed', zIndex: 100, borderRight: '1px solid #e2e8f0' }}>
+        <div className="logo-area" style={{ padding: '1rem', borderBottom: '1px solid #e2e8f0' }}>
           <div className="d-flex align-items-center gap-2">
             <i className="fa-solid fa-cubes text-info" style={{ color: '#0ea5e9', fontSize: '1.3rem' }}></i>
-            <div className="logo-text text-white fw-bold d-flex flex-column" style={{ fontSize: '1rem', lineHeight: '1.1' }}>
+            <div className="logo-text text-dark fw-bold d-flex flex-column" style={{ fontSize: '1rem', lineHeight: '1.1' }}>
               Zero Inventory
-              <span className="text-secondary" style={{ fontSize: '0.58rem', letterSpacing: '0.3px', color: '#94a3b8' }}>MANAGEMENT SYSTEM</span>
+              <span className="text-secondary" style={{ fontSize: '0.58rem', letterSpacing: '0.3px', color: '#64748b' }}>MANAGEMENT SYSTEM</span>
             </div>
           </div>
         </div>
 
         <ul className="sidebar-nav-list" style={{ listStyle: 'none', padding: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.3rem', flexGrow: 1, margin: 0 }}>
           <li className="sidebar-nav-item active" style={{ display: 'block' }}>
-            <a href="#dashboard" onClick={() => playSynthSound('click')} className="text-white d-flex align-items-center gap-2.5 rounded text-decoration-none" style={{ backgroundColor: 'rgba(14, 165, 233, 0.15)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.4rem 0.6rem', fontSize: '0.82rem' }}>
+            <a href="#dashboard" onClick={() => playSynthSound('click')} className="text-info d-flex align-items-center gap-2.5 rounded text-decoration-none" style={{ backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.4rem 0.6rem', fontSize: '0.82rem', color: '#0ea5e9' }}>
               <i className="fa-solid fa-house text-info" style={{ color: '#0ea5e9', width: '16px' }}></i> Dashboard
             </a>
           </li>
           <li className="sidebar-nav-item">
-            <a href="#billing" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#94a3b8', padding: '0.4rem 0.6rem', fontSize: '0.82rem' }}>
+            <a href="#billing" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.4rem 0.6rem', fontSize: '0.82rem' }}>
               <i className="fa-solid fa-file-invoice" style={{ width: '16px' }}></i> Generate Bill
             </a>
           </li>
           <li className="sidebar-nav-item">
-            <a href="#products" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#94a3b8', padding: '0.4rem 0.6rem', fontSize: '0.82rem' }}>
+            <a href="#products" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.4rem 0.6rem', fontSize: '0.82rem' }}>
               <i className="fa-solid fa-box-open" style={{ width: '16px' }}></i> Products
             </a>
           </li>
           <li className="sidebar-nav-item">
-            <a href="#sales" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#94a3b8', padding: '0.4rem 0.6rem', fontSize: '0.82rem' }}>
+            <a href="#sales" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.4rem 0.6rem', fontSize: '0.82rem' }}>
               <i className="fa-solid fa-chart-line" style={{ width: '16px' }}></i> Sales
             </a>
           </li>
           <li className="sidebar-nav-item">
-            <a href="#purchases" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#94a3b8', padding: '0.4rem 0.6rem', fontSize: '0.82rem' }}>
+            <a href="#purchases" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.4rem 0.6rem', fontSize: '0.82rem' }}>
               <i className="fa-solid fa-cart-shopping" style={{ width: '16px' }}></i> Purchases
             </a>
           </li>
           <li className="sidebar-nav-item">
-            <a href="#inventory" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#94a3b8', padding: '0.4rem 0.6rem', fontSize: '0.82rem' }}>
+            <a href="#inventory" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.4rem 0.6rem', fontSize: '0.82rem' }}>
               <i className="fa-solid fa-warehouse" style={{ width: '16px' }}></i> Inventory
             </a>
           </li>
           <li className="sidebar-nav-item">
-            <a href="#categories" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#94a3b8', padding: '0.4rem 0.6rem', fontSize: '0.82rem' }}>
+            <a href="#categories" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.4rem 0.6rem', fontSize: '0.82rem' }}>
               <i className="fa-solid fa-tags" style={{ width: '16px' }}></i> Categories
             </a>
           </li>
@@ -334,14 +334,14 @@ const DashboardPage = () => {
         </div>
 
         {/* Sidebar Footer User Info */}
-        <div className="sidebar-bottom-user p-2 border-top border-secondary border-opacity-15 d-flex align-items-center justify-content-between text-white" style={{ borderColor: '#1e293b' }}>
+        <div className="sidebar-bottom-user p-2 border-top border-secondary border-opacity-15 d-flex align-items-center justify-content-between text-dark" style={{ borderColor: '#e2e8f0' }}>
           <div className="d-flex align-items-center gap-1.5">
-            <div className="avatar-circle rounded-circle bg-info text-dark d-flex align-items-center justify-content-center fw-bold" style={{ width: '28px', height: '28px', fontSize: '0.8rem', backgroundColor: '#0ea5e9', color: '#020617' }}>
+            <div className="avatar-circle rounded-circle bg-info text-dark d-flex align-items-center justify-content-center fw-bold" style={{ width: '28px', height: '28px', fontSize: '0.8rem', backgroundColor: 'rgba(14, 165, 233, 0.1)', color: '#0ea5e9' }}>
               {userInitial()}
             </div>
             <div style={{ maxWidth: '120px', overflow: 'hidden' }}>
-              <div className="fw-bold" style={{ fontSize: '0.72rem', lineHeight: '1.2' }}>Merchant Account</div>
-              <div className="text-secondary text-truncate" style={{ fontSize: '0.62rem', color: '#94a3b8' }}>{user?.email || 'merchant@gmail.com'}</div>
+              <div className="fw-bold" style={{ fontSize: '0.72rem', lineHeight: '1.2', color: '#0f172a' }}>Merchant Account</div>
+              <div className="text-secondary text-truncate" style={{ fontSize: '0.62rem', color: '#64748b' }}>{user?.email || 'merchant@gmail.com'}</div>
             </div>
           </div>
           <button className="btn btn-link text-danger p-0" title="Logout" onClick={handleLogout} style={{ fontSize: '0.9rem' }}>
@@ -354,30 +354,30 @@ const DashboardPage = () => {
       <main className="new-main" style={{ flexGrow: 1, marginLeft: '220px', display: 'flex', flexDirection: 'column', minHeight: '100vh', width: 'calc(100% - 220px)' }}>
         
         {/* Header Tools */}
-        <header className="new-header" style={{ backgroundColor: '#020617', borderBottom: '1px solid #1e293b', height: '50px', padding: '0 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', sticky: 'top', zIndex: 90 }}>
-          <div className="d-flex align-items-center gap-3">
+        <header className="new-header" style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #e2e8f0', height: '50px', padding: '0 1.25rem', display: 'flex', alignItems: 'center', justifycontent: 'space-between', sticky: 'top', zIndex: 90 }}>
+          <div className="d-flex align-items-center gap-3" style={{ flexGrow: 1 }}>
             <button className="btn p-0 text-secondary border-0 d-lg-none" id="sidebarToggle"><i className="fa-solid fa-bars fs-5"></i></button>
-            <div className="header-search-box d-none d-lg-flex align-items-center px-2.5 py-0.5 rounded-pill" style={{ backgroundColor: '#090d16', border: '1px solid #1e293b', width: '250px' }}>
+            <div className="header-search-box d-none d-lg-flex align-items-center px-2.5 py-0.5 rounded-pill" style={{ backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0', width: '250px' }}>
               <i className="fa-solid fa-magnifying-glass text-secondary me-1.5" style={{ color: '#64748b', fontSize: '0.8rem' }}></i>
-              <input type="text" className="bg-transparent border-0 outline-none" style={{ fontSize: '0.78rem', width: '100%', color: '#ffffff' }} placeholder="Search for products, customers..." />
+              <input type="text" className="bg-transparent border-0 outline-none" style={{ fontSize: '0.78rem', width: '100%', color: '#0f172a' }} placeholder="Search for products, customers..." />
             </div>
           </div>
 
           <div className="header-right-tools d-flex align-items-center gap-2.5">
             {/* SaaS Access Code Widget */}
-            <div className="header-saas-box d-flex align-items-center gap-1.5 px-2 py-0.5 rounded-3 border border-dashed border-info" style={{ backgroundColor: 'rgba(14, 165, 233, 0.05)', borderColor: '#0ea5e9' }}>
-              <span className="header-saas-label text-secondary fw-semibold" style={{ color: '#94a3b8', fontSize: '0.75rem' }}><i className="fa-solid fa-key me-1 text-info" style={{ color: '#0ea5e9', fontSize: '0.7rem' }}></i>SaaS:</span>
+            <div className="header-saas-box d-flex align-items-center gap-1.5 px-2 py-0.5 rounded-3 border border-dashed border-info" style={{ backgroundColor: '#f0f9ff', borderColor: '#0ea5e9' }}>
+              <span className="header-saas-label text-secondary fw-semibold" style={{ color: '#475569', fontSize: '0.75rem' }}><i className="fa-solid fa-key me-1 text-info" style={{ color: '#0ea5e9', fontSize: '0.7rem' }}></i>SaaS:</span>
               <span className="header-saas-value font-monospace text-info fw-bold" style={{ color: '#0ea5e9', fontSize: '0.75rem' }}>{formattedSaasCode()}</span>
               <button className="btn p-0 border-0" onClick={() => { playSynthSound('click'); setShowSaasCode(!showSaasCode); }} title="Toggle SaaS Code Visibility">
-                <i className={`fa-regular ${showSaasCode ? 'fa-eye-slash' : 'fa-eye'} text-secondary`} style={{ color: '#94a3b8', fontSize: '0.75rem' }}></i>
+                <i className={`fa-regular ${showSaasCode ? 'fa-eye-slash' : 'fa-eye'} text-secondary`} style={{ color: '#64748b', fontSize: '0.75rem' }}></i>
               </button>
             </div>
 
-            <button className="btn p-1 text-secondary" onClick={() => playSynthSound('click')} style={{ color: '#94a3b8' }}><i className="fa-solid fa-gear" style={{ fontSize: '1rem' }}></i></button>
+            <button className="btn p-1 text-secondary" onClick={() => playSynthSound('click')} style={{ color: '#64748b' }}><i className="fa-solid fa-gear" style={{ fontSize: '1rem' }}></i></button>
             <div className="position-relative">
-              <button className="btn p-1 text-secondary" onClick={() => playSynthSound('click')} style={{ color: '#94a3b8' }}>
+              <button className="btn p-1 text-secondary" onClick={() => playSynthSound('click')} style={{ color: '#64748b' }}>
                 <i className="fa-regular fa-bell" style={{ fontSize: '1rem' }}></i>
-                <span className="position-absolute p-0.5 bg-danger border border-light rounded-circle" style={{ borderColor: '#020617', top: '2px', right: '2px' }}></span>
+                <span className="position-absolute p-0.5 bg-danger border border-light rounded-circle" style={{ borderColor: '#ffffff', top: '2px', right: '2px' }}></span>
               </button>
             </div>
             
@@ -392,11 +392,11 @@ const DashboardPage = () => {
           
           {/* SaaS License Key Generated Banner */}
           {justRegistered && showSaasKeyAlert && (
-            <div className="mb-3 p-3 rounded-3 shadow-sm" style={{ backgroundColor: 'rgba(14, 165, 233, 0.05)', border: '1.5px solid #0ea5e9', position: 'relative' }}>
+            <div className="mb-3 p-3 rounded-3 shadow-sm" style={{ backgroundColor: '#f0f9ff', border: '1.5px solid #0ea5e9', position: 'relative' }}>
               <button 
                 type="button"
                 className="btn-close position-absolute" 
-                style={{ top: '10px', right: '10px', border: 'none', background: 'transparent', fontSize: '1rem', color: '#94a3b8', cursor: 'pointer' }}
+                style={{ top: '10px', right: '10px', border: 'none', background: 'transparent', fontSize: '1rem', color: '#64748b', cursor: 'pointer' }}
                 onClick={() => { playSynthSound('click'); setShowSaasKeyAlert(false); }}
               >
                 <i className="fa-solid fa-xmark"></i>
@@ -406,7 +406,7 @@ const DashboardPage = () => {
                   <h4 className="text-info fw-bold mb-1" style={{ color: '#0ea5e9', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem' }}>
                     <i className="fa-solid fa-key"></i> SaaS License Key Generated
                   </h4>
-                  <p className="text-secondary small mb-0" style={{ color: '#94a3b8', fontSize: '0.75rem' }}>
+                  <p className="text-secondary small mb-0" style={{ color: '#475569', fontSize: '0.75rem' }}>
                     Your credentials have been generated successfully. Copy the key below and save it. You will need it along with your Email and Password to log back into your Dashboard.
                   </p>
                 </div>
