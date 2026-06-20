@@ -1,0 +1,75 @@
+========================================================================
+             Zero Inventory - MERN Stack Deployment Guide
+========================================================================
+
+This guide explains how to deploy your Zero Inventory SaaS application. The backend (Express API & MongoDB) will be hosted on Render, and the frontend (Vite React SPA) will be hosted on Vercel.
+
+------------------------------------------------------------------------
+STEP 1: Deploy the Backend on Render
+------------------------------------------------------------------------
+Render (https://render.com) is a great free hosting provider for Node.js backends.
+
+1. Create a Render Account:
+   Go to https://render.com and sign up (using your GitHub account is recommended).
+
+2. Create a Web Service:
+   - Click "New +" and select "Web Service".
+   - Connect your GitHub repository:
+     https://github.com/mitulvegad/zero-inventory-.git
+
+3. Configure Web Service Settings:
+   - Name: zero-inventory-backend
+   - Region: Choose the location closest to you (e.g., Oregon, Frankfurt, Singapore)
+   - Branch: main
+   - Root Directory: backend (CRITICAL: Type "backend" here)
+   - Runtime: Node
+   - Build Command: npm install
+   - Start Command: node server.js
+
+4. Add Environment Variables:
+   Click on the "Advanced" button and scroll down to "Environment Variables". Add the following key-value pairs:
+   
+   - MONGO_URI = [Your MongoDB connection string, e.g., mongodb+srv://...]
+   - JWT_SECRET = [Generate a secure random secret key, e.g., secret123]
+   - NODE_ENV = production
+
+5. Deploy:
+   - Click "Create Web Service".
+   - Once the deploy completes successfully, copy your backend's public URL from the top of the Render page (it will look like: https://zero-inventory-backend.onrender.com).
+
+------------------------------------------------------------------------
+STEP 2: Deploy the Frontend on Vercel
+------------------------------------------------------------------------
+Vercel (https://vercel.com) provides high-performance hosting for frontend SPAs.
+
+1. Create a Vercel Account:
+   Go to https://vercel.com and sign up (log in with your GitHub account).
+
+2. Import Repository:
+   - Click "Add New..." and select "Project".
+   - Import your GitHub repository: zero-inventory-
+
+3. Configure Project Settings:
+   - Framework Preset: Vite (Vercel will auto-detect this)
+   - Root Directory: frontend (CRITICAL: Click "Edit" and select the "frontend" folder)
+   - Build Command: npm run build
+   - Output Directory: dist
+
+4. Add Environment Variables:
+   Under the "Environment Variables" section, add:
+   
+   - Key: VITE_API_URL
+   - Value: [Your Render Backend URL] + /api
+     (Example: https://zero-inventory-backend.onrender.com/api)
+     (CRITICAL: Make sure to include the "/api" at the end of the URL!)
+
+5. Deploy:
+   - Click "Deploy".
+   - Vercel will build the frontend and provide you with a live URL (e.g., https://zero-inventory.vercel.app).
+
+------------------------------------------------------------------------
+STEP 3: Verify the Live Application
+------------------------------------------------------------------------
+- Open your new live Vercel URL.
+- Go to "Plans" and try purchasing the "Starter Shop" or "Growth Shop" to test the payment gateway flow.
+- Ensure authentication, SaaS code generation, and redirects function correctly with your database.
