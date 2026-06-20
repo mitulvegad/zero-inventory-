@@ -162,18 +162,18 @@ const DashboardPage = () => {
   };
 
   return (
-    <div className="dashboard-container" style={{ backgroundColor: '#f8fafc', color: '#475569', minHeight: '100vh', display: 'flex', fontFamily: "'Inter', sans-serif" }}>
+    <div className="dashboard-container" style={{ background: 'radial-gradient(circle at bottom right, rgba(14, 165, 233, 0.12), transparent), #030712', color: '#94a3b8', minHeight: '100vh', display: 'flex', fontFamily: "'Inter', sans-serif", fontSize: '0.85rem' }}>
       <style>{`
         /* Webkit scrollbars for tables */
         .table-responsive::-webkit-scrollbar {
-          width: 6px;
-          height: 6px;
+          width: 5px;
+          height: 5px;
         }
         .table-responsive::-webkit-scrollbar-track {
-          background: #f1f5f9;
+          background: rgba(2, 6, 23, 0.3);
         }
         .table-responsive::-webkit-scrollbar-thumb {
-          background: #cbd5e1;
+          background: #1e293b;
           border-radius: 3px;
         }
         .table-responsive::-webkit-scrollbar-thumb:hover {
@@ -182,76 +182,80 @@ const DashboardPage = () => {
 
         /* Sidebar item hovers */
         .hover-light-bg:hover {
-          background-color: #f1f5f9 !important;
-          color: #0f172a !important;
+          background-color: rgba(14, 165, 233, 0.1) !important;
+          color: #ffffff !important;
         }
 
         /* Quick Navigation item overrides */
         .quick-action-item {
-          background-color: #f8fafc !important;
-          border: 1px solid #e2e8f0 !important;
-          color: #475569 !important;
+          background-color: #0d1222 !important;
+          border: 1px solid #1e293b !important;
+          color: #94a3b8 !important;
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-          border-radius: 12px !important;
+          border-radius: 8px !important;
           display: flex !important;
           flex-direction: column !important;
           align-items: center !important;
           justify-content: center !important;
-          padding: 1.25rem 0.75rem !important;
+          padding: 0.85rem 0.5rem !important;
           font-weight: 600 !important;
-          font-size: 0.8rem !important;
+          font-size: 0.72rem !important;
           text-align: center !important;
         }
         .quick-action-item i {
-          font-size: 1.5rem !important;
-          margin-bottom: 8px !important;
+          font-size: 1.2rem !important;
+          margin-bottom: 5px !important;
           transition: transform 0.3s ease !important;
         }
         .quick-action-item:hover {
-          background-color: #ffffff !important;
+          background-color: rgba(14, 165, 233, 0.08) !important;
           border-color: #0ea5e9 !important;
-          color: #0ea5e9 !important;
-          box-shadow: 0 10px 20px -10px rgba(14, 165, 233, 0.3) !important;
-          transform: translateY(-2px) !important;
+          color: #ffffff !important;
+          box-shadow: 0 0 10px rgba(14, 165, 233, 0.12) !important;
+          transform: translateY(-1.5px) !important;
         }
         .quick-action-item:hover i {
-          transform: scale(1.15) !important;
+          transform: scale(1.1) !important;
         }
 
-        /* Table hovering and coloring */
-        .table-hover-light tbody tr {
-          border-bottom: 1px solid #e2e8f0 !important;
+        /* Table hovering and coloring - increased density */
+        .table-hover-dark tbody tr {
+          border-bottom: 1px solid #1e293b !important;
           transition: all 0.2s ease !important;
         }
-        .table-hover-light tbody tr:hover {
-          background-color: #f8fafc !important;
+        .table-hover-dark tbody tr:hover {
+          background-color: rgba(255, 255, 255, 0.02) !important;
         }
-        .table-hover-light th {
-          color: #475569 !important;
-          border-bottom: 2px solid #e2e8f0 !important;
+        .table-hover-dark th {
+          color: #94a3b8 !important;
+          border-bottom: 2px solid #1e293b !important;
           font-weight: 600 !important;
           font-family: 'Outfit', sans-serif !important;
+          padding: 0.45rem 0.5rem !important;
+          font-size: 0.75rem !important;
         }
-        .table-hover-light td {
-          color: #0f172a !important;
+        .table-hover-dark td {
+          color: #ffffff !important;
           border: none !important;
+          padding: 0.4rem 0.5rem !important;
+          font-size: 0.75rem !important;
         }
 
-        /* Form elements focus glow (for dark form container at the bottom) */
+        /* Form elements focus glow */
         .form-control-premium-dark {
           width: 100%;
-          padding: 0.75rem 1rem;
-          background-color: #1e293b !important;
-          border: 1px solid #334155 !important;
-          border-radius: 8px;
+          padding: 0.5rem 0.75rem;
+          background-color: #0d1222 !important;
+          border: 1px solid #1e293b !important;
+          border-radius: 6px;
           font-family: 'Inter', sans-serif;
-          font-size: 0.95rem;
+          font-size: 0.85rem;
           color: #ffffff !important;
           transition: all 0.3s ease !important;
         }
         .form-control-premium-dark:focus {
           outline: none !important;
-          background-color: #0d1321 !important;
+          background-color: #090d16 !important;
           border-color: #0ea5e9 !important;
           box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.25) !important;
         }
@@ -265,152 +269,152 @@ const DashboardPage = () => {
           background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
           background-position: right 0.75rem center;
           background-repeat: no-repeat;
-          background-size: 1.25rem;
-          padding-right: 2rem;
+          background-size: 1.1rem;
+          padding-right: 1.75rem;
         }
       `}</style>
       
       {/* Sidebar navigation */}
-      <aside className="new-sidebar" style={{ width: '280px', backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column', height: '100vh', position: 'fixed', zIndex: 100, borderRight: '1px solid #e2e8f0' }}>
-        <div className="logo-area" style={{ padding: '1.5rem', borderBottom: '1px solid #e2e8f0' }}>
+      <aside className="new-sidebar" style={{ width: '220px', backgroundColor: '#020617', display: 'flex', flexDirection: 'column', height: '100vh', position: 'fixed', zIndex: 100, borderRight: '1px solid #1e293b' }}>
+        <div className="logo-area" style={{ padding: '1rem', borderBottom: '1px solid #1e293b' }}>
           <div className="d-flex align-items-center gap-2">
-            <i className="fa-solid fa-cubes text-info fs-3" style={{ color: '#0ea5e9' }}></i>
-            <div className="logo-text text-dark fw-bold d-flex flex-column" style={{ fontSize: '1.2rem', lineHeight: '1.2' }}>
+            <i className="fa-solid fa-cubes text-info" style={{ color: '#0ea5e9', fontSize: '1.3rem' }}></i>
+            <div className="logo-text text-white fw-bold d-flex flex-column" style={{ fontSize: '1rem', lineHeight: '1.1' }}>
               Zero Inventory
-              <span className="text-secondary" style={{ fontSize: '0.65rem', letterSpacing: '0.5px', color: '#64748b' }}>MANAGEMENT SYSTEM</span>
+              <span className="text-secondary" style={{ fontSize: '0.58rem', letterSpacing: '0.3px', color: '#94a3b8' }}>MANAGEMENT SYSTEM</span>
             </div>
           </div>
         </div>
 
-        <ul className="sidebar-nav-list" style={{ listStyle: 'none', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', flexGrow: 1, margin: 0 }}>
+        <ul className="sidebar-nav-list" style={{ listStyle: 'none', padding: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.3rem', flexGrow: 1, margin: 0 }}>
           <li className="sidebar-nav-item active" style={{ display: 'block' }}>
-            <a href="#dashboard" onClick={() => playSynthSound('click')} className="text-info d-flex align-items-center gap-3 p-2 rounded text-decoration-none" style={{ backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopRightRadius: '8px', borderBottomRightRadius: '8px' }}>
-              <i className="fa-solid fa-house text-info" style={{ color: '#0ea5e9' }}></i> Dashboard
+            <a href="#dashboard" onClick={() => playSynthSound('click')} className="text-white d-flex align-items-center gap-2.5 rounded text-decoration-none" style={{ backgroundColor: 'rgba(14, 165, 233, 0.15)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.4rem 0.6rem', fontSize: '0.82rem' }}>
+              <i className="fa-solid fa-house text-info" style={{ color: '#0ea5e9', width: '16px' }}></i> Dashboard
             </a>
           </li>
           <li className="sidebar-nav-item">
-            <a href="#billing" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-3 p-2 rounded text-decoration-none hover-light-bg" style={{ color: '#475569' }}>
-              <i className="fa-solid fa-file-invoice"></i> Generate Bill
+            <a href="#billing" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#94a3b8', padding: '0.4rem 0.6rem', fontSize: '0.82rem' }}>
+              <i className="fa-solid fa-file-invoice" style={{ width: '16px' }}></i> Generate Bill
             </a>
           </li>
           <li className="sidebar-nav-item">
-            <a href="#products" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-3 p-2 rounded text-decoration-none hover-light-bg" style={{ color: '#475569' }}>
-              <i className="fa-solid fa-box-open"></i> Products
+            <a href="#products" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#94a3b8', padding: '0.4rem 0.6rem', fontSize: '0.82rem' }}>
+              <i className="fa-solid fa-box-open" style={{ width: '16px' }}></i> Products
             </a>
           </li>
           <li className="sidebar-nav-item">
-            <a href="#sales" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-3 p-2 rounded text-decoration-none hover-light-bg" style={{ color: '#475569' }}>
-              <i className="fa-solid fa-chart-line"></i> Sales
+            <a href="#sales" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#94a3b8', padding: '0.4rem 0.6rem', fontSize: '0.82rem' }}>
+              <i className="fa-solid fa-chart-line" style={{ width: '16px' }}></i> Sales
             </a>
           </li>
           <li className="sidebar-nav-item">
-            <a href="#purchases" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-3 p-2 rounded text-decoration-none hover-light-bg" style={{ color: '#475569' }}>
-              <i className="fa-solid fa-cart-shopping"></i> Purchases
+            <a href="#purchases" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#94a3b8', padding: '0.4rem 0.6rem', fontSize: '0.82rem' }}>
+              <i className="fa-solid fa-cart-shopping" style={{ width: '16px' }}></i> Purchases
             </a>
           </li>
           <li className="sidebar-nav-item">
-            <a href="#inventory" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-3 p-2 rounded text-decoration-none hover-light-bg" style={{ color: '#475569' }}>
-              <i className="fa-solid fa-warehouse"></i> Inventory
+            <a href="#inventory" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#94a3b8', padding: '0.4rem 0.6rem', fontSize: '0.82rem' }}>
+              <i className="fa-solid fa-warehouse" style={{ width: '16px' }}></i> Inventory
             </a>
           </li>
           <li className="sidebar-nav-item">
-            <a href="#categories" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-3 p-2 rounded text-decoration-none hover-light-bg" style={{ color: '#475569' }}>
-              <i className="fa-solid fa-tags"></i> Categories
+            <a href="#categories" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#94a3b8', padding: '0.4rem 0.6rem', fontSize: '0.82rem' }}>
+              <i className="fa-solid fa-tags" style={{ width: '16px' }}></i> Categories
             </a>
           </li>
         </ul>
 
         {/* Upgrade Card */}
-        <div className="upgrade-pro-card m-3 p-3 rounded-3 text-center" style={{ background: 'linear-gradient(135deg, #4f46e5, #0ea5e9)', color: '#ffffff' }}>
-          <h5 className="fw-bold fs-6 mb-1">Upgrade to Pro</h5>
-          <p className="small mb-3" style={{ fontSize: '0.75rem', opacity: '0.9' }}>Unlock advanced features and grow your business.</p>
-          <button className="btn btn-light btn-sm w-100 fw-bold" style={{ color: '#4f46e5', borderRadius: '8px' }} onClick={() => triggerAlert('Upgrade System', 'Simulated gateway dashboard update is active.')}>
+        <div className="upgrade-pro-card m-2.5 p-2.5 rounded-3 text-center" style={{ background: 'linear-gradient(135deg, #0ea5e9, #0284c7)', color: '#ffffff', border: '1px solid rgba(14, 165, 233, 0.2)' }}>
+          <h5 className="fw-bold mb-1" style={{ fontSize: '0.85rem' }}>Upgrade to Pro</h5>
+          <p className="small mb-2" style={{ fontSize: '0.7rem', opacity: '0.9', lineHeight: '1.2' }}>Unlock advanced features and grow your business.</p>
+          <button className="btn btn-light btn-sm w-100 fw-bold" style={{ color: '#0284c7', borderRadius: '6px', fontSize: '0.72rem', padding: '0.25rem' }} onClick={() => triggerAlert('Upgrade System', 'Simulated gateway dashboard update is active.')}>
             Upgrade Now
           </button>
         </div>
 
         {/* Sidebar Footer User Info */}
-        <div className="sidebar-bottom-user p-3 border-top border-secondary border-opacity-15 d-flex align-items-center justify-content-between text-dark" style={{ borderColor: '#e2e8f0' }}>
-          <div className="d-flex align-items-center gap-2">
-            <div className="avatar-circle rounded-circle bg-info text-dark d-flex align-items-center justify-content-center fw-bold" style={{ width: '36px', height: '36px', fontSize: '0.95rem', backgroundColor: 'rgba(14, 165, 233, 0.1)', color: '#0ea5e9' }}>
+        <div className="sidebar-bottom-user p-2 border-top border-secondary border-opacity-15 d-flex align-items-center justify-content-between text-white" style={{ borderColor: '#1e293b' }}>
+          <div className="d-flex align-items-center gap-1.5">
+            <div className="avatar-circle rounded-circle bg-info text-dark d-flex align-items-center justify-content-center fw-bold" style={{ width: '28px', height: '28px', fontSize: '0.8rem', backgroundColor: '#0ea5e9', color: '#020617' }}>
               {userInitial()}
             </div>
-            <div style={{ maxWidth: '140px', overflow: 'hidden' }}>
-              <div className="fw-bold small" style={{ fontSize: '0.78rem', color: '#0f172a' }}>Merchant Account</div>
-              <div className="text-secondary small text-truncate" style={{ fontSize: '0.68rem', color: '#64748b' }}>{user?.email || 'merchant@gmail.com'}</div>
+            <div style={{ maxWidth: '120px', overflow: 'hidden' }}>
+              <div className="fw-bold" style={{ fontSize: '0.72rem', lineHeight: '1.2' }}>Merchant Account</div>
+              <div className="text-secondary text-truncate" style={{ fontSize: '0.62rem', color: '#94a3b8' }}>{user?.email || 'merchant@gmail.com'}</div>
             </div>
           </div>
-          <button className="btn btn-link text-danger p-0" title="Logout" onClick={handleLogout}>
-            <i className="fa-solid fa-right-from-bracket fs-5"></i>
+          <button className="btn btn-link text-danger p-0" title="Logout" onClick={handleLogout} style={{ fontSize: '0.9rem' }}>
+            <i className="fa-solid fa-right-from-bracket"></i>
           </button>
         </div>
       </aside>
 
       {/* Main content body */}
-      <main className="new-main" style={{ flexGrow: 1, marginLeft: '280px', display: 'flex', flexDirection: 'column', minHeight: '100vh', width: 'calc(100% - 280px)' }}>
+      <main className="new-main" style={{ flexGrow: 1, marginLeft: '220px', display: 'flex', flexDirection: 'column', minHeight: '100vh', width: 'calc(100% - 220px)' }}>
         
         {/* Header Tools */}
-        <header className="new-header" style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #e2e8f0', height: '70px', padding: '0 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', sticky: 'top', zIndex: 90 }}>
+        <header className="new-header" style={{ backgroundColor: '#020617', borderBottom: '1px solid #1e293b', height: '50px', padding: '0 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', sticky: 'top', zIndex: 90 }}>
           <div className="d-flex align-items-center gap-3">
             <button className="btn p-0 text-secondary border-0 d-lg-none" id="sidebarToggle"><i className="fa-solid fa-bars fs-5"></i></button>
-            <div className="header-search-box d-none d-lg-flex align-items-center px-3 py-1 rounded-pill" style={{ backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0', width: '320px' }}>
-              <i className="fa-solid fa-magnifying-glass text-secondary me-2" style={{ color: '#64748b' }}></i>
-              <input type="text" className="bg-transparent border-0 outline-none" style={{ fontSize: '0.85rem', width: '100%', color: '#0f172a' }} placeholder="Search for products, customers, invoices..." />
+            <div className="header-search-box d-none d-lg-flex align-items-center px-2.5 py-0.5 rounded-pill" style={{ backgroundColor: '#090d16', border: '1px solid #1e293b', width: '250px' }}>
+              <i className="fa-solid fa-magnifying-glass text-secondary me-1.5" style={{ color: '#64748b', fontSize: '0.8rem' }}></i>
+              <input type="text" className="bg-transparent border-0 outline-none" style={{ fontSize: '0.78rem', width: '100%', color: '#ffffff' }} placeholder="Search for products, customers..." />
             </div>
           </div>
 
-          <div className="header-right-tools d-flex align-items-center gap-3">
+          <div className="header-right-tools d-flex align-items-center gap-2.5">
             {/* SaaS Access Code Widget */}
-            <div className="header-saas-box d-flex align-items-center gap-2 px-3 py-1.5 rounded-3 border border-dashed border-info" style={{ backgroundColor: '#f0f9ff', borderColor: '#0ea5e9' }}>
-              <span className="header-saas-label text-secondary small fw-semibold" style={{ color: '#475569' }}><i className="fa-solid fa-key me-1 text-info" style={{ color: '#0ea5e9' }}></i>SaaS Code:</span>
-              <span className="header-saas-value font-monospace text-info fw-bold small" style={{ color: '#0ea5e9' }}>{formattedSaasCode()}</span>
+            <div className="header-saas-box d-flex align-items-center gap-1.5 px-2 py-0.5 rounded-3 border border-dashed border-info" style={{ backgroundColor: 'rgba(14, 165, 233, 0.05)', borderColor: '#0ea5e9' }}>
+              <span className="header-saas-label text-secondary fw-semibold" style={{ color: '#94a3b8', fontSize: '0.75rem' }}><i className="fa-solid fa-key me-1 text-info" style={{ color: '#0ea5e9', fontSize: '0.7rem' }}></i>SaaS:</span>
+              <span className="header-saas-value font-monospace text-info fw-bold" style={{ color: '#0ea5e9', fontSize: '0.75rem' }}>{formattedSaasCode()}</span>
               <button className="btn p-0 border-0" onClick={() => { playSynthSound('click'); setShowSaasCode(!showSaasCode); }} title="Toggle SaaS Code Visibility">
-                <i className={`fa-regular ${showSaasCode ? 'fa-eye-slash' : 'fa-eye'} text-secondary`} style={{ color: '#64748b' }}></i>
+                <i className={`fa-regular ${showSaasCode ? 'fa-eye-slash' : 'fa-eye'} text-secondary`} style={{ color: '#94a3b8', fontSize: '0.75rem' }}></i>
               </button>
             </div>
 
-            <button className="btn p-1 text-secondary" onClick={() => playSynthSound('click')} style={{ color: '#64748b' }}><i className="fa-solid fa-gear fs-5"></i></button>
+            <button className="btn p-1 text-secondary" onClick={() => playSynthSound('click')} style={{ color: '#94a3b8' }}><i className="fa-solid fa-gear" style={{ fontSize: '1rem' }}></i></button>
             <div className="position-relative">
-              <button className="btn p-1 text-secondary" onClick={() => playSynthSound('click')} style={{ color: '#64748b' }}>
-                <i className="fa-regular fa-bell fs-5"></i>
-                <span className="position-absolute top-1 start-7 translate-middle p-1 bg-danger border border-light rounded-circle" style={{ borderColor: '#ffffff' }}></span>
+              <button className="btn p-1 text-secondary" onClick={() => playSynthSound('click')} style={{ color: '#94a3b8' }}>
+                <i className="fa-regular fa-bell" style={{ fontSize: '1rem' }}></i>
+                <span className="position-absolute p-0.5 bg-danger border border-light rounded-circle" style={{ borderColor: '#020617', top: '2px', right: '2px' }}></span>
               </button>
             </div>
             
-            <div className="user-avatar-circle rounded-circle d-flex align-items-center justify-content-center fw-semibold text-info" style={{ width: '32px', height: '32px', fontSize: '0.85rem', backgroundColor: 'rgba(14, 165, 233, 0.1)', color: '#0ea5e9' }}>
+            <div className="user-avatar-circle rounded-circle d-flex align-items-center justify-content-center fw-semibold text-info" style={{ width: '26px', height: '26px', fontSize: '0.75rem', backgroundColor: 'rgba(14, 165, 233, 0.1)', color: '#0ea5e9' }}>
               {userInitial()}
             </div>
           </div>
         </header>
 
         {/* Dashboard Content Container */}
-        <div className="content-area p-4" style={{ flexGrow: 1 }}>
+        <div className="content-area" style={{ flexGrow: 1, padding: '1rem 1.25rem' }}>
           
           {/* SaaS License Key Generated Banner */}
           {justRegistered && showSaasKeyAlert && (
-            <div className="mb-4 p-4 rounded-4 shadow-sm" style={{ backgroundColor: '#f0f9ff', border: '2px solid #0ea5e9', position: 'relative' }}>
+            <div className="mb-3 p-3 rounded-3 shadow-sm" style={{ backgroundColor: 'rgba(14, 165, 233, 0.05)', border: '1.5px solid #0ea5e9', position: 'relative' }}>
               <button 
                 type="button"
                 className="btn-close position-absolute" 
-                style={{ top: '15px', right: '15px', border: 'none', background: 'transparent', fontSize: '1.25rem', color: '#64748b', cursor: 'pointer' }}
+                style={{ top: '10px', right: '10px', border: 'none', background: 'transparent', fontSize: '1rem', color: '#94a3b8', cursor: 'pointer' }}
                 onClick={() => { playSynthSound('click'); setShowSaasKeyAlert(false); }}
               >
                 <i className="fa-solid fa-xmark"></i>
               </button>
               <div className="row align-items-center">
                 <div className="col-lg-8">
-                  <h4 className="text-info fw-bold mb-2" style={{ color: '#0ea5e9', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.1rem' }}>
+                  <h4 className="text-info fw-bold mb-1" style={{ color: '#0ea5e9', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem' }}>
                     <i className="fa-solid fa-key"></i> SaaS License Key Generated
                   </h4>
-                  <p className="text-secondary small mb-0" style={{ color: '#475569' }}>
+                  <p className="text-secondary small mb-0" style={{ color: '#94a3b8', fontSize: '0.75rem' }}>
                     Your credentials have been generated successfully. Copy the key below and save it. You will need it along with your Email and Password to log back into your Dashboard.
                   </p>
                 </div>
-                <div className="col-lg-4 text-lg-end mt-3 mt-lg-0">
-                  <div className="d-inline-flex align-items-center gap-2 bg-white p-2 rounded border border-info font-monospace">
-                    <span className="text-info fw-bold px-2">{saasCode}</span>
-                    <button className="btn btn-sm btn-info text-white" style={{ backgroundColor: '#0ea5e9', borderColor: '#0ea5e9', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px' }} onClick={handleCopyCode}>
-                      <i className="fa-regular fa-copy"></i>
+                <div className="col-lg-4 text-lg-end mt-2 mt-lg-0">
+                  <div className="d-inline-flex align-items-center gap-1.5 bg-black bg-opacity-40 p-1.5 rounded border border-info border-opacity-30 font-monospace" style={{ fontSize: '0.75rem' }}>
+                    <span className="text-info fw-bold px-1.5">{saasCode}</span>
+                    <button className="btn btn-sm btn-info text-white" style={{ backgroundColor: '#0ea5e9', borderColor: '#0ea5e9', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '24px', height: '24px', padding: 0 }} onClick={handleCopyCode}>
+                      <i className="fa-regular fa-copy" style={{ fontSize: '0.7rem' }}></i>
                     </button>
                   </div>
                 </div>
@@ -419,63 +423,63 @@ const DashboardPage = () => {
           )}
 
           {/* Main Title Banner */}
-          <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+          <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
             <div>
-              <h1 className="fs-3 text-dark fw-bold mb-1" style={{ fontFamily: 'Outfit' }}>Dashboard</h1>
-              <p className="text-secondary small mb-0" style={{ color: '#475569' }}>Welcome back, Merchant! Here's what's happening with your store today.</p>
+              <h1 className="text-white fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem' }}>Dashboard</h1>
+              <p className="text-secondary small mb-0" style={{ color: '#94a3b8', fontSize: '0.75rem' }}>Welcome back, Merchant! Here's what's happening with your store today.</p>
             </div>
             <div className="d-flex align-items-center gap-2">
-              <div className="px-3 py-2 border rounded-3 bg-white shadow-sm text-secondary small fw-medium" style={{ borderColor: '#e2e8f0', color: '#475569' }}>
-                <i className="fa-regular fa-calendar me-2"></i>Jun 20, 2026 - Jun 20, 2026
+              <div className="px-2.5 py-1 border rounded-3 shadow-sm text-secondary small fw-medium" style={{ backgroundColor: '#0b0f19', borderColor: '#1e293b', color: '#94a3b8', fontSize: '0.75rem' }}>
+                <i className="fa-regular fa-calendar me-1.5"></i>Jun 20, 2026 - Jun 20, 2026
               </div>
-              <button className="btn btn-info text-white fw-semibold d-flex align-items-center gap-2 shadow-sm" style={{ backgroundColor: '#0ea5e9', borderColor: '#0ea5e9' }} onClick={() => triggerAlert('Audit Logs', 'Opening audit logs database records...')}>
+              <button className="btn btn-premium-primary fw-semibold d-flex align-items-center gap-1.5 shadow-sm" style={{ padding: '0.3rem 0.8rem', borderRadius: '6px', fontSize: '0.75rem' }} onClick={() => triggerAlert('Audit Logs', 'Opening audit logs database records...')}>
                 <i className="fa-solid fa-clock-rotate-left"></i> View Audit Reports
               </button>
             </div>
           </div>
 
           {/* 4 Stat Summary Cards */}
-          <div className="row g-4 mb-4">
+          <div className="row g-3 mb-3">
             <div className="col-sm-6 col-xl-3">
-              <div className="metric-card bg-white p-4 rounded-4 shadow-sm border d-flex justify-content-between align-items-center" style={{ borderColor: '#e2e8f0' }}>
+              <div className="metric-card p-3 rounded-3 shadow-sm border d-flex justify-content-between align-items-center" style={{ backgroundColor: '#0b0f19', borderColor: '#1e293b' }}>
                 <div className="metric-info">
-                  <h3 className="text-secondary text-uppercase fw-semibold mb-1" style={{ fontSize: '0.78rem', letterSpacing: '0.5px', color: '#475569' }}>Total Products</h3>
-                  <div className="metric-number text-dark fw-extrabold fs-3" style={{ color: '#0f172a' }}>{stats.totalProducts}</div>
+                  <h3 className="text-secondary text-uppercase fw-semibold mb-0.5" style={{ fontSize: '0.7rem', letterSpacing: '0.5px', color: '#94a3b8' }}>Total Products</h3>
+                  <div className="metric-number text-white fw-extrabold" style={{ color: '#ffffff', fontSize: '1.3rem' }}>{stats.totalProducts}</div>
                 </div>
-                <div className="metric-icon-box rounded-3 d-flex align-items-center justify-content-center bg-info bg-opacity-10 text-info" style={{ width: '48px', height: '48px', fontSize: '1.4rem', backgroundColor: 'rgba(14, 165, 233, 0.1)', color: '#0ea5e9' }}>
+                <div className="metric-icon-box rounded-3 d-flex align-items-center justify-content-center bg-info bg-opacity-10 text-info" style={{ width: '36px', height: '36px', fontSize: '1.1rem', backgroundColor: 'rgba(14, 165, 233, 0.1)', color: '#0ea5e9' }}>
                   <i className="fa-solid fa-box"></i>
                 </div>
               </div>
             </div>
             <div className="col-sm-6 col-xl-3">
-              <div className="metric-card bg-white p-4 rounded-4 shadow-sm border d-flex justify-content-between align-items-center" style={{ borderColor: '#e2e8f0' }}>
+              <div className="metric-card p-3 rounded-3 shadow-sm border d-flex justify-content-between align-items-center" style={{ backgroundColor: '#0b0f19', borderColor: '#1e293b' }}>
                 <div className="metric-info">
-                  <h3 className="text-secondary text-uppercase fw-semibold mb-1" style={{ fontSize: '0.78rem', letterSpacing: '0.5px', color: '#475569' }}>Total Stock Value</h3>
-                  <div className="metric-number text-dark fw-extrabold fs-3" style={{ color: '#0f172a' }}>${stats.totalStockValue.toFixed(2)}</div>
+                  <h3 className="text-secondary text-uppercase fw-semibold mb-0.5" style={{ fontSize: '0.7rem', letterSpacing: '0.5px', color: '#94a3b8' }}>Total Stock Value</h3>
+                  <div className="metric-number text-white fw-extrabold" style={{ color: '#ffffff', fontSize: '1.3rem' }}>${stats.totalStockValue.toFixed(2)}</div>
                 </div>
-                <div className="metric-icon-box rounded-3 d-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success" style={{ width: '48px', height: '48px', fontSize: '1.4rem', backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
+                <div className="metric-icon-box rounded-3 d-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success" style={{ width: '36px', height: '36px', fontSize: '1.1rem', backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
                   <i className="fa-solid fa-coins"></i>
                 </div>
               </div>
             </div>
             <div className="col-sm-6 col-xl-3">
-              <div className="metric-card bg-white p-4 rounded-4 shadow-sm border d-flex justify-content-between align-items-center" style={{ borderColor: '#e2e8f0' }}>
+              <div className="metric-card p-3 rounded-3 shadow-sm border d-flex justify-content-between align-items-center" style={{ backgroundColor: '#0b0f19', borderColor: '#1e293b' }}>
                 <div className="metric-info">
-                  <h3 className="text-secondary text-uppercase fw-semibold mb-1" style={{ fontSize: '0.78rem', letterSpacing: '0.5px', color: '#475569' }}>Total Item Units</h3>
-                  <div className="metric-number text-dark fw-extrabold fs-3" style={{ color: '#0f172a' }}>{stats.totalItemUnits}</div>
+                  <h3 className="text-secondary text-uppercase fw-semibold mb-0.5" style={{ fontSize: '0.7rem', letterSpacing: '0.5px', color: '#94a3b8' }}>Total Item Units</h3>
+                  <div className="metric-number text-white fw-extrabold" style={{ color: '#ffffff', fontSize: '1.3rem' }}>{stats.totalItemUnits}</div>
                 </div>
-                <div className="metric-icon-box rounded-3 d-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary" style={{ width: '48px', height: '48px', fontSize: '1.4rem', backgroundColor: 'rgba(79, 70, 229, 0.1)', color: '#4f46e5' }}>
+                <div className="metric-icon-box rounded-3 d-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary" style={{ width: '36px', height: '36px', fontSize: '1.1rem', backgroundColor: 'rgba(79, 70, 229, 0.1)', color: '#4f46e5' }}>
                   <i className="fa-solid fa-boxes-stacked"></i>
                 </div>
               </div>
             </div>
             <div className="col-sm-6 col-xl-3">
-              <div className="metric-card bg-white p-4 rounded-4 shadow-sm border d-flex justify-content-between align-items-center" style={{ borderColor: '#e2e8f0' }}>
+              <div className="metric-card p-3 rounded-3 shadow-sm border d-flex justify-content-between align-items-center" style={{ backgroundColor: '#0b0f19', borderColor: '#1e293b' }}>
                 <div className="metric-info">
-                  <h3 className="text-secondary text-uppercase fw-semibold mb-1" style={{ fontSize: '0.78rem', letterSpacing: '0.5px', color: '#475569' }}>Low Stock Warns</h3>
-                  <div className="metric-number text-danger fw-extrabold fs-3" style={{ color: '#ef4444' }}>{stats.lowStockWarns}</div>
+                  <h3 className="text-secondary text-uppercase fw-semibold mb-0.5" style={{ fontSize: '0.7rem', letterSpacing: '0.5px', color: '#94a3b8' }}>Low Stock Warns</h3>
+                  <div className="metric-number text-danger fw-extrabold" style={{ color: '#ef4444', fontSize: '1.3rem' }}>{stats.lowStockWarns}</div>
                 </div>
-                <div className="metric-icon-box rounded-3 d-flex align-items-center justify-content-center bg-danger bg-opacity-10 text-danger" style={{ width: '48px', height: '48px', fontSize: '1.4rem', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
+                <div className="metric-icon-box rounded-3 d-flex align-items-center justify-content-center bg-danger bg-opacity-10 text-danger" style={{ width: '36px', height: '36px', fontSize: '1.1rem', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
                   <i className="fa-solid fa-triangle-exclamation"></i>
                 </div>
               </div>
@@ -483,19 +487,19 @@ const DashboardPage = () => {
           </div>
 
           {/* Grid Row: Category Distribution & Valuation (Left) vs Monthly Revenue (Right) */}
-          <div className="row g-4 mb-4">
+          <div className="row g-3 mb-3">
             <div className="col-lg-8">
-              <div className="bg-white p-4 rounded-4 shadow-sm border h-100" style={{ borderColor: '#e2e8f0' }}>
-                <div className="d-flex justify-content-between align-items-center mb-3">
+              <div className="p-3 rounded-3 shadow-sm border h-100" style={{ backgroundColor: '#0b0f19', borderColor: '#1e293b' }}>
+                <div className="d-flex justify-content-between align-items-center mb-2.5">
                   <div>
-                    <h3 className="fs-6 text-dark fw-bold mb-1">Category Distribution & Valuation</h3>
-                    <p className="text-secondary small mb-0" style={{ color: '#475569' }}>Real-time asset valuation across your active segments</p>
+                    <h3 className="text-white fw-bold mb-0.5" style={{ fontSize: '0.92rem' }}>Category Distribution & Valuation</h3>
+                    <p className="text-secondary small mb-0" style={{ color: '#94a3b8', fontSize: '0.72rem' }}>Real-time asset valuation across your active segments</p>
                   </div>
-                  <button className="btn btn-link text-info text-decoration-none small p-0 fw-semibold" style={{ color: '#0ea5e9' }} onClick={() => triggerAlert('Categories', 'Manage category catalog details...')}>Manage Categories</button>
+                  <button className="btn btn-link text-info text-decoration-none p-0 fw-semibold" style={{ color: '#0ea5e9', fontSize: '0.75rem' }} onClick={() => triggerAlert('Categories', 'Manage category catalog details...')}>Manage Categories</button>
                 </div>
 
                 <div className="table-responsive">
-                  <table className="table align-middle table-hover-light">
+                  <table className="table align-middle table-hover-dark">
                     <thead>
                       <tr className="text-secondary small">
                         <th>Category Name</th>
@@ -507,17 +511,17 @@ const DashboardPage = () => {
                     <tbody>
                       {categoryValuation.length === 0 ? (
                         <tr>
-                          <td colSpan="4" className="text-center py-5 text-secondary" style={{ color: '#64748b' }}>
-                            <i className="fa-regular fa-folder-open fa-3x mb-3 text-secondary opacity-30"></i>
-                            <p className="small mb-0">No category details registered.</p>
+                          <td colSpan="4" className="text-center py-4 text-secondary" style={{ color: '#64748b' }}>
+                            <i className="fa-regular fa-folder-open fa-2x mb-2 text-secondary opacity-30"></i>
+                            <p className="small mb-0" style={{ fontSize: '0.75rem' }}>No category details registered.</p>
                           </td>
                         </tr>
                       ) : (
                         categoryValuation.map((cat, idx) => (
                           <tr key={idx}>
-                            <td className="fw-semibold text-dark">{cat.categoryName}</td>
-                            <td style={{ color: '#475569' }}>{cat.productsCount}</td>
-                            <td style={{ color: '#475569' }}>{cat.totalUnits}</td>
+                            <td className="fw-semibold text-white">{cat.categoryName}</td>
+                            <td style={{ color: '#94a3b8' }}>{cat.productsCount}</td>
+                            <td style={{ color: '#94a3b8' }}>{cat.totalUnits}</td>
                             <td className="fw-semibold text-info" style={{ color: '#0ea5e9' }}>${cat.assetValuation.toFixed(2)}</td>
                           </tr>
                         ))
@@ -529,17 +533,17 @@ const DashboardPage = () => {
             </div>
 
             <div className="col-lg-4">
-              <div className="bg-white p-4 rounded-4 shadow-sm border h-100" style={{ borderColor: '#e2e8f0' }}>
-                <div className="d-flex justify-content-between align-items-center mb-3">
+              <div className="p-3 rounded-3 shadow-sm border h-100" style={{ backgroundColor: '#0b0f19', borderColor: '#1e293b' }}>
+                <div className="d-flex justify-content-between align-items-center mb-2.5">
                   <div>
-                    <h3 className="fs-6 text-dark fw-bold mb-1">Monthly Revenue</h3>
-                    <p className="text-secondary small mb-0" style={{ color: '#475569' }}>Historical monthly sales run-rate</p>
+                    <h3 className="text-white fw-bold mb-0.5" style={{ fontSize: '0.92rem' }}>Monthly Revenue</h3>
+                    <p className="text-secondary small mb-0" style={{ color: '#94a3b8', fontSize: '0.72rem' }}>Historical monthly sales run-rate</p>
                   </div>
-                  <button className="btn btn-link text-info text-decoration-none small p-0 fw-semibold" style={{ color: '#0ea5e9' }} onClick={() => triggerAlert('Invoices', 'Viewing historical invoices records...')}>View Invoices</button>
+                  <button className="btn btn-link text-info text-decoration-none p-0 fw-semibold" style={{ color: '#0ea5e9', fontSize: '0.75rem' }} onClick={() => triggerAlert('Invoices', 'Viewing historical invoices records...')}>View Invoices</button>
                 </div>
 
                 <div className="table-responsive">
-                  <table className="table align-middle table-hover-light">
+                  <table className="table align-middle table-hover-dark">
                     <thead>
                       <tr className="text-secondary small">
                         <th>Month</th>
@@ -550,16 +554,16 @@ const DashboardPage = () => {
                     <tbody>
                       {monthlyRevenue.length === 0 ? (
                         <tr>
-                          <td colSpan="3" className="text-center py-5 text-secondary" style={{ color: '#64748b' }}>
-                            <i className="fa-regular fa-file-lines fa-3x mb-3 text-secondary opacity-30"></i>
-                            <p className="small mb-0">No invoices recorded yet.</p>
+                          <td colSpan="3" className="text-center py-4 text-secondary" style={{ color: '#64748b' }}>
+                            <i className="fa-regular fa-file-lines fa-2x mb-2 text-secondary opacity-30"></i>
+                            <p className="small mb-0" style={{ fontSize: '0.75rem' }}>No invoices recorded yet.</p>
                           </td>
                         </tr>
                       ) : (
                         monthlyRevenue.map((item, idx) => (
                           <tr key={idx}>
-                            <td className="fw-semibold text-dark">{item.month}</td>
-                            <td style={{ color: '#475569' }}>{item.invoices}</td>
+                            <td className="fw-semibold text-white">{item.month}</td>
+                            <td style={{ color: '#94a3b8' }}>{item.invoices}</td>
                             <td className="fw-semibold text-success" style={{ color: '#10b981' }}>${item.revenue.toFixed(2)}</td>
                           </tr>
                         ))
@@ -572,31 +576,31 @@ const DashboardPage = () => {
           </div>
 
           {/* Grid Row: Low Stock Alerts (Left), Recent Activity (Middle), Quick Navigation (Right) */}
-          <div className="row g-4 mb-4">
+          <div className="row g-3 mb-3">
             
             {/* Low Stock Alerts */}
             <div className="col-lg-4">
-              <div className="bg-white p-4 rounded-4 shadow-sm border h-100" style={{ borderColor: '#e2e8f0' }}>
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <h3 className="fs-6 text-dark fw-bold mb-0">Low Stock Alerts</h3>
-                  <button className="btn btn-link text-info text-decoration-none small p-0 fw-semibold" style={{ color: '#0ea5e9' }} onClick={() => triggerAlert('Alerts', 'Viewing all stock level warnings...')}>View All</button>
+              <div className="p-3 rounded-3 shadow-sm border h-100" style={{ backgroundColor: '#0b0f19', borderColor: '#1e293b' }}>
+                <div className="d-flex justify-content-between align-items-center mb-2.5">
+                  <h3 className="text-white fw-bold mb-0" style={{ fontSize: '0.92rem' }}>Low Stock Alerts</h3>
+                  <button className="btn btn-link text-info text-decoration-none p-0 fw-semibold" style={{ color: '#0ea5e9', fontSize: '0.75rem' }} onClick={() => triggerAlert('Alerts', 'Viewing all stock level warnings...')}>View All</button>
                 </div>
                 
                 {lowStockAlerts.length === 0 ? (
-                  <div className="text-center py-5 text-success" style={{ color: '#10b981' }}>
-                    <i className="fa-solid fa-circle-check fa-3x mb-3"></i>
-                    <p className="small mb-0 fw-semibold">No low stock alerts</p>
+                  <div className="text-center py-4 text-success" style={{ color: '#10b981' }}>
+                    <i className="fa-solid fa-circle-check fa-2x mb-2"></i>
+                    <p className="small mb-0 fw-semibold" style={{ fontSize: '0.75rem' }}>No low stock alerts</p>
                   </div>
                 ) : (
-                  <div className="d-flex flex-column gap-3">
+                  <div className="d-flex flex-column gap-2">
                     {lowStockAlerts.map(alertItem => (
-                      <div key={alertItem._id} className="p-3 rounded-3 d-flex justify-content-between align-items-center" style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                      <div key={alertItem._id} className="p-2 rounded-3 d-flex justify-content-between align-items-center" style={{ backgroundColor: '#0d1222', border: '1px solid #1e293b' }}>
                         <div>
-                          <div className="fw-bold text-dark small">{alertItem.name}</div>
-                          <div className="text-secondary font-monospace" style={{ fontSize: '0.7rem', color: '#64748b' }}>SKU: {alertItem.sku}</div>
+                          <div className="fw-bold text-white" style={{ fontSize: '0.78rem' }}>{alertItem.name}</div>
+                          <div className="text-secondary font-monospace" style={{ fontSize: '0.65rem', color: '#64748b' }}>SKU: {alertItem.sku}</div>
                         </div>
                         <div className="text-end">
-                          <span className="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-20 px-2 py-1 small" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.2)' }}>
+                          <span className="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-20 px-2 py-0.5" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.2)', fontSize: '0.7rem' }}>
                             {alertItem.quantity} / {alertItem.reorder_level} {alertItem.unit}
                           </span>
                         </div>
@@ -609,20 +613,20 @@ const DashboardPage = () => {
 
             {/* Recent Activity */}
             <div className="col-lg-4">
-              <div className="bg-white p-4 rounded-4 shadow-sm border h-100" style={{ borderColor: '#e2e8f0' }}>
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <h3 className="fs-6 text-dark fw-bold mb-0">Recent Activity</h3>
-                  <div className="d-flex gap-2">
+              <div className="p-3 rounded-3 shadow-sm border h-100" style={{ backgroundColor: '#0b0f19', borderColor: '#1e293b' }}>
+                <div className="d-flex justify-content-between align-items-center mb-2.5">
+                  <h3 className="text-white fw-bold mb-0" style={{ fontSize: '0.92rem' }}>Recent Activity</h3>
+                  <div className="d-flex gap-1.5">
                     <button 
-                      className={`btn btn-sm ${recentActivityTab === 'sales' ? 'btn-info text-white fw-bold' : 'text-secondary bg-light border-0'}`}
-                      style={recentActivityTab === 'sales' ? { backgroundColor: '#0ea5e9', borderColor: '#0ea5e9', borderRadius: '6px' } : { backgroundColor: '#f1f5f9', color: '#475569', borderRadius: '6px' }}
+                      className={`btn btn-sm ${recentActivityTab === 'sales' ? 'btn-premium-primary text-white fw-bold' : 'text-secondary bg-dark border-0'}`}
+                      style={recentActivityTab === 'sales' ? { borderRadius: '6px', fontSize: '0.72rem', padding: '0.2rem 0.55rem' } : { backgroundColor: '#1e293b', color: '#94a3b8', borderRadius: '6px', fontSize: '0.72rem', padding: '0.2rem 0.55rem' }}
                       onClick={() => { playSynthSound('click'); setRecentActivityTab('sales'); }}
                     >
                       Sales
                     </button>
                     <button 
-                      className={`btn btn-sm ${recentActivityTab === 'purchases' ? 'btn-info text-white fw-bold' : 'text-secondary bg-light border-0'}`}
-                      style={recentActivityTab === 'purchases' ? { backgroundColor: '#0ea5e9', borderColor: '#0ea5e9', borderRadius: '6px' } : { backgroundColor: '#f1f5f9', color: '#475569', borderRadius: '6px' }}
+                      className={`btn btn-sm ${recentActivityTab === 'purchases' ? 'btn-premium-primary text-white fw-bold' : 'text-secondary bg-dark border-0'}`}
+                      style={recentActivityTab === 'purchases' ? { borderRadius: '6px', fontSize: '0.72rem', padding: '0.2rem 0.55rem' } : { backgroundColor: '#1e293b', color: '#94a3b8', borderRadius: '6px', fontSize: '0.72rem', padding: '0.2rem 0.55rem' }}
                       onClick={() => { playSynthSound('click'); setRecentActivityTab('purchases'); }}
                     >
                       Purchases
@@ -632,21 +636,21 @@ const DashboardPage = () => {
 
                 {recentActivityTab === 'sales' ? (
                   recentSales.length === 0 ? (
-                    <div className="text-center py-5 text-secondary" style={{ color: '#64748b' }}>
-                      <i className="fa-solid fa-receipt fa-2x mb-2 opacity-30"></i>
-                      <p className="small mb-0">No recent sales activity</p>
+                    <div className="text-center py-4 text-secondary" style={{ color: '#64748b' }}>
+                      <i className="fa-solid fa-receipt fa-2x mb-1.5 opacity-30"></i>
+                      <p className="small mb-0" style={{ fontSize: '0.75rem' }}>No recent sales activity</p>
                     </div>
                   ) : (
-                    <div className="d-flex flex-column gap-2">
+                    <div className="d-flex flex-column gap-1.5">
                       {recentSales.map(sale => (
-                        <div key={sale._id} className="d-flex justify-content-between align-items-center py-2" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <div key={sale._id} className="d-flex justify-content-between align-items-center py-1.5" style={{ borderBottom: '1px solid #1e293b' }}>
                           <div>
-                            <div className="fw-bold text-dark small">{sale.invoice_number}</div>
-                            <div className="text-secondary small" style={{ fontSize: '0.75rem', color: '#64748b' }}>{sale.customer_name}</div>
+                            <div className="fw-bold text-white" style={{ fontSize: '0.78rem' }}>{sale.invoice_number}</div>
+                            <div className="text-secondary" style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{sale.customer_name}</div>
                           </div>
                           <div className="text-end">
-                            <div className="fw-semibold text-success small" style={{ color: '#10b981' }}>${sale.grand_total.toFixed(2)}</div>
-                            <div className="text-secondary" style={{ fontSize: '0.68rem', color: '#94a3b8' }}>{new Date(sale.sale_date).toLocaleDateString()}</div>
+                            <div className="fw-semibold text-success" style={{ color: '#10b981', fontSize: '0.78rem' }}>${sale.grand_total.toFixed(2)}</div>
+                            <div className="text-secondary" style={{ fontSize: '0.65rem', color: '#64748b' }}>{new Date(sale.sale_date).toLocaleDateString()}</div>
                           </div>
                         </div>
                       ))}
@@ -654,21 +658,21 @@ const DashboardPage = () => {
                   )
                 ) : (
                   recentPurchases.length === 0 ? (
-                    <div className="text-center py-5 text-secondary" style={{ color: '#64748b' }}>
-                      <i className="fa-solid fa-cart-shopping fa-2x mb-2 opacity-30"></i>
-                      <p className="small mb-0">No recent purchases activity</p>
+                    <div className="text-center py-4 text-secondary" style={{ color: '#64748b' }}>
+                      <i className="fa-solid fa-cart-shopping fa-2x mb-1.5 opacity-30"></i>
+                      <p className="small mb-0" style={{ fontSize: '0.75rem' }}>No recent purchases activity</p>
                     </div>
                   ) : (
-                    <div className="d-flex flex-column gap-2">
+                    <div className="d-flex flex-column gap-1.5">
                       {recentPurchases.map(purchase => (
-                        <div key={purchase._id} className="d-flex justify-content-between align-items-center py-2" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <div key={purchase._id} className="d-flex justify-content-between align-items-center py-1.5" style={{ borderBottom: '1px solid #1e293b' }}>
                           <div>
-                            <div className="fw-bold text-dark small">{purchase.purchase_number}</div>
-                            <div className="text-secondary small" style={{ fontSize: '0.75rem', color: '#64748b' }}>{purchase.supplier_name}</div>
+                            <div className="fw-bold text-white" style={{ fontSize: '0.78rem' }}>{purchase.purchase_number}</div>
+                            <div className="text-secondary" style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{purchase.supplier_name}</div>
                           </div>
                           <div className="text-end">
-                            <div className="fw-semibold text-primary small" style={{ color: '#0ea5e9' }}>${purchase.grand_total.toFixed(2)}</div>
-                            <div className="text-secondary" style={{ fontSize: '0.68rem', color: '#94a3b8' }}>{new Date(purchase.purchase_date).toLocaleDateString()}</div>
+                            <div className="fw-semibold text-primary" style={{ color: '#38bdf8', fontSize: '0.78rem' }}>${purchase.grand_total.toFixed(2)}</div>
+                            <div className="text-secondary" style={{ fontSize: '0.65rem', color: '#64748b' }}>{new Date(purchase.purchase_date).toLocaleDateString()}</div>
                           </div>
                         </div>
                       ))}
@@ -680,9 +684,9 @@ const DashboardPage = () => {
 
             {/* Quick Navigation */}
             <div className="col-lg-4">
-              <div className="bg-white p-4 rounded-4 shadow-sm border h-100" style={{ borderColor: '#e2e8f0' }}>
-                <h3 className="fs-6 text-dark fw-bold mb-3">Quick Navigation</h3>
-                <div className="quick-action-grid">
+              <div className="p-3 rounded-3 shadow-sm border h-100" style={{ backgroundColor: '#0b0f19', borderColor: '#1e293b' }}>
+                <h3 className="text-white fw-bold mb-2.5" style={{ fontSize: '0.92rem' }}>Quick Navigation</h3>
+                <div className="quick-action-grid" style={{ gap: '8px' }}>
                   <button className="quick-action-item border-0" onClick={() => triggerAlert('Navigation', 'Redirecting to add new product catalog page...')}>
                     <i className="fa-solid fa-square-plus text-primary" style={{ color: '#38bdf8' }}></i>
                     Add Product
@@ -696,7 +700,7 @@ const DashboardPage = () => {
                     New Purchase
                   </button>
                   <button className="quick-action-item border-0" onClick={() => triggerAlert('Navigation', 'Redirecting to add customer profiling record...')}>
-                    <i className="fa-solid fa-user-plus text-secondary" style={{ color: '#64748b' }}></i>
+                    <i className="fa-solid fa-user-plus text-secondary" style={{ color: '#94a3b8' }}></i>
                     Add Customer
                   </button>
                   <button className="quick-action-item border-0" onClick={() => triggerAlert('Navigation', 'Redirecting to register supplier profile form...')}>
@@ -716,15 +720,15 @@ const DashboardPage = () => {
           {/* Post Shop Feedback (Bottom Card) */}
           <div className="row">
             <div className="col-12">
-              <div className="p-4 rounded-4 shadow-sm text-white" style={{ backgroundColor: '#0b0f19', border: '1px solid #1e293b' }}>
-                <h3 className="fs-5 fw-bold mb-1"><i className="fa-solid fa-star text-warning me-2"></i>Post Shop Feedback</h3>
-                <p className="text-secondary small mb-4" style={{ color: '#94a3b8' }}>Share your review about Zero Inventory Management. Your review will publish directly to the landing page "Purchased Shops" feedback list.</p>
+              <div className="p-3 rounded-3 shadow-sm text-white" style={{ backgroundColor: '#0b0f19', border: '1px solid #1e293b' }}>
+                <h3 className="fw-bold mb-1" style={{ fontSize: '1.05rem' }}><i className="fa-solid fa-star text-warning me-1.5"></i>Post Shop Feedback</h3>
+                <p className="text-secondary small mb-3" style={{ color: '#94a3b8', fontSize: '0.75rem' }}>Share your review about Zero Inventory Management. Your review will publish directly to the landing page "Purchased Shops" feedback list.</p>
                 
                 <form onSubmit={handleFeedbackSubmit}>
-                  <div className="row g-3 mb-3">
+                  <div className="row g-2 mb-2">
                     <div className="col-md-6">
                       <div className="form-group mb-0">
-                        <label className="form-label text-secondary small mb-1" style={{ color: '#94a3b8' }}>Your Shop Name</label>
+                        <label className="form-label text-secondary mb-1" style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Your Shop Name</label>
                         <input 
                           type="text" 
                           className="form-control-premium-dark" 
@@ -737,7 +741,7 @@ const DashboardPage = () => {
                     </div>
                     <div className="col-md-6">
                       <div className="form-group mb-0">
-                        <label className="form-label text-secondary small mb-1" style={{ color: '#94a3b8' }}>Rating (1 to 5 Stars)</label>
+                        <label className="form-label text-secondary mb-1" style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Rating (1 to 5 Stars)</label>
                         <select 
                           className="form-control-premium-dark" 
                           value={rating}
@@ -753,11 +757,11 @@ const DashboardPage = () => {
                     </div>
                   </div>
 
-                  <div className="form-group mb-4">
-                    <label className="form-label text-secondary small mb-1" style={{ color: '#94a3b8' }}>Comment / Review</label>
+                  <div className="form-group mb-3">
+                    <label className="form-label text-secondary mb-1" style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Comment / Review</label>
                     <textarea 
                       className="form-control-premium-dark" 
-                      style={{ minHeight: '80px' }}
+                      style={{ minHeight: '65px' }}
                       placeholder="Share your success story using this software..."
                       value={commentText}
                       onChange={(e) => setCommentText(e.target.value)}
@@ -766,8 +770,8 @@ const DashboardPage = () => {
                   </div>
 
                   <div className="text-end">
-                    <button type="submit" className="btn btn-premium-primary px-4 py-2">
-                      <i className="fa-solid fa-paper-plane me-2"></i>Publish Review
+                    <button type="submit" className="btn btn-premium-primary px-3 py-1.5" style={{ fontSize: '0.78rem' }}>
+                      <i className="fa-solid fa-paper-plane me-1.5"></i>Publish Review
                     </button>
                   </div>
                 </form>
