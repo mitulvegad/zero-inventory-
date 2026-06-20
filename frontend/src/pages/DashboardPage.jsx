@@ -42,59 +42,8 @@ const DashboardPage = () => {
   const [rating, setRating] = useState('5');
   const [commentText, setCommentText] = useState('');
 
-  // Sound Synth Helper
-  const playSynthSound = (type) => {
-    try {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContext) return;
-      const ctx = new AudioContext();
-      
-      if (type === 'click') {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(600, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.1);
-        gain.gain.setValueAtTime(0.08, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.1);
-      } else if (type === 'success') {
-        const osc1 = ctx.createOscillator();
-        const osc2 = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc1.frequency.setValueAtTime(523.25, ctx.currentTime);
-        osc1.frequency.setValueAtTime(659.25, ctx.currentTime + 0.08);
-        osc1.frequency.setValueAtTime(783.99, ctx.currentTime + 0.16);
-        osc2.frequency.setValueAtTime(1046.50, ctx.currentTime + 0.24);
-        gain.gain.setValueAtTime(0.06, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
-        osc1.connect(gain);
-        osc2.connect(gain);
-        gain.connect(ctx.destination);
-        osc1.start();
-        osc2.start();
-        osc1.stop(ctx.currentTime + 0.5);
-        osc2.stop(ctx.currentTime + 0.5);
-      } else if (type === 'error') {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(120, ctx.currentTime);
-        osc.frequency.setValueAtTime(80, ctx.currentTime + 0.15);
-        gain.gain.setValueAtTime(0.05, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.3);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
+  // Sound Synth Helper (Disabled to remove all sound effects)
+  const playSynthSound = (type) => {};
 
   const triggerAlert = (title, message, type = 'info') => {
     if (type === 'error') playSynthSound('error');
@@ -275,7 +224,7 @@ const DashboardPage = () => {
       `}</style>
       
       {/* Sidebar navigation */}
-      <aside className="new-sidebar" style={{ width: '220px', backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column', height: '100vh', position: 'fixed', zIndex: 100, borderRight: '1px solid #e2e8f0' }}>
+      <aside className="new-sidebar" style={{ width: '280px', backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column', height: '100vh', position: 'fixed', zIndex: 100, borderRight: '1px solid #e2e8f0' }}>
         <div className="logo-area" style={{ padding: '1rem', borderBottom: '1px solid #e2e8f0' }}>
           <div className="d-flex align-items-center gap-2">
             <i className="fa-solid fa-cubes text-info" style={{ color: '#0ea5e9', fontSize: '1.3rem' }}></i>
@@ -286,40 +235,40 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        <ul className="sidebar-nav-list" style={{ listStyle: 'none', padding: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.3rem', flexGrow: 1, margin: 0 }}>
+        <ul className="sidebar-nav-list" style={{ listStyle: 'none', padding: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.55rem', flexGrow: 1, margin: 0 }}>
           <li className="sidebar-nav-item active" style={{ display: 'block' }}>
-            <a href="#dashboard" onClick={() => playSynthSound('click')} className="text-info d-flex align-items-center gap-2.5 rounded text-decoration-none" style={{ backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.4rem 0.6rem', fontSize: '0.82rem', color: '#0ea5e9' }}>
-              <i className="fa-solid fa-house text-info" style={{ color: '#0ea5e9', width: '16px' }}></i> Dashboard
+            <a href="#dashboard" onClick={() => playSynthSound('click')} className="text-info d-flex align-items-center gap-2.5 rounded text-decoration-none" style={{ backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9' }}>
+              <i className="fa-solid fa-house text-info" style={{ color: '#0ea5e9', width: '18px', fontSize: '0.95rem' }}></i> Dashboard
             </a>
           </li>
           <li className="sidebar-nav-item">
-            <a href="#billing" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.4rem 0.6rem', fontSize: '0.82rem' }}>
-              <i className="fa-solid fa-file-invoice" style={{ width: '16px' }}></i> Generate Bill
+            <a href="#billing" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
+              <i className="fa-solid fa-file-invoice" style={{ width: '18px', fontSize: '0.95rem' }}></i> Generate Bill
             </a>
           </li>
           <li className="sidebar-nav-item">
-            <a href="#products" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.4rem 0.6rem', fontSize: '0.82rem' }}>
-              <i className="fa-solid fa-box-open" style={{ width: '16px' }}></i> Products
+            <a href="#products" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
+              <i className="fa-solid fa-box-open" style={{ width: '18px', fontSize: '0.95rem' }}></i> Products
             </a>
           </li>
           <li className="sidebar-nav-item">
-            <a href="#sales" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.4rem 0.6rem', fontSize: '0.82rem' }}>
-              <i className="fa-solid fa-chart-line" style={{ width: '16px' }}></i> Sales
+            <a href="#sales" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
+              <i className="fa-solid fa-chart-line" style={{ width: '18px', fontSize: '0.95rem' }}></i> Sales
             </a>
           </li>
           <li className="sidebar-nav-item">
-            <a href="#purchases" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.4rem 0.6rem', fontSize: '0.82rem' }}>
-              <i className="fa-solid fa-cart-shopping" style={{ width: '16px' }}></i> Purchases
+            <a href="#purchases" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
+              <i className="fa-solid fa-cart-shopping" style={{ width: '18px', fontSize: '0.95rem' }}></i> Purchases
             </a>
           </li>
           <li className="sidebar-nav-item">
-            <a href="#inventory" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.4rem 0.6rem', fontSize: '0.82rem' }}>
-              <i className="fa-solid fa-warehouse" style={{ width: '16px' }}></i> Inventory
+            <a href="#inventory" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
+              <i className="fa-solid fa-warehouse" style={{ width: '18px', fontSize: '0.95rem' }}></i> Inventory
             </a>
           </li>
           <li className="sidebar-nav-item">
-            <a href="#categories" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.4rem 0.6rem', fontSize: '0.82rem' }}>
-              <i className="fa-solid fa-tags" style={{ width: '16px' }}></i> Categories
+            <a href="#categories" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
+              <i className="fa-solid fa-tags" style={{ width: '18px', fontSize: '0.95rem' }}></i> Categories
             </a>
           </li>
         </ul>
@@ -351,7 +300,7 @@ const DashboardPage = () => {
       </aside>
 
       {/* Main content body */}
-      <main className="new-main" style={{ flexGrow: 1, marginLeft: '220px', display: 'flex', flexDirection: 'column', minHeight: '100vh', width: 'calc(100% - 220px)' }}>
+      <main className="new-main" style={{ flexGrow: 1, marginLeft: '280px', display: 'flex', flexDirection: 'column', minHeight: '100vh', width: 'calc(100% - 280px)' }}>
         
         {/* Header Tools */}
         <header className="new-header" style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #e2e8f0', height: '50px', padding: '0 1.25rem', display: 'flex', alignItems: 'center', justifycontent: 'space-between', sticky: 'top', zIndex: 90 }}>
@@ -425,11 +374,11 @@ const DashboardPage = () => {
           {/* Main Title Banner */}
           <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
             <div>
-              <h1 className="text-white fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem' }}>Dashboard</h1>
-              <p className="text-secondary small mb-0" style={{ color: '#94a3b8', fontSize: '0.75rem' }}>Welcome back, Merchant! Here's what's happening with your store today.</p>
+              <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Dashboard</h1>
+              <p className="small mb-0" style={{ color: '#64748b', fontSize: '0.75rem' }}>Welcome back, Merchant! Here's what's happening with your store today.</p>
             </div>
             <div className="d-flex align-items-center gap-2">
-              <div className="px-2.5 py-1 border rounded-3 shadow-sm text-secondary small fw-medium" style={{ backgroundColor: '#0b0f19', borderColor: '#1e293b', color: '#94a3b8', fontSize: '0.75rem' }}>
+              <div className="px-2.5 py-1 border rounded-3 shadow-sm small fw-medium" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc', color: '#475569', fontSize: '0.75rem' }}>
                 <i className="fa-regular fa-calendar me-1.5"></i>Jun 20, 2026 - Jun 20, 2026
               </div>
               <button className="btn btn-premium-primary fw-semibold d-flex align-items-center gap-1.5 shadow-sm" style={{ padding: '0.3rem 0.8rem', borderRadius: '6px', fontSize: '0.75rem' }} onClick={() => triggerAlert('Audit Logs', 'Opening audit logs database records...')}>
@@ -441,10 +390,10 @@ const DashboardPage = () => {
           {/* 4 Stat Summary Cards */}
           <div className="row g-3 mb-3">
             <div className="col-sm-6 col-xl-3">
-              <div className="metric-card p-3 rounded-3 shadow-sm border d-flex justify-content-between align-items-center" style={{ backgroundColor: '#0b0f19', borderColor: '#1e293b' }}>
+              <div className="metric-card p-3 rounded-3 shadow-sm border d-flex justify-content-between align-items-center" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc' }}>
                 <div className="metric-info">
-                  <h3 className="text-secondary text-uppercase fw-semibold mb-0.5" style={{ fontSize: '0.7rem', letterSpacing: '0.5px', color: '#94a3b8' }}>Total Products</h3>
-                  <div className="metric-number text-white fw-extrabold" style={{ color: '#ffffff', fontSize: '1.3rem' }}>{stats.totalProducts}</div>
+                  <h3 className="text-uppercase fw-semibold mb-0.5" style={{ fontSize: '0.7rem', letterSpacing: '0.5px', color: '#64748b' }}>Total Products</h3>
+                  <div className="metric-number fw-extrabold" style={{ color: '#0f172a', fontSize: '1.3rem' }}>{stats.totalProducts}</div>
                 </div>
                 <div className="metric-icon-box rounded-3 d-flex align-items-center justify-content-center bg-info bg-opacity-10 text-info" style={{ width: '36px', height: '36px', fontSize: '1.1rem', backgroundColor: 'rgba(14, 165, 233, 0.1)', color: '#0ea5e9' }}>
                   <i className="fa-solid fa-box"></i>
@@ -452,10 +401,10 @@ const DashboardPage = () => {
               </div>
             </div>
             <div className="col-sm-6 col-xl-3">
-              <div className="metric-card p-3 rounded-3 shadow-sm border d-flex justify-content-between align-items-center" style={{ backgroundColor: '#0b0f19', borderColor: '#1e293b' }}>
+              <div className="metric-card p-3 rounded-3 shadow-sm border d-flex justify-content-between align-items-center" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc' }}>
                 <div className="metric-info">
-                  <h3 className="text-secondary text-uppercase fw-semibold mb-0.5" style={{ fontSize: '0.7rem', letterSpacing: '0.5px', color: '#94a3b8' }}>Total Stock Value</h3>
-                  <div className="metric-number text-white fw-extrabold" style={{ color: '#ffffff', fontSize: '1.3rem' }}>${stats.totalStockValue.toFixed(2)}</div>
+                  <h3 className="text-uppercase fw-semibold mb-0.5" style={{ fontSize: '0.7rem', letterSpacing: '0.5px', color: '#64748b' }}>Total Stock Value</h3>
+                  <div className="metric-number fw-extrabold" style={{ color: '#0f172a', fontSize: '1.3rem' }}>${stats.totalStockValue.toFixed(2)}</div>
                 </div>
                 <div className="metric-icon-box rounded-3 d-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success" style={{ width: '36px', height: '36px', fontSize: '1.1rem', backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
                   <i className="fa-solid fa-coins"></i>
@@ -463,10 +412,10 @@ const DashboardPage = () => {
               </div>
             </div>
             <div className="col-sm-6 col-xl-3">
-              <div className="metric-card p-3 rounded-3 shadow-sm border d-flex justify-content-between align-items-center" style={{ backgroundColor: '#0b0f19', borderColor: '#1e293b' }}>
+              <div className="metric-card p-3 rounded-3 shadow-sm border d-flex justify-content-between align-items-center" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc' }}>
                 <div className="metric-info">
-                  <h3 className="text-secondary text-uppercase fw-semibold mb-0.5" style={{ fontSize: '0.7rem', letterSpacing: '0.5px', color: '#94a3b8' }}>Total Item Units</h3>
-                  <div className="metric-number text-white fw-extrabold" style={{ color: '#ffffff', fontSize: '1.3rem' }}>{stats.totalItemUnits}</div>
+                  <h3 className="text-uppercase fw-semibold mb-0.5" style={{ fontSize: '0.7rem', letterSpacing: '0.5px', color: '#64748b' }}>Total Item Units</h3>
+                  <div className="metric-number fw-extrabold" style={{ color: '#0f172a', fontSize: '1.3rem' }}>{stats.totalItemUnits}</div>
                 </div>
                 <div className="metric-icon-box rounded-3 d-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary" style={{ width: '36px', height: '36px', fontSize: '1.1rem', backgroundColor: 'rgba(79, 70, 229, 0.1)', color: '#4f46e5' }}>
                   <i className="fa-solid fa-boxes-stacked"></i>
@@ -474,10 +423,10 @@ const DashboardPage = () => {
               </div>
             </div>
             <div className="col-sm-6 col-xl-3">
-              <div className="metric-card p-3 rounded-3 shadow-sm border d-flex justify-content-between align-items-center" style={{ backgroundColor: '#0b0f19', borderColor: '#1e293b' }}>
+              <div className="metric-card p-3 rounded-3 shadow-sm border d-flex justify-content-between align-items-center" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc' }}>
                 <div className="metric-info">
-                  <h3 className="text-secondary text-uppercase fw-semibold mb-0.5" style={{ fontSize: '0.7rem', letterSpacing: '0.5px', color: '#94a3b8' }}>Low Stock Warns</h3>
-                  <div className="metric-number text-danger fw-extrabold" style={{ color: '#ef4444', fontSize: '1.3rem' }}>{stats.lowStockWarns}</div>
+                  <h3 className="text-uppercase fw-semibold mb-0.5" style={{ fontSize: '0.7rem', letterSpacing: '0.5px', color: '#64748b' }}>Low Stock Warns</h3>
+                  <div className="metric-number fw-extrabold" style={{ color: '#ef4444', fontSize: '1.3rem' }}>{stats.lowStockWarns}</div>
                 </div>
                 <div className="metric-icon-box rounded-3 d-flex align-items-center justify-content-center bg-danger bg-opacity-10 text-danger" style={{ width: '36px', height: '36px', fontSize: '1.1rem', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
                   <i className="fa-solid fa-triangle-exclamation"></i>
@@ -489,19 +438,19 @@ const DashboardPage = () => {
           {/* Grid Row: Category Distribution & Valuation (Left) vs Monthly Revenue (Right) */}
           <div className="row g-3 mb-3">
             <div className="col-lg-8">
-              <div className="p-3 rounded-3 shadow-sm border h-100" style={{ backgroundColor: '#0b0f19', borderColor: '#1e293b' }}>
+              <div className="p-3 rounded-3 shadow-sm border h-100" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc' }}>
                 <div className="d-flex justify-content-between align-items-center mb-2.5">
                   <div>
-                    <h3 className="text-white fw-bold mb-0.5" style={{ fontSize: '0.92rem' }}>Category Distribution & Valuation</h3>
-                    <p className="text-secondary small mb-0" style={{ color: '#94a3b8', fontSize: '0.72rem' }}>Real-time asset valuation across your active segments</p>
+                    <h3 className="fw-bold mb-0.5" style={{ fontSize: '0.92rem', color: '#0f172a' }}>Category Distribution & Valuation</h3>
+                    <p className="small mb-0" style={{ color: '#64748b', fontSize: '0.72rem' }}>Real-time asset valuation across your active segments</p>
                   </div>
                   <button className="btn btn-link text-info text-decoration-none p-0 fw-semibold" style={{ color: '#0ea5e9', fontSize: '0.75rem' }} onClick={() => triggerAlert('Categories', 'Manage category catalog details...')}>Manage Categories</button>
                 </div>
 
                 <div className="table-responsive">
-                  <table className="table align-middle table-hover-dark">
+                  <table className="table align-middle table-hover-light">
                     <thead>
-                      <tr className="text-secondary small">
+                      <tr className="small" style={{ color: '#475569' }}>
                         <th>Category Name</th>
                         <th>Products Count</th>
                         <th>Total Units</th>
@@ -519,9 +468,9 @@ const DashboardPage = () => {
                       ) : (
                         categoryValuation.map((cat, idx) => (
                           <tr key={idx}>
-                            <td className="fw-semibold text-white">{cat.categoryName}</td>
-                            <td style={{ color: '#94a3b8' }}>{cat.productsCount}</td>
-                            <td style={{ color: '#94a3b8' }}>{cat.totalUnits}</td>
+                            <td className="fw-semibold" style={{ color: '#0f172a' }}>{cat.categoryName}</td>
+                            <td style={{ color: '#475569' }}>{cat.productsCount}</td>
+                            <td style={{ color: '#475569' }}>{cat.totalUnits}</td>
                             <td className="fw-semibold text-info" style={{ color: '#0ea5e9' }}>${cat.assetValuation.toFixed(2)}</td>
                           </tr>
                         ))
@@ -533,19 +482,19 @@ const DashboardPage = () => {
             </div>
 
             <div className="col-lg-4">
-              <div className="p-3 rounded-3 shadow-sm border h-100" style={{ backgroundColor: '#0b0f19', borderColor: '#1e293b' }}>
+              <div className="p-3 rounded-3 shadow-sm border h-100" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc' }}>
                 <div className="d-flex justify-content-between align-items-center mb-2.5">
                   <div>
-                    <h3 className="text-white fw-bold mb-0.5" style={{ fontSize: '0.92rem' }}>Monthly Revenue</h3>
-                    <p className="text-secondary small mb-0" style={{ color: '#94a3b8', fontSize: '0.72rem' }}>Historical monthly sales run-rate</p>
+                    <h3 className="fw-bold mb-0.5" style={{ fontSize: '0.92rem', color: '#0f172a' }}>Monthly Revenue</h3>
+                    <p className="small mb-0" style={{ color: '#64748b', fontSize: '0.72rem' }}>Historical monthly sales run-rate</p>
                   </div>
                   <button className="btn btn-link text-info text-decoration-none p-0 fw-semibold" style={{ color: '#0ea5e9', fontSize: '0.75rem' }} onClick={() => triggerAlert('Invoices', 'Viewing historical invoices records...')}>View Invoices</button>
                 </div>
 
                 <div className="table-responsive">
-                  <table className="table align-middle table-hover-dark">
+                  <table className="table align-middle table-hover-light">
                     <thead>
-                      <tr className="text-secondary small">
+                      <tr className="small" style={{ color: '#475569' }}>
                         <th>Month</th>
                         <th>Invoices</th>
                         <th>Revenue</th>
@@ -562,8 +511,8 @@ const DashboardPage = () => {
                       ) : (
                         monthlyRevenue.map((item, idx) => (
                           <tr key={idx}>
-                            <td className="fw-semibold text-white">{item.month}</td>
-                            <td style={{ color: '#94a3b8' }}>{item.invoices}</td>
+                            <td className="fw-semibold" style={{ color: '#0f172a' }}>{item.month}</td>
+                            <td style={{ color: '#475569' }}>{item.invoices}</td>
                             <td className="fw-semibold text-success" style={{ color: '#10b981' }}>${item.revenue.toFixed(2)}</td>
                           </tr>
                         ))
@@ -580,9 +529,9 @@ const DashboardPage = () => {
             
             {/* Low Stock Alerts */}
             <div className="col-lg-4">
-              <div className="p-3 rounded-3 shadow-sm border h-100" style={{ backgroundColor: '#0b0f19', borderColor: '#1e293b' }}>
+              <div className="p-3 rounded-3 shadow-sm border h-100" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc' }}>
                 <div className="d-flex justify-content-between align-items-center mb-2.5">
-                  <h3 className="text-white fw-bold mb-0" style={{ fontSize: '0.92rem' }}>Low Stock Alerts</h3>
+                  <h3 className="fw-bold mb-0" style={{ fontSize: '0.92rem', color: '#0f172a' }}>Low Stock Alerts</h3>
                   <button className="btn btn-link text-info text-decoration-none p-0 fw-semibold" style={{ color: '#0ea5e9', fontSize: '0.75rem' }} onClick={() => triggerAlert('Alerts', 'Viewing all stock level warnings...')}>View All</button>
                 </div>
                 
@@ -594,10 +543,10 @@ const DashboardPage = () => {
                 ) : (
                   <div className="d-flex flex-column gap-2">
                     {lowStockAlerts.map(alertItem => (
-                      <div key={alertItem._id} className="p-2 rounded-3 d-flex justify-content-between align-items-center" style={{ backgroundColor: '#0d1222', border: '1px solid #1e293b' }}>
+                      <div key={alertItem._id} className="p-2 rounded-3 d-flex justify-content-between align-items-center" style={{ backgroundColor: '#f8fafc', border: '1px solid #bae6fd' }}>
                         <div>
-                          <div className="fw-bold text-white" style={{ fontSize: '0.78rem' }}>{alertItem.name}</div>
-                          <div className="text-secondary font-monospace" style={{ fontSize: '0.65rem', color: '#64748b' }}>SKU: {alertItem.sku}</div>
+                          <div className="fw-bold" style={{ fontSize: '0.78rem', color: '#0f172a' }}>{alertItem.name}</div>
+                          <div className="font-monospace" style={{ fontSize: '0.65rem', color: '#64748b' }}>SKU: {alertItem.sku}</div>
                         </div>
                         <div className="text-end">
                           <span className="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-20 px-2 py-0.5" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.2)', fontSize: '0.7rem' }}>
@@ -613,21 +562,21 @@ const DashboardPage = () => {
 
             {/* Recent Activity */}
             <div className="col-lg-4">
-              <div className="p-3 rounded-3 shadow-sm border h-100" style={{ backgroundColor: '#0b0f19', borderColor: '#1e293b' }}>
+              <div className="p-3 rounded-3 shadow-sm border h-100" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc' }}>
                 <div className="d-flex justify-content-between align-items-center mb-2.5">
-                  <h3 className="text-white fw-bold mb-0" style={{ fontSize: '0.92rem' }}>Recent Activity</h3>
+                  <h3 className="fw-bold mb-0" style={{ fontSize: '0.92rem', color: '#0f172a' }}>Recent Activity</h3>
                   <div className="d-flex gap-1.5">
                     <button 
-                      className={`btn btn-sm ${recentActivityTab === 'sales' ? 'btn-premium-primary text-white fw-bold' : 'text-secondary bg-dark border-0'}`}
-                      style={recentActivityTab === 'sales' ? { borderRadius: '6px', fontSize: '0.72rem', padding: '0.2rem 0.55rem' } : { backgroundColor: '#1e293b', color: '#94a3b8', borderRadius: '6px', fontSize: '0.72rem', padding: '0.2rem 0.55rem' }}
-                      onClick={() => { playSynthSound('click'); setRecentActivityTab('sales'); }}
+                      className={`btn btn-sm ${recentActivityTab === 'sales' ? 'btn-premium-primary text-white fw-bold' : 'border-0'}`}
+                      style={recentActivityTab === 'sales' ? { borderRadius: '6px', fontSize: '0.72rem', padding: '0.2rem 0.55rem' } : { backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.72rem', padding: '0.2rem 0.55rem' }}
+                      onClick={() => { setRecentActivityTab('sales'); }}
                     >
                       Sales
                     </button>
                     <button 
-                      className={`btn btn-sm ${recentActivityTab === 'purchases' ? 'btn-premium-primary text-white fw-bold' : 'text-secondary bg-dark border-0'}`}
-                      style={recentActivityTab === 'purchases' ? { borderRadius: '6px', fontSize: '0.72rem', padding: '0.2rem 0.55rem' } : { backgroundColor: '#1e293b', color: '#94a3b8', borderRadius: '6px', fontSize: '0.72rem', padding: '0.2rem 0.55rem' }}
-                      onClick={() => { playSynthSound('click'); setRecentActivityTab('purchases'); }}
+                      className={`btn btn-sm ${recentActivityTab === 'purchases' ? 'btn-premium-primary text-white fw-bold' : 'border-0'}`}
+                      style={recentActivityTab === 'purchases' ? { borderRadius: '6px', fontSize: '0.72rem', padding: '0.2rem 0.55rem' } : { backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.72rem', padding: '0.2rem 0.55rem' }}
+                      onClick={() => { setRecentActivityTab('purchases'); }}
                     >
                       Purchases
                     </button>
@@ -643,14 +592,14 @@ const DashboardPage = () => {
                   ) : (
                     <div className="d-flex flex-column gap-1.5">
                       {recentSales.map(sale => (
-                        <div key={sale._id} className="d-flex justify-content-between align-items-center py-1.5" style={{ borderBottom: '1px solid #1e293b' }}>
+                        <div key={sale._id} className="d-flex justify-content-between align-items-center py-1.5" style={{ borderBottom: '1px solid #bae6fd' }}>
                           <div>
-                            <div className="fw-bold text-white" style={{ fontSize: '0.78rem' }}>{sale.invoice_number}</div>
-                            <div className="text-secondary" style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{sale.customer_name}</div>
+                            <div className="fw-bold" style={{ fontSize: '0.78rem', color: '#0f172a' }}>{sale.invoice_number}</div>
+                            <div style={{ fontSize: '0.7rem', color: '#475569' }}>{sale.customer_name}</div>
                           </div>
                           <div className="text-end">
                             <div className="fw-semibold text-success" style={{ color: '#10b981', fontSize: '0.78rem' }}>${sale.grand_total.toFixed(2)}</div>
-                            <div className="text-secondary" style={{ fontSize: '0.65rem', color: '#64748b' }}>{new Date(sale.sale_date).toLocaleDateString()}</div>
+                            <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{new Date(sale.sale_date).toLocaleDateString()}</div>
                           </div>
                         </div>
                       ))}
@@ -665,14 +614,14 @@ const DashboardPage = () => {
                   ) : (
                     <div className="d-flex flex-column gap-1.5">
                       {recentPurchases.map(purchase => (
-                        <div key={purchase._id} className="d-flex justify-content-between align-items-center py-1.5" style={{ borderBottom: '1px solid #1e293b' }}>
+                        <div key={purchase._id} className="d-flex justify-content-between align-items-center py-1.5" style={{ borderBottom: '1px solid #bae6fd' }}>
                           <div>
-                            <div className="fw-bold text-white" style={{ fontSize: '0.78rem' }}>{purchase.purchase_number}</div>
-                            <div className="text-secondary" style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{purchase.supplier_name}</div>
+                            <div className="fw-bold" style={{ fontSize: '0.78rem', color: '#0f172a' }}>{purchase.purchase_number}</div>
+                            <div style={{ fontSize: '0.7rem', color: '#475569' }}>{purchase.supplier_name}</div>
                           </div>
                           <div className="text-end">
-                            <div className="fw-semibold text-primary" style={{ color: '#38bdf8', fontSize: '0.78rem' }}>${purchase.grand_total.toFixed(2)}</div>
-                            <div className="text-secondary" style={{ fontSize: '0.65rem', color: '#64748b' }}>{new Date(purchase.purchase_date).toLocaleDateString()}</div>
+                            <div className="fw-semibold text-info" style={{ color: '#0284c7', fontSize: '0.78rem' }}>${purchase.grand_total.toFixed(2)}</div>
+                            <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{new Date(purchase.purchase_date).toLocaleDateString()}</div>
                           </div>
                         </div>
                       ))}
@@ -684,31 +633,31 @@ const DashboardPage = () => {
 
             {/* Quick Navigation */}
             <div className="col-lg-4">
-              <div className="p-3 rounded-3 shadow-sm border h-100" style={{ backgroundColor: '#0b0f19', borderColor: '#1e293b' }}>
-                <h3 className="text-white fw-bold mb-2.5" style={{ fontSize: '0.92rem' }}>Quick Navigation</h3>
+              <div className="p-3 rounded-3 shadow-sm border h-100" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc' }}>
+                <h3 className="fw-bold mb-2.5" style={{ fontSize: '0.92rem', color: '#0f172a' }}>Quick Navigation</h3>
                 <div className="quick-action-grid" style={{ gap: '8px' }}>
                   <button className="quick-action-item border-0" onClick={() => triggerAlert('Navigation', 'Redirecting to add new product catalog page...')}>
-                    <i className="fa-solid fa-square-plus text-primary" style={{ color: '#38bdf8' }}></i>
+                    <i className="fa-solid fa-square-plus" style={{ color: '#a855f7' }}></i>
                     Add Product
                   </button>
                   <button className="quick-action-item border-0" onClick={() => triggerAlert('Navigation', 'Redirecting to POS checkout sale billing page...')}>
-                    <i className="fa-solid fa-cart-shopping text-info" style={{ color: '#0ea5e9' }}></i>
+                    <i className="fa-solid fa-cart-shopping" style={{ color: '#3b82f6' }}></i>
                     New Sale
                   </button>
                   <button className="quick-action-item border-0" onClick={() => triggerAlert('Navigation', 'Redirecting to record purchase inventory list...')}>
-                    <i className="fa-solid fa-file-circle-check text-success" style={{ color: '#10b981' }}></i>
+                    <i className="fa-solid fa-file-circle-check" style={{ color: '#10b981' }}></i>
                     New Purchase
                   </button>
                   <button className="quick-action-item border-0" onClick={() => triggerAlert('Navigation', 'Redirecting to add customer profiling record...')}>
-                    <i className="fa-solid fa-user-plus text-secondary" style={{ color: '#94a3b8' }}></i>
+                    <i className="fa-solid fa-user-plus" style={{ color: '#64748b' }}></i>
                     Add Customer
                   </button>
                   <button className="quick-action-item border-0" onClick={() => triggerAlert('Navigation', 'Redirecting to register supplier profile form...')}>
-                    <i className="fa-solid fa-truck-field text-warning" style={{ color: '#f59e0b' }}></i>
+                    <i className="fa-solid fa-truck-field" style={{ color: '#f59e0b' }}></i>
                     Add Supplier
                   </button>
                   <button className="quick-action-item border-0" onClick={() => triggerAlert('Navigation', 'Redirecting to view overall ledger reports...')}>
-                    <i className="fa-solid fa-file-invoice-dollar text-danger" style={{ color: '#ef4444' }}></i>
+                    <i className="fa-solid fa-file-invoice-dollar" style={{ color: '#ef4444' }}></i>
                     View Reports
                   </button>
                 </div>
@@ -720,15 +669,15 @@ const DashboardPage = () => {
           {/* Post Shop Feedback (Bottom Card) */}
           <div className="row">
             <div className="col-12">
-              <div className="p-3 rounded-3 shadow-sm text-white" style={{ backgroundColor: '#0b0f19', border: '1px solid #1e293b' }}>
-                <h3 className="fw-bold mb-1" style={{ fontSize: '1.05rem' }}><i className="fa-solid fa-star text-warning me-1.5"></i>Post Shop Feedback</h3>
-                <p className="text-secondary small mb-3" style={{ color: '#94a3b8', fontSize: '0.75rem' }}>Share your review about Zero Inventory Management. Your review will publish directly to the landing page "Purchased Shops" feedback list.</p>
+              <div className="p-3 rounded-3 shadow-sm border" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc' }}>
+                <h3 className="fw-bold mb-1" style={{ fontSize: '1.05rem', color: '#0f172a' }}><i className="fa-solid fa-star text-warning me-1.5"></i>Post Shop Feedback</h3>
+                <p className="small mb-3" style={{ color: '#64748b', fontSize: '0.75rem' }}>Share your review about Zero Inventory Management. Your review will publish directly to the landing page "Purchased Shops" feedback list.</p>
                 
                 <form onSubmit={handleFeedbackSubmit}>
                   <div className="row g-2 mb-2">
                     <div className="col-md-6">
                       <div className="form-group mb-0">
-                        <label className="form-label text-secondary mb-1" style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Your Shop Name</label>
+                        <label className="form-label mb-1" style={{ fontSize: '0.72rem', color: '#475569' }}>Your Shop Name</label>
                         <input 
                           type="text" 
                           className="form-control-premium-dark" 
@@ -741,7 +690,7 @@ const DashboardPage = () => {
                     </div>
                     <div className="col-md-6">
                       <div className="form-group mb-0">
-                        <label className="form-label text-secondary mb-1" style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Rating (1 to 5 Stars)</label>
+                        <label className="form-label mb-1" style={{ fontSize: '0.72rem', color: '#475569' }}>Rating (1 to 5 Stars)</label>
                         <select 
                           className="form-control-premium-dark" 
                           value={rating}
@@ -758,7 +707,7 @@ const DashboardPage = () => {
                   </div>
 
                   <div className="form-group mb-3">
-                    <label className="form-label text-secondary mb-1" style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Comment / Review</label>
+                    <label className="form-label mb-1" style={{ fontSize: '0.72rem', color: '#475569' }}>Comment / Review</label>
                     <textarea 
                       className="form-control-premium-dark" 
                       style={{ minHeight: '65px' }}
