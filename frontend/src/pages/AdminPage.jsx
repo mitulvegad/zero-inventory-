@@ -302,7 +302,16 @@ const AdminPage = () => {
                       </span>
                     </td>
                     <td className="text-end">
-                      <button className="btn btn-sm btn-outline-info me-2" onClick={() => triggerAlert('Secure Redirect', `Opening secure session redirect for ${shop.name}...`, 'info')}>
+                      <button 
+                        className="btn btn-sm btn-outline-info me-2" 
+                        onClick={() => {
+                          playSynthSound('click');
+                          triggerAlert('Secure Redirect', `Opening secure session redirect for ${shop.name}...`, 'info');
+                          setTimeout(() => {
+                            navigate('/dashboard');
+                          }, 1000);
+                        }}
+                      >
                         <i className="fa-solid fa-right-to-bracket me-1"></i>Enter Shop
                       </button>
                     </td>

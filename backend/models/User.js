@@ -21,6 +21,11 @@ const UserSchema = new mongoose.Schema({
     type: String,
     default: 'Starter Shop'
   },
+  plan_type: {
+    type: String,
+    enum: ['starter', 'growth', 'enterprise'],
+    default: 'starter'
+  },
   created_at: {
     type: Date,
     default: Date.now

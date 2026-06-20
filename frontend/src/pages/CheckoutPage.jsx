@@ -60,18 +60,21 @@ const CheckoutPage = () => {
     setTimeout(async () => {
       const result = await register(email, password, plan_name);
       if (result.success) {
+        // Set the auth token directly to log the user in immediately
+        setToken(result.token);
+        
         if (plan_name === 'Starter Shop') {
-          // Flow 1: Redirect to standard login page
-          navigate('/login', {
+          // Redirect Starter Shop users directly to their Dashboard
+          navigate('/dashboard', {
             state: {
+              justRegistered: true,
               successMessage: 'Payment successful! Your unique SaaS access code has been generated.',
               generatedCode: result.saas_code,
               registeredEmail: result.email
             }
           });
         } else {
-          // Flow 2: Set token and redirect directly to Admin Page
-          setToken(result.token);
+          // Redirect Growth and Enterprise Shop users directly to the Multi-Shop Admin Portal
           navigate('/admin', {
             state: {
               justRegistered: true,

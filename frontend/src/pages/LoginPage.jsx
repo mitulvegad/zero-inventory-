@@ -54,8 +54,9 @@ const LoginPage = () => {
     const result = await login(email, password, saasCode);
     if (result.success) {
       const loggedInUser = result.user || user;
-      const userPlan = loggedInUser?.plan_name || 'Starter Shop';
-      if (userPlan === 'Starter Shop') {
+      const userPlanType = loggedInUser?.plan_type || (loggedInUser?.plan_name === 'Starter Shop' ? 'starter' : 'growth');
+      
+      if (userPlanType === 'starter') {
         navigate('/dashboard');
       } else {
         navigate('/admin');

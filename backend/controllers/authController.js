@@ -50,20 +50,32 @@ exports.register = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const password_hash = await bcrypt.hash(password, salt);
 
-    // 5. Create and save user
+    // 5. Map plan_name to plan_type
+    let plan_type = 'starter';
+    const pName = (plan_name || 'Starter Shop').toLowerCase();
+    if (pName.includes('growth')) {
+      plan_type = 'growth';
+    } else if (pName.includes('enterprise')) {
+      plan_type = 'enterprise';
+    }
+
+    // 6. Create and save user
     user = new User({
       email: email.toLowerCase(),
       password_hash,
       saas_code,
-      plan_name: plan_name || 'Starter Shop'
+      plan_name: plan_name || 'Starter Shop',
+      plan_type
     });
 
     await user.save();
 
-    // 6. Return JWT and generated SaaS Code
+    // 7. Return JWT and generated SaaS Code
     const payload = {
       user: {
-        id: user.id
+        id: user.id,
+        plan_type: user.plan_type,
+        plan_name: user.plan_name
       }
     };
 
@@ -75,6 +87,7 @@ exports.register = async (req, res) => {
       saas_code,
       email: user.email,
       plan_name: user.plan_name,
+      plan_type: user.plan_type,
       message: 'Registration successful! Your SaaS access code is generated.'
     });
   } catch (err) {
@@ -117,9 +130,22 @@ exports.login = async (req, res) => {
     }
 
     // 5. Generate and return JWT
+    let plan_type = user.plan_type;
+    if (!plan_type) {
+      plan_type = 'starter';
+      const pName = (user.plan_name || 'Starter Shop').toLowerCase();
+      if (pName.includes('growth')) {
+        plan_type = 'growth';
+      } else if (pName.includes('enterprise')) {
+        plan_type = 'enterprise';
+      }
+    }
+
     const payload = {
       user: {
-        id: user.id
+        id: user.id,
+        plan_type,
+        plan_name: user.plan_name
       }
     };
 
@@ -132,6 +158,7 @@ exports.login = async (req, res) => {
         id: user.id,
         email: user.email,
         plan_name: user.plan_name,
+        plan_type,
         saas_code: user.saas_code
       }
     });
