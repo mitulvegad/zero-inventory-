@@ -4,8 +4,15 @@ import axios from 'axios';
 export const AuthContext = createContext();
 
 // Create default axios instance pointing to the Express backend
+let backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+// Self-healing: automatically append /api if omitted in environment variables
+if (backendUrl && !backendUrl.endsWith('/api') && !backendUrl.endsWith('/api/')) {
+  backendUrl = backendUrl.endsWith('/') ? `${backendUrl}api` : `${backendUrl}/api`;
+}
+
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL: backendUrl,
   headers: {
     'Content-Type': 'application/json'
   }
