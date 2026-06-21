@@ -317,22 +317,22 @@ const DashboardPage = () => {
         </div>
 
         {/* Upgrade Card and Profile Section container */}
-        <div className="sidebar-bottom-section" style={{ marginTop: 'auto', borderTop: '1px solid #e2e8f0', backgroundColor: '#ffffff' }}>
+        <div className="sidebar-bottom-section" style={{ marginTop: 'auto', backgroundColor: '#ffffff' }}>
           {/* Upgrade to Pro Card */}
           <div className="upgrade-pro-card" style={{ 
             background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', 
-            padding: '0.85rem', 
+            padding: '1.25rem 1rem', 
             borderRadius: '10px', 
-            margin: '0.85rem', 
+            margin: '0.85rem 0.85rem 1.25rem 0.85rem', 
             textAlign: 'center', 
             color: '#ffffff',
             boxShadow: '0 4px 6px -1px rgba(59, 130, 246, 0.2)'
           }}>
-            <h5 className="fw-bold mb-1" style={{ fontSize: '0.85rem', color: '#ffffff' }}>Upgrade to Pro</h5>
-            <p className="small mb-2" style={{ fontSize: '0.7rem', opacity: '0.9', lineHeight: '1.2', color: '#ffffff' }}>Unlock advanced features and grow your business.</p>
+            <h5 className="fw-bold mb-1.5" style={{ fontSize: '0.85rem', color: '#ffffff', margin: '0 0 0.35rem 0' }}>Upgrade to Pro</h5>
+            <p className="small mb-3" style={{ fontSize: '0.7rem', opacity: '0.9', lineHeight: '1.3', color: '#ffffff', margin: '0 0 0.95rem 0' }}>Unlock advanced features and grow your business.</p>
             <button 
               className="btn w-100 fw-bold border-0" 
-              style={{ backgroundColor: '#ffffff', color: '#1d4ed8', borderRadius: '6px', fontSize: '0.72rem', padding: '0.3rem 0.5rem' }} 
+              style={{ backgroundColor: '#ffffff', color: '#1d4ed8', borderRadius: '6px', fontSize: '0.72rem', padding: '0.4rem 0.5rem', margin: 0 }} 
               onClick={() => triggerAlert('Upgrade System', 'Simulated gateway dashboard update is active.')}
             >
               Upgrade Now
@@ -340,9 +340,9 @@ const DashboardPage = () => {
           </div>
 
           {/* Merchant Logout Profile Card */}
-          <div className="sidebar-bottom-user p-2.5 border-top d-flex align-items-center justify-content-between text-dark" style={{ borderColor: '#e2e8f0', backgroundColor: '#f8fafc' }}>
+          <div className="sidebar-bottom-user d-flex align-items-center justify-content-between text-dark" style={{ padding: '0.95rem 1.1rem', backgroundColor: '#f8fafc' }}>
             <div className="d-flex align-items-center gap-2" style={{ minWidth: 0 }}>
-              <div className="avatar-circle rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style={{ width: '30px', height: '30px', fontSize: '0.85rem', backgroundColor: '#3b82f6', flexShrink: 0 }}>
+              <div className="avatar-circle rounded-circle d-flex align-items-center justify-content-center fw-bold" style={{ width: '30px', height: '30px', fontSize: '0.85rem', backgroundColor: '#e2e8f0', color: '#1e293b', flexShrink: 0 }}>
                 A
               </div>
               <div style={{ minWidth: 0 }}>
@@ -352,7 +352,12 @@ const DashboardPage = () => {
                 </div>
               </div>
             </div>
-            <button className="btn btn-link text-danger p-1 border-0" title="Logout" onClick={handleLogout} style={{ fontSize: '0.95rem', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+            <button 
+              className="btn btn-link text-danger border-0" 
+              title="Logout" 
+              onClick={handleLogout} 
+              style={{ fontSize: '0.95rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, margin: 0, width: '24px', height: '24px', alignSelf: 'center', flexShrink: 0 }}
+            >
               <i className="fa-solid fa-right-from-bracket"></i>
             </button>
           </div>
