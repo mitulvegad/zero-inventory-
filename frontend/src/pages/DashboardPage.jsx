@@ -246,6 +246,36 @@ const DashboardPage = () => {
     triggerAlert('Invoice Deleted', `Invoice ${invoiceToDelete.invoice_number} has been deleted successfully!`, 'success');
   };
 
+  const handleDirectSaleProduct = (product) => {
+    playSynthSound('click');
+    
+    // Check stock
+    if (product.quantity <= 0) {
+      triggerAlert('Out of Stock', 'This product is out of stock and cannot be sold.', 'error');
+      return;
+    }
+
+    // Add to Generate Bill selections
+    const existing = selectedProducts.find(p => p.id === product.id);
+    if (existing) {
+      if (existing.qtyToSell >= product.quantity) {
+        triggerAlert('Limit Reached', `Only ${product.quantity} units are available in stock.`, 'error');
+        return;
+      }
+      setSelectedProducts(selectedProducts.map(p => 
+        p.id === product.id ? { ...p, qtyToSell: p.qtyToSell + 1 } : p
+      ));
+    } else {
+      setSelectedProducts([...selectedProducts, { ...product, qtyToSell: 1 }]);
+    }
+
+    // Switch tab to billing
+    setActiveTab('billing');
+    window.location.hash = '#billing';
+    
+    triggerAlert('Product Added', `Added ${product.name} to the invoice builder.`, 'success');
+  };
+
   const handleApplySalesFilters = () => {
     playSynthSound('click');
     setAppliedSalesFilters({
@@ -602,11 +632,57 @@ const DashboardPage = () => {
       triggerAlert('Required Info', 'Please add at least one product to the invoice.', 'error');
       return;
     }
+
+    // Deduct sold quantities from inventory products
+    setInventoryProducts(prevProducts => 
+      prevProducts.map(p => {
+        const soldItem = selectedProducts.find(item => item.id === p.id);
+        if (soldItem) {
+          return {
+            ...p,
+            quantity: Math.max(0, p.quantity - soldItem.qtyToSell)
+          };
+        }
+        return p;
+      })
+    );
+
+    // Save sale to Sales Registry list
+    const newSale = {
+      id: (salesList.length + 1).toString(),
+      invoice_number: invoiceId,
+      customer_name: customerName,
+      sale_date: new Date().toISOString().split('T')[0],
+      grand_total: billingGrandTotal,
+      payment_method: paymentMethod,
+      status: 'Paid',
+      receipt_image: ''
+    };
+    setSalesList(prevList => [newSale, ...prevList]);
+
+    // Save to Recent Activity dashboard stats
+    const newRecentSale = {
+      _id: newSale.id,
+      invoice_number: newSale.invoice_number,
+      customer_name: newSale.customer_name,
+      grand_total: newSale.grand_total,
+      sale_date: newSale.sale_date
+    };
+    setRecentSales(prevSales => [newRecentSale, ...prevSales]);
+
     triggerAlert('Invoice Generated', `Invoice ${invoiceId} for ${customerName} has been generated successfully! Grand Total: $${billingGrandTotal.toFixed(2)}`, 'success');
+    
+    // Clear invoice inputs
     setCustomerName('');
     setSelectedProducts([]);
     setItemSearch('');
     setCatalogSearch('');
+
+    // Generate a fresh invoice number for the next sale
+    const today = new Date();
+    const dateStr = today.getFullYear() + String(today.getMonth() + 1).padStart(2, '0') + String(today.getDate()).padStart(2, '0');
+    const randStr = Math.floor(1000 + Math.random() * 9000);
+    setInvoiceId(`INV-${dateStr}-${randStr}`);
   };
 
   // Sound Synth Helper (Disabled to remove all sound effects)
@@ -1852,6 +1928,7 @@ const DashboardPage = () => {
                               <th>Selling Price</th>
                               <th>Quantity</th>
                               <th>Status</th>
+                              <th className="text-center">Sale</th>
                               <th className="text-center">Actions</th>
                             </tr>
                           </thead>
@@ -1880,6 +1957,18 @@ const DashboardPage = () => {
                                   <span className={`badge ${product.quantity <= 0 ? 'bg-danger text-danger' : product.quantity < (product.reorderLevel || 10) ? 'bg-warning text-warning' : 'bg-success text-success'} bg-opacity-10 border border-opacity-20`} style={{ fontSize: '0.68rem', borderColor: 'currentColor' }}>
                                     {product.quantity <= 0 ? 'Out of Stock' : product.quantity < (product.reorderLevel || 10) ? 'Low Stock' : 'In Stock'}
                                   </span>
+                                </td>
+                                <td className="text-center">
+                                  <button
+                                    type="button"
+                                    className="btn btn-blue-primary btn-sm px-2.5 py-0.5 fw-semibold d-inline-flex align-items-center gap-1"
+                                    style={{ fontSize: '0.68rem', borderRadius: '4px' }}
+                                    onClick={() => handleDirectSaleProduct(product)}
+                                    disabled={product.quantity <= 0}
+                                    title={product.quantity <= 0 ? "Out of Stock" : "Sale product"}
+                                  >
+                                    <i className="fa-solid fa-cart-shopping" style={{ fontSize: '0.65rem' }}></i> Sale
+                                  </button>
                                 </td>
                                 <td className="text-center">
                                   <div className="d-flex align-items-center justify-content-center gap-2">
