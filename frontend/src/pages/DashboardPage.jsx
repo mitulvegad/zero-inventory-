@@ -140,6 +140,29 @@ const DashboardPage = () => {
   const [purchaseGrandTotalInput, setPurchaseGrandTotalInput] = useState('');
   const [purchasePaymentStatus, setPurchasePaymentStatus] = useState('Paid');
 
+  // Categories Inventory States
+  const [categoriesList, setCategoriesList] = useState([
+    { id: '1', name: 'Electronics', slug: 'electronics', parent_category: null, description: 'Electronic devices, gadgets, and accessories.', status: 'Active', icon: 'fa-laptop', color: '#3b82f6', image: '' },
+    { id: '2', name: 'Clothing', slug: 'clothing', parent_category: null, description: 'Apparel, garments, and wear.', status: 'Active', icon: 'fa-shirt', color: '#ec4899', image: '' },
+    { id: '3', name: 'Accessories', slug: 'accessories', parent_category: null, description: 'Personal decorations and accessories.', status: 'Active', icon: 'fa-gem', color: '#10b981', image: '' }
+  ]);
+  const [categoriesSubView, setCategoriesSubView] = useState('list'); // 'list' or 'add'
+  const [categoriesSearchQuery, setCategoriesSearchQuery] = useState('');
+  const [categoriesStatusFilter, setCategoriesStatusFilter] = useState('All');
+  const [appliedCategoriesFilters, setAppliedCategoriesFilters] = useState({ search: '', status: 'All' });
+
+  // Add Category Form States
+  const [catName, setCatName] = useState('');
+  const [catSlug, setCatSlug] = useState('');
+  const [catParent, setCatParent] = useState('');
+  const [catStatus, setCatStatus] = useState('Active');
+  const [catIcon, setCatIcon] = useState('fa-tag');
+  const [catColor, setCatColor] = useState('#0EA5E9');
+  const [catImage, setCatImage] = useState('');
+  const [catImagePreview, setCatImagePreview] = useState(null);
+  const [catDescription, setCatDescription] = useState('');
+  const [catSaving, setCatSaving] = useState(false);
+
   // Selected Purchase for detailed preview modal
   const [selectedPurchaseDetails, setSelectedPurchaseDetails] = useState(null);
 
@@ -228,6 +251,144 @@ const DashboardPage = () => {
     setPurchasesPaymentStatusFilter('All');
     setAppliedPurchasesFilters({ search: '', paymentStatus: 'All' });
     setHeaderSearch('');
+  };
+
+  // Categories Page Filtering
+  const handleApplyCategoriesFilters = () => {
+    playSynthSound('click');
+    setAppliedCategoriesFilters({
+      search: categoriesSearchQuery,
+      status: categoriesStatusFilter
+    });
+  };
+
+  const handleRefreshCategoriesFilters = () => {
+    playSynthSound('click');
+    setCategoriesSearchQuery('');
+    setCategoriesStatusFilter('All');
+    setAppliedCategoriesFilters({ search: '', status: 'All' });
+    setHeaderSearch('');
+  };
+
+  // Image Upload Handlers for Categories
+  const handleCategoryImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        triggerAlert('Image Too Large', 'Maximum image upload size is 2MB.', 'error');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCatImagePreview(reader.result);
+        setCatImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCategoryDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleCategoryDragLeave = (e) => {
+    e.preventDefault();
+  };
+
+  const handleCategoryDrop = (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        triggerAlert('Image Too Large', 'Maximum image upload size is 2MB.', 'error');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCatImagePreview(reader.result);
+        setCatImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCategoryRemoveImage = () => {
+    setCatImagePreview(null);
+    setCatImage('');
+  };
+
+  // Auto-generate slug from name helper
+  const generateSlugFromName = (name) => {
+    return name
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/[\s_]+/g, '-')
+      .replace(/-+/g, '-');
+  };
+
+  const handleCategoryNameChange = (val) => {
+    setCatName(val);
+    setCatSlug(generateSlugFromName(val));
+  };
+
+  const handleResetCategoryForm = () => {
+    setCatName('');
+    setCatSlug('');
+    setCatParent('');
+    setCatStatus('Active');
+    setCatIcon('fa-tag');
+    setCatColor('#0EA5E9');
+    setCatImage('');
+    setCatImagePreview(null);
+    setCatDescription('');
+  };
+
+  const handleSaveCategory = async (e) => {
+    if (e) e.preventDefault();
+    if (!catName) {
+      triggerAlert('Required Field', 'Category Name is required.', 'error');
+      return;
+    }
+
+    setCatSaving(true);
+    const categoryData = {
+      name: catName,
+      slug: catSlug || generateSlugFromName(catName),
+      parent_category: catParent || null,
+      icon: catIcon,
+      color: catColor,
+      image: catImage,
+      description: catDescription,
+      status: catStatus
+    };
+
+    try {
+      const res = await api.post('/categories', categoryData);
+      // Prepend the new category from backend
+      const newCategory = {
+        id: res.data._id || res.data.id,
+        name: res.data.name,
+        slug: res.data.slug,
+        parent_category: res.data.parent_category,
+        description: res.data.description || '',
+        status: res.data.status || 'Active',
+        icon: res.data.icon || 'fa-tag',
+        color: res.data.color || '#0EA5E9',
+        image: res.data.image || ''
+      };
+      setCategoriesList([newCategory, ...categoriesList]);
+      
+      triggerAlert('Success', `Category "${newCategory.name}" has been created successfully!`, 'success');
+      handleResetCategoryForm();
+      setCategoriesSubView('list');
+    } catch (err) {
+      console.error('Error saving category:', err);
+      const errMsg = err.response?.data?.message || 'Server error saving category.';
+      triggerAlert('Save Failed', errMsg, 'error');
+    } finally {
+      setCatSaving(false);
+    }
   };
 
   const handleExportPurchasesPDF = () => {
@@ -929,6 +1090,26 @@ const DashboardPage = () => {
           setPurchasesList(apiPurchases);
         }
         
+        // Synchronize backend categories if available
+        try {
+          const catRes = await api.get('/categories');
+          if (catRes.data && catRes.data.length > 0) {
+            setCategoriesList(catRes.data.map(cat => ({
+              id: cat._id || cat.id,
+              name: cat.name,
+              slug: cat.slug,
+              parent_category: cat.parent_category,
+              description: cat.description || '',
+              status: cat.status || 'Active',
+              icon: cat.icon || 'fa-tag',
+              color: cat.color || '#0EA5E9',
+              image: cat.image || ''
+            })));
+          }
+        } catch (catErr) {
+          console.warn('Could not load categories from backend, using fallback mock data:', catErr);
+        }
+        
         setLoading(false);
       } catch (err) {
         console.error('Failed to load dashboard data:', err);
@@ -1285,6 +1466,9 @@ const DashboardPage = () => {
                   } else if (activeTab === 'purchases') {
                     setPurchasesSearch(e.target.value);
                     setAppliedPurchasesFilters(prev => ({ ...prev, search: e.target.value }));
+                  } else if (activeTab === 'categories') {
+                    setCategoriesSearchQuery(e.target.value);
+                    setAppliedCategoriesFilters(prev => ({ ...prev, search: e.target.value }));
                   }
                 }}
               />
@@ -2840,8 +3024,477 @@ const DashboardPage = () => {
             </div>
           )}
 
+          {/* Render Categories Tab */}
+          {activeTab === 'categories' && (
+            <div className="categories-registry-view animate-fade-in" style={{ animation: 'fadeIn 0.25s ease-out' }}>
+              {categoriesSubView === 'list' ? (
+                /* Categories List Sub-View */
+                <>
+                  {/* Title Banner */}
+                  <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+                    <div>
+                      <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Categories Inventory</h1>
+                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
+                        <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => { playSynthSound('click'); setActiveTab('dashboard'); window.location.hash = '#dashboard'; }}>Dashboard</span>
+                        <span className="text-secondary">/</span>
+                        <span className="fw-semibold">Categories</span>
+                      </div>
+                    </div>
+                    <div className="d-flex align-items-center gap-2">
+                      <button 
+                        className="btn btn-blue-primary btn-sm d-flex align-items-center gap-1.5 px-3 py-1.5 fw-semibold" 
+                        style={{ fontSize: '0.75rem', borderRadius: '6px' }} 
+                        onClick={() => { playSynthSound('click'); setCategoriesSubView('add'); }}
+                      >
+                        <i className="fa-solid fa-plus"></i> Add New Category
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Filters Section */}
+                  <div className="p-3 rounded-3 shadow-sm border bg-white mb-3" style={{ borderColor: '#cbd5e1' }}>
+                    <div className="row g-3 align-items-end">
+                      <div className="col-md-5">
+                        <label className="form-label mb-1 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Search Categories</label>
+                        <div className="position-relative">
+                          <i className="fa-solid fa-magnifying-glass text-secondary position-absolute" style={{ left: '0.75rem', top: '50%', transform: 'translateY(-50%)', fontSize: '0.8rem', color: '#64748b' }}></i>
+                          <input 
+                            type="text" 
+                            className="form-control-premium-dark" 
+                            style={{ paddingLeft: '2.1rem' }} 
+                            placeholder="Search name, slug, parent, description..." 
+                            value={categoriesSearchQuery}
+                            onChange={(e) => setCategoriesSearchQuery(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <div className="col-md-4">
+                        <label className="form-label mb-1 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Status Filter</label>
+                        <select 
+                          className="form-control-premium-dark"
+                          value={categoriesStatusFilter}
+                          onChange={(e) => setCategoriesStatusFilter(e.target.value)}
+                        >
+                          <option value="All">All statuses</option>
+                          <option value="Active">Active</option>
+                          <option value="Inactive">Inactive</option>
+                        </select>
+                      </div>
+                      <div className="col-md-3 d-flex gap-2">
+                        <button 
+                          className="btn btn-blue-primary w-100 py-2 fw-semibold"
+                          style={{ fontSize: '0.8rem', borderRadius: '6px' }}
+                          onClick={handleApplyCategoriesFilters}
+                        >
+                          Filter
+                        </button>
+                        <button 
+                          className="btn btn-outline-secondary d-flex align-items-center justify-content-center"
+                          style={{ width: '38px', height: '38px', borderRadius: '6px', borderColor: '#cbd5e1', backgroundColor: '#ffffff' }}
+                          onClick={handleRefreshCategoriesFilters}
+                          title="Refresh Filters"
+                        >
+                          <i className="fa-solid fa-arrows-rotate" style={{ color: '#475569' }}></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Data Table */}
+                  <div className="p-3 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#cbd5e1' }}>
+                    <div className="table-responsive">
+                      <table className="table align-middle table-hover-light mb-0">
+                        <thead>
+                          <tr className="small text-secondary" style={{ fontSize: '0.72rem', borderBottom: '2px solid #e2e8f0' }}>
+                            <th>Category Name</th>
+                            <th>URL Slug</th>
+                            <th>Parent Category</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                            <th className="text-center">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {categoriesList.filter(cat => {
+                            const searchMatch = !appliedCategoriesFilters.search ||
+                              cat.name.toLowerCase().includes(appliedCategoriesFilters.search.toLowerCase()) ||
+                              cat.slug.toLowerCase().includes(appliedCategoriesFilters.search.toLowerCase()) ||
+                              (cat.description && cat.description.toLowerCase().includes(appliedCategoriesFilters.search.toLowerCase())) ||
+                              (cat.parent_category && cat.parent_category.toLowerCase().includes(appliedCategoriesFilters.search.toLowerCase()));
+                            const statusMatch = appliedCategoriesFilters.status === 'All' ||
+                              cat.status === appliedCategoriesFilters.status;
+                            return searchMatch && statusMatch;
+                          }).length === 0 ? (
+                            <tr>
+                              <td colSpan="6" className="text-center py-5 text-secondary" style={{ color: '#64748b' }}>
+                                <div className="d-flex flex-column align-items-center justify-content-center">
+                                  <i className="fa-solid fa-folder-open text-muted mb-2.5" style={{ fontSize: '3rem', color: '#cbd5e1', opacity: '0.6' }}></i>
+                                  <p className="mb-0 fw-semibold" style={{ fontSize: '0.8rem' }}>
+                                    No categories found matching filters.
+                                  </p>
+                                </div>
+                              </td>
+                            </tr>
+                          ) : (
+                            categoriesList.filter(cat => {
+                              const searchMatch = !appliedCategoriesFilters.search ||
+                                cat.name.toLowerCase().includes(appliedCategoriesFilters.search.toLowerCase()) ||
+                                cat.slug.toLowerCase().includes(appliedCategoriesFilters.search.toLowerCase()) ||
+                                (cat.description && cat.description.toLowerCase().includes(appliedCategoriesFilters.search.toLowerCase())) ||
+                                (cat.parent_category && cat.parent_category.toLowerCase().includes(appliedCategoriesFilters.search.toLowerCase()));
+                              const statusMatch = appliedCategoriesFilters.status === 'All' ||
+                                cat.status === appliedCategoriesFilters.status;
+                              return searchMatch && statusMatch;
+                            }).map(cat => (
+                              <tr key={cat.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                <td className="fw-bold" style={{ color: '#0f172a' }}>
+                                  <div className="d-flex align-items-center gap-2">
+                                    <div className="d-flex align-items-center justify-content-center rounded-circle" style={{ width: '28px', height: '28px', backgroundColor: `${cat.color}15`, color: cat.color }}>
+                                      <i className={`fa-solid ${cat.icon}`}></i>
+                                    </div>
+                                    <span>{cat.name}</span>
+                                  </div>
+                                </td>
+                                <td className="font-monospace" style={{ fontSize: '0.75rem' }}>{cat.slug}</td>
+                                <td>{cat.parent_category || <span className="text-muted small">None (Top Level)</span>}</td>
+                                <td className="text-truncate" style={{ maxWidth: '200px' }}>{cat.description || <span className="text-muted small italic">No description</span>}</td>
+                                <td>
+                                  <span className={`badge px-2.5 py-1 ${
+                                    cat.status === 'Active' ? 'bg-success bg-opacity-10 text-success border border-success border-opacity-20' :
+                                    'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-20'
+                                  }`} style={{ fontSize: '0.7rem', borderRadius: '4px' }}>
+                                    {cat.status}
+                                  </span>
+                                </td>
+                                <td className="text-center">
+                                  <div className="d-flex align-items-center justify-content-center gap-2">
+                                    <button 
+                                      type="button" 
+                                      className="btn btn-link text-primary p-0 border-0" 
+                                      onClick={() => {
+                                        playSynthSound('click');
+                                        setCatName(cat.name);
+                                        setCatSlug(cat.slug);
+                                        setCatParent(cat.parent_category || '');
+                                        setCatStatus(cat.status);
+                                        setCatIcon(cat.icon || 'fa-tag');
+                                        setCatColor(cat.color || '#0EA5E9');
+                                        setCatDescription(cat.description || '');
+                                        setCatImage(cat.image || '');
+                                        setCatImagePreview(cat.image || null);
+                                        setCategoriesSubView('add');
+                                      }}
+                                      style={{ fontSize: '0.78rem', color: '#007BFF', textDecoration: 'none', fontWeight: '600' }}
+                                    >
+                                      Edit
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                /* PAGE 2: Add / Edit Category View */
+                <>
+                  {/* Title Banner */}
+                  <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+                    <div>
+                      <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Add Category</h1>
+                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
+                        <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => { playSynthSound('click'); setActiveTab('dashboard'); }}>Dashboard</span>
+                        <span className="text-secondary">/</span>
+                        <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => { playSynthSound('click'); setCategoriesSubView('list'); }}>Categories</span>
+                        <span className="text-secondary">/</span>
+                        <span className="fw-semibold">Add Category</span>
+                      </div>
+                    </div>
+                    <div className="d-flex align-items-center gap-2">
+                      <button 
+                        className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1.5 px-3 py-1.5 fw-semibold" 
+                        style={{ fontSize: '0.75rem', borderRadius: '6px', backgroundColor: '#ffffff', borderColor: '#cbd5e1', color: '#475569' }} 
+                        onClick={() => { playSynthSound('click'); setCategoriesSubView('list'); }}
+                      >
+                        <i className="fa-solid fa-arrow-left"></i> Back to Categories
+                      </button>
+                      <button 
+                        className="btn btn-blue-primary btn-sm d-flex align-items-center gap-1.5 px-3 py-1.5 fw-semibold" 
+                        style={{ fontSize: '0.75rem', borderRadius: '6px' }} 
+                        onClick={handleSaveCategory}
+                        disabled={catSaving}
+                      >
+                        <i className="fa-solid fa-save"></i> {catSaving ? 'Saving...' : 'Save Category'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Main Grid */}
+                  <div className="row g-3">
+                    {/* Left Form Column */}
+                    <div className="col-lg-8 col-md-12">
+                      <div className="p-3 rounded-3 shadow-sm border bg-white h-100" style={{ borderColor: '#cbd5e1' }}>
+                        <h3 className="fw-bold mb-2 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '0.92rem', color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem', marginBottom: '1.15rem' }}>
+                          <i className="fa-solid fa-tags text-primary me-2" style={{ color: '#007BFF' }}></i> Category Information
+                        </h3>
+
+                        <form onSubmit={handleSaveCategory}>
+                          <div className="row g-3 mb-3">
+                            <div className="col-md-6">
+                              <label className="form-label mb-1.5 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Category Name <span className="text-danger">*</span></label>
+                              <input 
+                                type="text" 
+                                className="form-control-premium-dark" 
+                                placeholder="Enter category name" 
+                                value={catName}
+                                onChange={(e) => handleCategoryNameChange(e.target.value)}
+                                required 
+                              />
+                            </div>
+                            <div className="col-md-6">
+                              <label className="form-label mb-1.5 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>URL Slug <span className="text-danger">*</span></label>
+                              <input 
+                                type="text" 
+                                className="form-control-premium-dark" 
+                                placeholder="enter-url-slug" 
+                                value={catSlug}
+                                onChange={(e) => setCatSlug(e.target.value)}
+                                required 
+                              />
+                              <span className="small text-muted mt-1 d-block" style={{ fontSize: '0.62rem' }}>
+                                Automatic friendly URL slug created from category name.
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="row g-3 mb-3">
+                            <div className="col-md-6">
+                              <label className="form-label mb-1.5 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Parent Category</label>
+                              <select 
+                                className="form-control-premium-dark" 
+                                value={catParent}
+                                onChange={(e) => setCatParent(e.target.value)}
+                              >
+                                <option value="">None (Top Level)</option>
+                                {categoriesList.map(c => (
+                                  <option key={c.id} value={c.name}>{c.name}</option>
+                                ))}
+                              </select>
+                              <span className="small text-muted mt-1 d-block" style={{ fontSize: '0.62rem' }}>
+                                Nest this category under another category (optional).
+                              </span>
+                            </div>
+                            <div className="col-md-6">
+                              <label className="form-label mb-1.5 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Status <span className="text-danger">*</span></label>
+                              <select 
+                                className="form-control-premium-dark" 
+                                value={catStatus}
+                                onChange={(e) => setCatStatus(e.target.value)}
+                                required
+                              >
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <div className="row g-3 mb-3">
+                            <div className="col-md-6">
+                              <label className="form-label mb-1.5 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Category Icon</label>
+                              <select 
+                                className="form-control-premium-dark" 
+                                value={catIcon}
+                                onChange={(e) => setCatIcon(e.target.value)}
+                              >
+                                <option value="fa-tag">Tag</option>
+                                <option value="fa-laptop">Laptop/Electronics</option>
+                                <option value="fa-shirt">Shirt/Clothing</option>
+                                <option value="fa-gem">Gem/Accessories</option>
+                                <option value="fa-utensils">Utensils/Food</option>
+                                <option value="fa-couch">Couch/Furniture</option>
+                                <option value="fa-heart">Heart/Health</option>
+                                <option value="fa-book">Book/Education</option>
+                              </select>
+                            </div>
+                            <div className="col-md-6">
+                              <label className="form-label mb-1.5 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Category Color</label>
+                              <div className="d-flex align-items-center gap-2">
+                                <input 
+                                  type="color" 
+                                  className="form-control p-0" 
+                                  style={{ width: '40px', height: '36px', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer' }}
+                                  value={catColor}
+                                  onChange={(e) => setCatColor(e.target.value)}
+                                />
+                                <span className="font-monospace text-secondary small" style={{ fontSize: '0.75rem' }}>{catColor}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="form-group mb-3">
+                            <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Category Image Upload</label>
+                            <div 
+                              className="d-flex flex-column align-items-center justify-content-center border border-dashed rounded-3 p-3 text-center position-relative"
+                              style={{
+                                minHeight: '120px',
+                                borderColor: '#cbd5e1',
+                                backgroundColor: '#f8fafc',
+                                transition: 'all 0.2s ease',
+                                cursor: 'pointer'
+                              }}
+                              onDragOver={handleCategoryDragOver}
+                              onDragLeave={handleCategoryDragLeave}
+                              onDrop={handleCategoryDrop}
+                              onClick={() => document.getElementById('category-file-input').click()}
+                            >
+                              <input 
+                                type="file" 
+                                id="category-file-input" 
+                                className="d-none" 
+                                accept="image/jpeg,image/png,image/webp" 
+                                onChange={handleCategoryImageChange}
+                              />
+
+                              {catImagePreview ? (
+                                <div className="w-100 h-100 d-flex align-items-center justify-content-center position-relative">
+                                  <img src={catImagePreview} alt="Category preview" style={{ maxWidth: '100%', maxHeight: '100px', borderRadius: '4px', objectFit: 'contain' }} />
+                                </div>
+                              ) : (
+                                <>
+                                  <i className="fa-solid fa-cloud-arrow-up text-primary mb-1.5" style={{ fontSize: '1.6rem', color: '#007BFF' }}></i>
+                                  <div className="fw-bold text-dark mb-0.5" style={{ fontSize: '0.78rem' }}>Drag & drop image here</div>
+                                  <div className="text-secondary small" style={{ fontSize: '0.65rem' }}>or click to browse</div>
+                                </>
+                              )}
+                            </div>
+
+                            {catImagePreview && (
+                              <div className="mt-2 text-center">
+                                <button 
+                                  type="button" 
+                                  className="btn btn-outline-danger btn-sm py-1 fw-semibold d-flex align-items-center justify-content-center gap-1.5 w-100" 
+                                  style={{ fontSize: '0.7rem', borderRadius: '6px' }} 
+                                  onClick={handleCategoryRemoveImage}
+                                >
+                                  <i className="fa-solid fa-trash-can"></i> Remove Image
+                                </button>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="mb-4">
+                            <label className="form-label mb-1.5 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Description</label>
+                            <textarea 
+                              className="form-control-premium-dark" 
+                              style={{ minHeight: '100px' }}
+                              placeholder="Describe this category..." 
+                              value={catDescription}
+                              onChange={(e) => setCatDescription(e.target.value)}
+                            />
+                          </div>
+
+                          <div className="pt-3 d-flex justify-content-end gap-2" style={{ borderTop: '1px solid #e2e8f0' }}>
+                            <button 
+                              type="button" 
+                              className="btn btn-outline-secondary px-3.5 py-1.5 fw-semibold" 
+                              style={{ fontSize: '0.75rem', borderRadius: '6px', borderColor: '#cbd5e1', backgroundColor: '#ffffff', color: '#475569' }} 
+                              onClick={handleResetCategoryForm}
+                            >
+                              Reset
+                            </button>
+                            <button 
+                              type="button" 
+                              className="btn btn-outline-secondary px-3.5 py-1.5 fw-semibold" 
+                              style={{ fontSize: '0.75rem', borderRadius: '6px', borderColor: '#cbd5e1', backgroundColor: '#ffffff', color: '#475569' }} 
+                              onClick={() => { playSynthSound('click'); setCategoriesSubView('list'); }}
+                            >
+                              Cancel
+                            </button>
+                            <button 
+                              type="submit" 
+                              className="btn text-white fw-bold px-4 py-1.5 border-0" 
+                              style={{ backgroundColor: '#007BFF', borderRadius: '6px', fontSize: '0.75rem' }}
+                              disabled={catSaving}
+                            >
+                              {catSaving ? 'Saving...' : 'Save Category'}
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+
+                    {/* Right Column: Preview & Tips */}
+                    <div className="col-lg-4 col-md-12 d-flex flex-column gap-3">
+                      {/* Live Category Preview Card */}
+                      <div className="p-3 rounded-3 border bg-white shadow-sm" style={{ borderColor: '#cbd5e1' }}>
+                        <h4 className="fw-bold mb-2.5 d-flex align-items-center text-dark" style={{ fontFamily: 'Outfit', fontSize: '0.85rem' }}>
+                          <i className="fa-regular fa-eye text-primary me-2" style={{ color: '#007BFF' }}></i> Category Preview
+                        </h4>
+
+                        <div className="d-flex flex-column align-items-center justify-content-center p-3 text-center rounded-3 bg-light border border-dashed mb-3" style={{ minHeight: '180px', borderColor: '#e2e8f0' }}>
+                          <div className="d-flex align-items-center justify-content-center rounded-circle shadow-sm mb-2.5 animate-pulse" style={{ width: '60px', height: '60px', backgroundColor: `${catColor}15`, color: catColor, fontSize: '1.8rem' }}>
+                            <i className={`fa-solid ${catIcon}`}></i>
+                          </div>
+
+                          <h3 className="fw-bold text-dark mb-1" style={{ fontSize: '1.05rem', fontFamily: 'Outfit' }}>{catName || 'Category Name'}</h3>
+                          <span className={`badge px-2.5 py-0.5 mb-3 ${
+                            catStatus === 'Active' ? 'bg-success bg-opacity-10 text-success border border-success border-opacity-20' :
+                            'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-20'
+                          }`} style={{ fontSize: '0.65rem' }}>
+                            {catStatus}
+                          </span>
+
+                          <div className="w-100 text-start border-top pt-2.5" style={{ fontSize: '0.72rem' }}>
+                            <div className="d-flex justify-content-between mb-1.5">
+                              <span className="text-secondary"><i className="fa-solid fa-sitemap me-1.5"></i>Parent:</span>
+                              <span className="fw-bold text-dark">{catParent || 'None'}</span>
+                            </div>
+                            <div className="d-flex justify-content-between mb-1.5">
+                              <span className="text-secondary"><i className="fa-solid fa-link me-1.5"></i>Slug URL:</span>
+                              <span className="fw-semibold text-primary font-monospace" style={{ color: '#007BFF' }}>category/{catSlug || 'slug'}</span>
+                            </div>
+                            <div className="d-flex justify-content-between">
+                              <span className="text-secondary"><i className="fa-regular fa-file-lines me-1.5"></i>Description:</span>
+                              <span className="text-truncate text-dark fw-medium" style={{ maxWidth: '150px' }}>{catDescription || 'No description provided.'}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <p className="text-secondary small italic text-center mb-0" style={{ fontSize: '0.65rem' }}>This preview updates dynamically as you fill out the fields.</p>
+                      </div>
+
+                      {/* Tips Card */}
+                      <div className="p-3 rounded-3 border bg-white shadow-sm" style={{ borderColor: '#cbd5e1' }}>
+                        <h4 className="fw-bold mb-2.5 d-flex align-items-center text-dark" style={{ fontFamily: 'Outfit', fontSize: '0.85rem' }}>
+                          <i className="fa-regular fa-lightbulb text-warning me-2"></i> Tips
+                        </h4>
+                        <ul className="list-unstyled d-flex flex-column gap-2 mb-0" style={{ fontSize: '0.72rem' }}>
+                          <li className="d-flex align-items-start gap-2">
+                            <i className="fa-solid fa-circle-check text-success mt-0.5"></i>
+                            <span className="text-secondary">URLs slugs should contain only lowercase letters, numbers, and hyphens.</span>
+                          </li>
+                          <li className="d-flex align-items-start gap-2">
+                            <i className="fa-solid fa-circle-check text-success mt-0.5"></i>
+                            <span className="text-secondary">Select a Parent Category to build hierarchies (e.g. "Electronics" &gt; "Smartphones").</span>
+                          </li>
+                          <li className="d-flex align-items-start gap-2">
+                            <i className="fa-solid fa-circle-check text-success mt-0.5"></i>
+                            <span className="text-secondary">Add details to your description to help identify inventory groups.</span>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
           {/* Render Fallback for other tabs */}
-          {activeTab !== 'dashboard' && activeTab !== 'billing' && activeTab !== 'products' && activeTab !== 'sales' && activeTab !== 'purchases' && (
+          {activeTab !== 'dashboard' && activeTab !== 'billing' && activeTab !== 'products' && activeTab !== 'sales' && activeTab !== 'purchases' && activeTab !== 'categories' && (
             <div className="p-5 text-center rounded-4 border bg-white" style={{ borderColor: '#cbd5e1', margin: '3rem auto', maxWidth: '500px', boxShadow: '0 4px 6px -1px rgba(14, 165, 233, 0.05)' }}>
               <i className="fa-solid fa-screwdriver-wrench text-secondary mb-3" style={{ fontSize: '3rem', color: '#94a3b8' }}></i>
               <h4 className="fw-bold text-dark text-capitalize" style={{ fontFamily: 'Outfit', fontSize: '1.1rem' }}>{activeTab.replace('-', ' ')} Page</h4>
