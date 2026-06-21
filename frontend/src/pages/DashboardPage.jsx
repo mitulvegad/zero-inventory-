@@ -49,11 +49,7 @@ const DashboardPage = () => {
     const handleHashChange = () => {
       const hash = window.location.hash.slice(1);
       if (hash) {
-        if (hash === 'billing' || hash === 'billing-subscription') {
-          setActiveTab('billing');
-        } else {
-          setActiveTab(hash);
-        }
+        setActiveTab(hash);
       } else {
         setActiveTab('dashboard');
       }
@@ -362,62 +358,62 @@ const DashboardPage = () => {
         <div className="sidebar-nav-container" style={{ flexGrow: 1, overflowY: 'auto', padding: '0.85rem 0.85rem 0 0.85rem' }}>
           <ul className="sidebar-nav-list" style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.55rem', margin: 0 }}>
             <li className={`sidebar-nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} style={{ display: 'block' }}>
-              <a href="#dashboard" onClick={() => playSynthSound('click')} className={activeTab === 'dashboard' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'dashboard' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
+              <a href="#dashboard" onClick={() => { playSynthSound('click'); setActiveTab('dashboard'); }} className={activeTab === 'dashboard' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'dashboard' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
                 <i className="fa-solid fa-house text-info" style={{ color: activeTab === 'dashboard' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Dashboard
               </a>
             </li>
             <li className={`sidebar-nav-item ${activeTab === 'billing' ? 'active' : ''}`}>
-              <a href="#billing" onClick={() => playSynthSound('click')} className={activeTab === 'billing' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'billing' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
+              <a href="#billing" onClick={() => { playSynthSound('click'); setActiveTab('billing'); }} className={activeTab === 'billing' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'billing' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
                 <i className="fa-solid fa-file-invoice" style={{ color: activeTab === 'billing' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Generate Bill
               </a>
             </li>
             <li className={`sidebar-nav-item ${activeTab === 'products' ? 'active' : ''}`}>
-              <a href="#products" onClick={() => playSynthSound('click')} className={activeTab === 'products' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'products' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
+              <a href="#products" onClick={() => { playSynthSound('click'); setActiveTab('products'); }} className={activeTab === 'products' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'products' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
                 <i className="fa-solid fa-box-open" style={{ color: activeTab === 'products' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Products
               </a>
             </li>
             <li className={`sidebar-nav-item ${activeTab === 'sales' ? 'active' : ''}`}>
-              <a href="#sales" onClick={() => playSynthSound('click')} className={activeTab === 'sales' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'sales' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
+              <a href="#sales" onClick={() => { playSynthSound('click'); setActiveTab('sales'); }} className={activeTab === 'sales' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'sales' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
                 <i className="fa-solid fa-chart-line" style={{ color: activeTab === 'sales' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Sales
               </a>
             </li>
             <li className={`sidebar-nav-item ${activeTab === 'purchases' ? 'active' : ''}`}>
-              <a href="#purchases" onClick={() => playSynthSound('click')} className={activeTab === 'purchases' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'purchases' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
+              <a href="#purchases" onClick={() => { playSynthSound('click'); setActiveTab('purchases'); }} className={activeTab === 'purchases' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'purchases' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
                 <i className="fa-solid fa-cart-shopping" style={{ color: activeTab === 'purchases' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Purchases
               </a>
             </li>
             <li className={`sidebar-nav-item ${activeTab === 'inventory' ? 'active' : ''}`}>
-              <a href="#inventory" onClick={() => playSynthSound('click')} className={activeTab === 'inventory' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'inventory' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
+              <a href="#inventory" onClick={() => { playSynthSound('click'); setActiveTab('inventory'); }} className={activeTab === 'inventory' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'inventory' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
                 <i className="fa-solid fa-warehouse" style={{ color: activeTab === 'inventory' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Inventory
               </a>
             </li>
             <li className={`sidebar-nav-item ${activeTab === 'categories' ? 'active' : ''}`}>
-              <a href="#categories" onClick={() => playSynthSound('click')} className={activeTab === 'categories' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'categories' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
+              <a href="#categories" onClick={() => { playSynthSound('click'); setActiveTab('categories'); }} className={activeTab === 'categories' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'categories' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
                 <i className="fa-solid fa-tags" style={{ color: activeTab === 'categories' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Categories
               </a>
             </li>
             <li className={`sidebar-nav-item ${activeTab === 'suppliers' ? 'active' : ''}`}>
-              <a href="#suppliers" onClick={() => playSynthSound('click')} className={activeTab === 'suppliers' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'suppliers' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
+              <a href="#suppliers" onClick={() => { playSynthSound('click'); setActiveTab('suppliers'); }} className={activeTab === 'suppliers' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'suppliers' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
                 <i className="fa-solid fa-truck-field" style={{ color: activeTab === 'suppliers' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Suppliers
               </a>
             </li>
             <li className={`sidebar-nav-item ${activeTab === 'customers' ? 'active' : ''}`}>
-              <a href="#customers" onClick={() => playSynthSound('click')} className={activeTab === 'customers' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'customers' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
+              <a href="#customers" onClick={() => { playSynthSound('click'); setActiveTab('customers'); }} className={activeTab === 'customers' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'customers' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
                 <i className="fa-solid fa-users" style={{ color: activeTab === 'customers' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Customers
               </a>
             </li>
             <li className={`sidebar-nav-item ${activeTab === 'reports' ? 'active' : ''}`}>
-              <a href="#reports" onClick={() => playSynthSound('click')} className={activeTab === 'reports' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'reports' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
+              <a href="#reports" onClick={() => { playSynthSound('click'); setActiveTab('reports'); }} className={activeTab === 'reports' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'reports' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
                 <i className="fa-solid fa-chart-pie" style={{ color: activeTab === 'reports' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Reports
               </a>
             </li>
-            <li className={`sidebar-nav-item ${activeTab === 'billing' ? 'active' : ''}`}>
-              <a href="#billing-subscription" onClick={() => playSynthSound('click')} className={activeTab === 'billing' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'billing' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
-                <i className="fa-solid fa-credit-card" style={{ color: activeTab === 'billing' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Billing & Subscription
+            <li className={`sidebar-nav-item ${activeTab === 'billing-subscription' ? 'active' : ''}`}>
+              <a href="#billing-subscription" onClick={() => { playSynthSound('click'); setActiveTab('billing-subscription'); }} className={activeTab === 'billing-subscription' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'billing-subscription' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
+                <i className="fa-solid fa-credit-card" style={{ color: activeTab === 'billing-subscription' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Billing & Subscription
               </a>
             </li>
             <li className={`sidebar-nav-item ${activeTab === 'settings' ? 'active' : ''}`}>
-              <a href="#settings" onClick={() => playSynthSound('click')} className={activeTab === 'settings' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'settings' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
+              <a href="#settings" onClick={() => { playSynthSound('click'); setActiveTab('settings'); }} className={activeTab === 'settings' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'settings' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
                 <i className="fa-solid fa-gear" style={{ color: activeTab === 'settings' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Settings
               </a>
             </li>
@@ -816,7 +812,7 @@ const DashboardPage = () => {
                         <i className="fa-solid fa-square-plus" style={{ color: '#a855f7' }}></i>
                         Add Product
                       </button>
-                      <button className="quick-action-item border-0" onClick={() => { playSynthSound('click'); window.location.hash = '#billing'; }}>
+                      <button className="quick-action-item border-0" onClick={() => { playSynthSound('click'); setActiveTab('billing'); window.location.hash = '#billing'; }}>
                         <i className="fa-solid fa-cart-shopping" style={{ color: '#3b82f6' }}></i>
                         New Sale
                       </button>
@@ -922,7 +918,7 @@ const DashboardPage = () => {
               <div className="row g-3">
                 {/* Column 1: Invoice Details */}
                 <div className="col-lg-3 col-md-12">
-                  <div className="p-3 h-100 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#7dd3fc', minHeight: '520px', display: 'flex', flexDirection: 'column' }}>
+                  <div className="p-3 h-100 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#cbd5e1', minHeight: '520px', display: 'flex', flexDirection: 'column' }}>
                     <h3 className="fw-bold mb-2.5 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '0.92rem', color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem', marginBottom: '1.15rem' }}>
                       <i className="fa-solid fa-receipt text-primary me-2" style={{ color: '#0ea5e9' }}></i> Invoice Details
                     </h3>
@@ -1007,7 +1003,7 @@ const DashboardPage = () => {
 
                 {/* Column 2: Invoice Items */}
                 <div className="col-lg-6 col-md-12">
-                  <div className="p-3 h-100 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#7dd3fc', minHeight: '520px', display: 'flex', flexDirection: 'column' }}>
+                  <div className="p-3 h-100 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#cbd5e1', minHeight: '520px', display: 'flex', flexDirection: 'column' }}>
                     <h3 className="fw-bold mb-2.5 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '0.92rem', color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem', marginBottom: '1.15rem' }}>
                       <i className="fa-solid fa-cart-shopping text-success me-2" style={{ color: '#10b981' }}></i> Invoice Items
                     </h3>
@@ -1148,7 +1144,7 @@ const DashboardPage = () => {
 
                 {/* Column 3: Product Catalog */}
                 <div className="col-lg-3 col-md-12">
-                  <div className="p-3 h-100 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#7dd3fc', minHeight: '520px', display: 'flex', flexDirection: 'column' }}>
+                  <div className="p-3 h-100 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#cbd5e1', minHeight: '520px', display: 'flex', flexDirection: 'column' }}>
                     <h3 className="fw-bold mb-2.5 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '0.92rem', color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem', marginBottom: '1.15rem' }}>
                       <i className="fa-solid fa-boxes-stacked text-primary me-2" style={{ color: '#0ea5e9' }}></i> Product Catalog
                     </h3>
@@ -1227,11 +1223,11 @@ const DashboardPage = () => {
 
           {/* Render Fallback for other tabs */}
           {activeTab !== 'dashboard' && activeTab !== 'billing' && (
-            <div className="p-5 text-center rounded-4 border bg-white" style={{ borderColor: '#7dd3fc', margin: '3rem auto', maxWidth: '500px', boxShadow: '0 4px 6px -1px rgba(14, 165, 233, 0.05)' }}>
+            <div className="p-5 text-center rounded-4 border bg-white" style={{ borderColor: '#cbd5e1', margin: '3rem auto', maxWidth: '500px', boxShadow: '0 4px 6px -1px rgba(14, 165, 233, 0.05)' }}>
               <i className="fa-solid fa-screwdriver-wrench text-secondary mb-3" style={{ fontSize: '3rem', color: '#94a3b8' }}></i>
               <h4 className="fw-bold text-dark text-capitalize" style={{ fontFamily: 'Outfit', fontSize: '1.1rem' }}>{activeTab.replace('-', ' ')} Page</h4>
               <p className="text-secondary small mb-4" style={{ fontSize: '0.78rem' }}>This module is currently under database migration or client synchronization node.</p>
-              <a href="#dashboard" className="btn btn-premium-primary btn-sm px-3.5 py-1.5 fw-semibold" style={{ fontSize: '0.75rem', borderRadius: '6px' }}>Go back to Dashboard</a>
+              <a href="#dashboard" onClick={() => { playSynthSound('click'); setActiveTab('dashboard'); }} className="btn btn-premium-primary btn-sm px-3.5 py-1.5 fw-semibold" style={{ fontSize: '0.75rem', borderRadius: '6px' }}>Go back to Dashboard</a>
             </div>
           )}
         </div>
