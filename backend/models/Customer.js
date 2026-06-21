@@ -24,6 +24,31 @@ const CustomerSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  city: {
+    type: String,
+    trim: true
+  },
+  state: {
+    type: String,
+    trim: true
+  },
+  country: {
+    type: String,
+    trim: true
+  },
+  zip_code: {
+    type: String,
+    trim: true
+  },
+  notes: {
+    type: String,
+    trim: true
+  },
+  status: {
+    type: String,
+    default: 'Active',
+    enum: ['Active', 'Inactive']
+  },
   created_at: {
     type: Date,
     default: Date.now

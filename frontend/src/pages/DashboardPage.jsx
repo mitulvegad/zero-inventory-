@@ -164,6 +164,61 @@ const DashboardPage = () => {
   const [catSaving, setCatSaving] = useState(false);
   const [editingCategoryId, setEditingCategoryId] = useState(null);
 
+  // Suppliers States
+  const [suppliersList, setSuppliersList] = useState([]);
+  const [suppliersSubView, setSuppliersSubView] = useState('list'); // 'list' or 'add'
+  const [editingSupplierId, setEditingSupplierId] = useState(null);
+  const [supplierSearchQuery, setSupplierSearchQuery] = useState('');
+  const [appliedSupplierFilters, setAppliedSupplierFilters] = useState({ search: '' });
+
+  // Add Supplier Form States
+  const [supName, setSupName] = useState('');
+  const [supCode, setSupCode] = useState('');
+  const [supContactPerson, setSupContactPerson] = useState('');
+  const [supDesignation, setSupDesignation] = useState('');
+  const [supEmail, setSupEmail] = useState('');
+  const [supPhone, setSupPhone] = useState('');
+  const [supAltPhone, setSupAltPhone] = useState('');
+  const [supWebsite, setSupWebsite] = useState('');
+  const [supAddress, setSupAddress] = useState('');
+  const [supCountry, setSupCountry] = useState('');
+  const [supState, setSupState] = useState('');
+  const [supCity, setSupCity] = useState('');
+  const [supPinCode, setSupPinCode] = useState('');
+  const [supPaymentTerms, setSupPaymentTerms] = useState('net_30');
+  const [supCreditLimit, setSupCreditLimit] = useState('0.00');
+  const [supTaxId, setSupTaxId] = useState('');
+  const [supNotes, setSupNotes] = useState('');
+  const [supStatus, setSupStatus] = useState('Active');
+  const [supSaving, setSupSaving] = useState(false);
+
+  // Customers States
+  const [customersList, setCustomersList] = useState([]);
+  const [customersSubView, setCustomersSubView] = useState('list'); // 'list' or 'add'
+  const [editingCustomerId, setEditingCustomerId] = useState(null);
+  const [customerSearchQuery, setCustomerSearchQuery] = useState('');
+  const [appliedCustomerFilters, setAppliedCustomerFilters] = useState({ search: '' });
+
+  // Add Customer Form States
+  const [custName, setCustName] = useState('');
+  const [custEmail, setCustEmail] = useState('');
+  const [custPhone, setCustPhone] = useState('');
+  const [custAddress, setCustAddress] = useState('');
+  const [custCity, setCustCity] = useState('');
+  const [custState, setCustState] = useState('');
+  const [custCountry, setCustCountry] = useState('');
+  const [custZipCode, setCustZipCode] = useState('');
+  const [custNotes, setCustNotes] = useState('');
+  const [custStatus, setCustStatus] = useState('Active');
+  const [custSaving, setCustSaving] = useState(false);
+
+  // Reports States
+  const [reportsActiveTab, setReportsActiveTab] = useState('sales'); // 'sales', 'valuation', 'purchase'
+  const [salesAuditList, setSalesAuditList] = useState([]);
+  const [inventoryValuationData, setInventoryValuationData] = useState({ summary: { totalInventoryValue: 0, expectedSalesReturn: 0, potentialProfit: 0 }, items: [] });
+  const [purchaseLogList, setPurchaseLogList] = useState([]);
+  const [reportsLoading, setReportsLoading] = useState(false);
+
   // Selected Purchase for detailed preview modal
   const [selectedPurchaseDetails, setSelectedPurchaseDetails] = useState(null);
 
@@ -441,6 +496,244 @@ const DashboardPage = () => {
     }
   };
 
+  const fetchSuppliers = async () => {
+    try {
+      const res = await api.get('/suppliers');
+      setSuppliersList(res.data.map(sup => ({
+        id: sup._id || sup.id,
+        name: sup.name,
+        code: sup.code,
+        contact_person: sup.contact_person || '',
+        designation: sup.designation || '',
+        email: sup.email || '',
+        phone: sup.phone || '',
+        alt_phone: sup.alt_phone || '',
+        website: sup.website || '',
+        address: sup.address || '',
+        country: sup.country || '',
+        state: sup.state || '',
+        city: sup.city || '',
+        pin_code: sup.pin_code || '',
+        payment_terms: sup.payment_terms || 'net_30',
+        credit_limit: sup.credit_limit || 0,
+        tax_id: sup.tax_id || '',
+        notes: sup.notes || '',
+        status: sup.status || 'Active'
+      })));
+    } catch (err) {
+      console.warn('Could not load suppliers from backend:', err);
+    }
+  };
+
+  const fetchCustomers = async () => {
+    try {
+      const res = await api.get('/customers');
+      setCustomersList(res.data.map(cust => ({
+        id: cust._id || cust.id,
+        name: cust.name,
+        email: cust.email || '',
+        phone: cust.phone || '',
+        address: cust.address || '',
+        city: cust.city || '',
+        state: cust.state || '',
+        country: cust.country || '',
+        zip_code: cust.zip_code || '',
+        notes: cust.notes || '',
+        status: cust.status || 'Active',
+        created_at: cust.created_at
+      })));
+    } catch (err) {
+      console.warn('Could not load customers from backend:', err);
+    }
+  };
+
+  const fetchReportsData = async () => {
+    setReportsLoading(true);
+    try {
+      const salesRes = await api.get('/reports/sales-audit');
+      setSalesAuditList(salesRes.data);
+
+      const valuationRes = await api.get('/reports/inventory-valuation');
+      setInventoryValuationData(valuationRes.data);
+
+      const purchaseRes = await api.get('/reports/purchase-log');
+      setPurchaseLogList(purchaseRes.data);
+    } catch (err) {
+      console.error('Failed to load reports data:', err);
+      triggerAlert('Load Failed', 'Failed to compile reports statistics from the backend.', 'error');
+    } finally {
+      setReportsLoading(false);
+    }
+  };
+
+  const handleResetSupplierForm = () => {
+    setSupName('');
+    setSupCode('');
+    setSupContactPerson('');
+    setSupDesignation('');
+    setSupEmail('');
+    setSupPhone('');
+    setSupAltPhone('');
+    setSupWebsite('');
+    setSupAddress('');
+    setSupCountry('');
+    setSupState('');
+    setSupCity('');
+    setSupPinCode('');
+    setSupPaymentTerms('net_30');
+    setSupCreditLimit('0.00');
+    setSupTaxId('');
+    setSupNotes('');
+    setSupStatus('Active');
+    setEditingSupplierId(null);
+  };
+
+  const handleSaveSupplier = async (e) => {
+    if (e) e.preventDefault();
+    if (!supName || !supCode) {
+      triggerAlert('Required Info', 'Supplier Name and Supplier Code are required.', 'error');
+      return;
+    }
+
+    setSupSaving(true);
+    const supplierData = {
+      name: supName,
+      code: supCode,
+      contact_person: supContactPerson,
+      designation: supDesignation,
+      email: supEmail,
+      phone: supPhone,
+      alt_phone: supAltPhone,
+      website: supWebsite,
+      address: supAddress,
+      country: supCountry,
+      state: supState,
+      city: supCity,
+      pin_code: supPinCode,
+      payment_terms: supPaymentTerms,
+      credit_limit: parseFloat(supCreditLimit) || 0,
+      tax_id: supTaxId,
+      notes: supNotes,
+      status: supStatus
+    };
+
+    try {
+      if (editingSupplierId) {
+        // Edit Mode
+        const res = await api.put(`/suppliers/${editingSupplierId}`, supplierData);
+        triggerAlert('Success', `Supplier "${res.data.name}" has been updated successfully!`, 'success');
+      } else {
+        // Create Mode
+        const res = await api.post('/suppliers', supplierData);
+        triggerAlert('Success', `Supplier "${res.data.name}" has been registered successfully!`, 'success');
+      }
+      handleResetSupplierForm();
+      fetchSuppliers();
+      setSuppliersSubView('list');
+    } catch (err) {
+      console.error('Error saving supplier:', err);
+      const errMsg = err.response?.data?.message || 'Server error saving supplier.';
+      triggerAlert('Save Failed', errMsg, 'error');
+    } finally {
+      setSupSaving(false);
+    }
+  };
+
+  const handleDeleteSupplier = async (supplierId) => {
+    playSynthSound('click');
+    const supplierToDelete = suppliersList.find(s => s.id === supplierId);
+    if (!supplierToDelete) return;
+
+    const confirmDelete = window.confirm(`Are you sure you want to delete supplier "${supplierToDelete.name}"?`);
+    if (!confirmDelete) return;
+
+    try {
+      await api.delete(`/suppliers/${supplierId}`);
+      triggerAlert('Deleted', `Supplier "${supplierToDelete.name}" has been deleted successfully!`, 'success');
+      fetchSuppliers();
+    } catch (err) {
+      console.error('Error deleting supplier:', err);
+      const errMsg = err.response?.data?.message || 'Server error deleting supplier.';
+      triggerAlert('Delete Failed', errMsg, 'error');
+    }
+  };
+
+  const handleResetCustomerForm = () => {
+    setCustName('');
+    setCustEmail('');
+    setCustPhone('');
+    setCustAddress('');
+    setCustCity('');
+    setCustState('');
+    setCustCountry('');
+    setCustZipCode('');
+    setCustNotes('');
+    setCustStatus('Active');
+    setEditingCustomerId(null);
+  };
+
+  const handleSaveCustomer = async (e) => {
+    if (e) e.preventDefault();
+    if (!custName) {
+      triggerAlert('Required Info', 'Customer Name is required.', 'error');
+      return;
+    }
+
+    setCustSaving(true);
+    const customerData = {
+      name: custName,
+      email: custEmail,
+      phone: custPhone,
+      address: custAddress,
+      city: custCity,
+      state: custState,
+      country: custCountry,
+      zip_code: custZipCode,
+      notes: custNotes,
+      status: custStatus
+    };
+
+    try {
+      if (editingCustomerId) {
+        // Edit Mode
+        const res = await api.put(`/customers/${editingCustomerId}`, customerData);
+        triggerAlert('Success', `Customer "${res.data.name}" has been updated successfully!`, 'success');
+      } else {
+        // Create Mode
+        const res = await api.post('/customers', customerData);
+        triggerAlert('Success', `Customer "${res.data.name}" has been registered successfully!`, 'success');
+      }
+      handleResetCustomerForm();
+      fetchCustomers();
+      setCustomersSubView('list');
+    } catch (err) {
+      console.error('Error saving customer:', err);
+      const errMsg = err.response?.data?.message || 'Server error saving customer.';
+      triggerAlert('Save Failed', errMsg, 'error');
+    } finally {
+      setCustSaving(false);
+    }
+  };
+
+  const handleDeleteCustomer = async (customerId) => {
+    playSynthSound('click');
+    const customerToDelete = customersList.find(c => c.id === customerId);
+    if (!customerToDelete) return;
+
+    const confirmDelete = window.confirm(`Are you sure you want to delete customer "${customerToDelete.name}"?`);
+    if (!confirmDelete) return;
+
+    try {
+      await api.delete(`/customers/${customerId}`);
+      triggerAlert('Deleted', `Customer "${customerToDelete.name}" has been deleted successfully!`, 'success');
+      fetchCustomers();
+    } catch (err) {
+      console.error('Error deleting customer:', err);
+      const errMsg = err.response?.data?.message || 'Server error deleting customer.';
+      triggerAlert('Delete Failed', errMsg, 'error');
+    }
+  };
+
   const handleExportPurchasesPDF = () => {
     playSynthSound('click');
     
@@ -510,6 +803,132 @@ const DashboardPage = () => {
       </html>
     `;
     
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+  };
+
+  const handleExportReportsPDF = () => {
+    playSynthSound('click');
+    
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      triggerAlert('Popup Blocked', 'Please allow popups to export the report.', 'error');
+      return;
+    }
+
+    let reportTitle = '';
+    let tableHeadersHtml = '';
+    let tableRowsHtml = '';
+    let summaryHtml = '';
+
+    if (reportsActiveTab === 'sales') {
+      reportTitle = 'Daily Sales Income Aggregation Report';
+      tableHeadersHtml = `
+        <th>Sale Date</th>
+        <th>Invoices Issued</th>
+        <th>Total Daily Revenue</th>
+      `;
+      tableRowsHtml = salesAuditList.map(s => `
+        <tr>
+          <td>${new Date(s.saleDate).toLocaleDateString()}</td>
+          <td>${s.invoicesIssued}</td>
+          <td>$${parseFloat(s.totalDailyRevenue).toFixed(2)}</td>
+        </tr>
+      `).join('');
+      const totalRevenue = salesAuditList.reduce((sum, s) => sum + parseFloat(s.totalDailyRevenue), 0);
+      summaryHtml = `<h3>Total Revenue: $${totalRevenue.toFixed(2)}</h3>`;
+    } else if (reportsActiveTab === 'valuation') {
+      reportTitle = 'Catalog Valuation Audit Report';
+      tableHeadersHtml = `
+        <th>Product</th>
+        <th>Category</th>
+        <th>On Hand Qty</th>
+        <th>Purchase Cost</th>
+        <th>Total Cost Value</th>
+        <th>Selling Price</th>
+        <th>Expected Value</th>
+        <th>Margin</th>
+      `;
+      tableRowsHtml = (inventoryValuationData.items || []).map(item => `
+        <tr>
+          <td><strong>${item.name}</strong><br/><span style="font-size:10px;color:#64748b">${item.sku}</span></td>
+          <td>${item.category}</td>
+          <td>${item.quantity}</td>
+          <td>$${parseFloat(item.purchaseCost).toFixed(2)}</td>
+          <td>$${parseFloat(item.totalCostValue).toFixed(2)}</td>
+          <td>$${parseFloat(item.sellingPrice).toFixed(2)}</td>
+          <td>$${parseFloat(item.expectedValue).toFixed(2)}</td>
+          <td>${item.marginContribution}%</td>
+        </tr>
+      `).join('');
+      summaryHtml = `
+        <div style="display:flex; justify-content:space-between; margin-top:20px;">
+          <div><strong>Total Cost Value:</strong> $${(inventoryValuationData.summary?.totalInventoryValue || 0).toFixed(2)}</div>
+          <div><strong>Expected Sales Return:</strong> $${(inventoryValuationData.summary?.expectedSalesReturn || 0).toFixed(2)}</div>
+          <div><strong>Potential Profit:</strong> $${(inventoryValuationData.summary?.potentialProfit || 0).toFixed(2)}</div>
+        </div>
+      `;
+    } else {
+      reportTitle = 'Supplier Purchase Order Outflow Aggregation Report';
+      tableHeadersHtml = `
+        <th>Purchase Date</th>
+        <th>Orders Completed</th>
+        <th>Total Cost Outflow</th>
+      `;
+      tableRowsHtml = purchaseLogList.map(p => `
+        <tr>
+          <td>${new Date(p.purchaseDate).toLocaleDateString()}</td>
+          <td>${p.ordersCompleted}</td>
+          <td>$${parseFloat(p.totalCostOutflow).toFixed(2)}</td>
+        </tr>
+      `).join('');
+      const totalOutflow = purchaseLogList.reduce((sum, p) => sum + parseFloat(p.totalCostOutflow), 0);
+      summaryHtml = `<h3>Total Cost Outflow: $${totalOutflow.toFixed(2)}</h3>`;
+    }
+
+    const htmlContent = `
+      <html>
+        <head>
+          <title>${reportTitle} - Zero Inventory</title>
+          <style>
+            body { font-family: 'Inter', sans-serif; padding: 20px; color: #333; }
+            h1 { font-family: 'Outfit', sans-serif; color: #0f172a; margin-bottom: 5px; }
+            p { color: #64748b; font-size: 14px; margin-bottom: 20px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: left; font-size: 12px; }
+            th { background-color: #f8fafc; font-weight: bold; color: #475569; }
+            tr:nth-child(even) { background-color: #f8fafc; }
+            .summary { margin-top: 30px; border-top: 2px solid #e2e8f0; padding-top: 15px; }
+          </style>
+        </head>
+        <body>
+          <h1>Zero Inventory - ${reportTitle}</h1>
+          <p>Generated on ${new Date().toLocaleString()}</p>
+          <table>
+            <thead>
+              <tr>
+                ${tableHeadersHtml}
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRowsHtml || '<tr><td colspan="10" style="text-align:center">No records found.</td></tr>'}
+            </tbody>
+          </table>
+          <div class="summary">
+            ${summaryHtml}
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+              window.onafterprint = function() {
+                window.close();
+              };
+            }
+          </script>
+        </body>
+      </html>
+    `;
+
     printWindow.document.write(htmlContent);
     printWindow.document.close();
   };
@@ -1160,6 +1579,9 @@ const DashboardPage = () => {
           console.warn('Could not load categories from backend, using fallback mock data:', catErr);
         }
         
+        await fetchSuppliers();
+        await fetchCustomers();
+        
         setLoading(false);
       } catch (err) {
         console.error('Failed to load dashboard data:', err);
@@ -1168,6 +1590,12 @@ const DashboardPage = () => {
     };
     fetchDashboardData();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'reports') {
+      fetchReportsData();
+    }
+  }, [activeTab]);
 
   const handleFeedbackSubmit = async (e) => {
     e.preventDefault();
@@ -1334,8 +1762,8 @@ const DashboardPage = () => {
           padding-right: 1.75rem;
         }
         .btn-blue-primary {
-          background-color: #007BFF !important;
-          border-color: #007BFF !important;
+          background-color: #0EA5E9 !important;
+          border-color: #0EA5E9 !important;
           color: #ffffff !important;
           font-weight: 600 !important;
           transition: all 0.2s ease !important;
@@ -2275,7 +2703,7 @@ const DashboardPage = () => {
                   <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
                     <div>
                       <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Products Inventory</h1>
-                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
+                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
                         <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setActiveTab('dashboard')}>Dashboard</span>
                         <span className="text-secondary">/</span>
                         <span className="fw-semibold">Products</span>
@@ -2283,7 +2711,7 @@ const DashboardPage = () => {
                     </div>
                     <button 
                       className="btn text-white fw-semibold d-flex align-items-center gap-1.5 shadow-sm border-0" 
-                      style={{ backgroundColor: '#007BFF', padding: '0.45rem 1.15rem', borderRadius: '6px', fontSize: '0.75rem' }} 
+                      style={{ backgroundColor: '#0EA5E9', padding: '0.45rem 1.15rem', borderRadius: '6px', fontSize: '0.75rem' }} 
                       onClick={() => {
                         playSynthSound('click');
                         setEditingProductId(null);
@@ -2341,7 +2769,7 @@ const DashboardPage = () => {
                       <div className="col-md-2 col-sm-12 d-flex gap-2">
                         <button 
                           className="btn text-white fw-semibold w-100 border-0" 
-                          style={{ backgroundColor: '#007BFF', fontSize: '0.75rem', borderRadius: '6px', height: '35px' }}
+                          style={{ backgroundColor: '#0EA5E9', fontSize: '0.75rem', borderRadius: '6px', height: '35px' }}
                           onClick={handleApplyFilters}
                         >
                           Filter
@@ -2457,7 +2885,7 @@ const DashboardPage = () => {
                   <div className="d-flex justify-content-between align-items-center mb-3">
                     <div>
                       <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>{editingProductId ? 'Edit Product' : 'Add New Product'}</h1>
-                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
+                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
                         <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setActiveTab('dashboard')}>Dashboard</span>
                         <span className="text-secondary">/</span>
                         <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setProductsSubView('list')}>Products</span>
@@ -2480,7 +2908,7 @@ const DashboardPage = () => {
                     <div className="col-lg-8 col-md-12">
                       <div className="p-3 rounded-3 shadow-sm border bg-white h-100" style={{ borderColor: '#cbd5e1' }}>
                         <h3 className="fw-bold mb-2 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '0.92rem', color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem', marginBottom: '1.15rem' }}>
-                          <i className="fa-solid fa-box text-primary me-2" style={{ color: '#007BFF' }}></i> Product Information
+                          <i className="fa-solid fa-box text-primary me-2" style={{ color: '#0EA5E9' }}></i> Product Information
                         </h3>
 
                         <form onSubmit={handleSaveProduct}>
@@ -2645,7 +3073,7 @@ const DashboardPage = () => {
                             <button 
                               type="submit" 
                               className="btn text-white fw-bold px-4 py-1.5 border-0" 
-                              style={{ backgroundColor: '#007BFF', borderRadius: '6px', fontSize: '0.75rem' }}
+                              style={{ backgroundColor: '#0EA5E9', borderRadius: '6px', fontSize: '0.75rem' }}
                             >
                               <i className="fa-solid fa-save me-1.5"></i> Save Product
                             </button>
@@ -2659,14 +3087,14 @@ const DashboardPage = () => {
                       {/* Image Upload Zone */}
                       <div className="p-3 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#cbd5e1' }}>
                         <h3 className="fw-bold mb-2 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '0.92rem', color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem', marginBottom: '1.15rem' }}>
-                          <i className="fa-regular fa-image text-primary me-2" style={{ color: '#007BFF' }}></i> Product Image
+                          <i className="fa-regular fa-image text-primary me-2" style={{ color: '#0EA5E9' }}></i> Product Image
                         </h3>
 
                         <div 
                           className="d-flex flex-column align-items-center justify-content-center border border-dashed rounded-3 p-4 text-center position-relative"
                           style={{
                             minHeight: '180px',
-                            borderColor: newProdDragOver ? '#007BFF' : '#cbd5e1',
+                            borderColor: newProdDragOver ? '#0EA5E9' : '#cbd5e1',
                             backgroundColor: newProdDragOver ? 'rgba(0, 123, 255, 0.05)' : '#f8fafc',
                             transition: 'all 0.2s ease',
                             cursor: 'pointer'
@@ -2690,7 +3118,7 @@ const DashboardPage = () => {
                             </div>
                           ) : (
                             <>
-                              <i className="fa-solid fa-cloud-arrow-up text-primary mb-2" style={{ fontSize: '2rem', color: '#007BFF' }}></i>
+                              <i className="fa-solid fa-cloud-arrow-up text-primary mb-2" style={{ fontSize: '2rem', color: '#0EA5E9' }}></i>
                               <div className="fw-bold text-dark mb-1" style={{ fontSize: '0.8rem' }}>Drag & drop an image here</div>
                               <div className="text-secondary small" style={{ fontSize: '0.7rem' }}>or click to browse</div>
                               <div className="text-muted mt-2" style={{ fontSize: '0.62rem' }}>JPG, PNG or WEBP (Max. 2MB)</div>
@@ -2715,7 +3143,7 @@ const DashboardPage = () => {
                       {/* Summary Card */}
                       <div className="p-3 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#cbd5e1' }}>
                         <h3 className="fw-bold mb-2 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '0.92rem', color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem', marginBottom: '1.15rem' }}>
-                          <i className="fa-solid fa-list-check text-primary me-2" style={{ color: '#007BFF' }}></i> Summary
+                          <i className="fa-solid fa-list-check text-primary me-2" style={{ color: '#0EA5E9' }}></i> Summary
                         </h3>
 
                         <div className="d-flex flex-column gap-2.5">
@@ -2773,7 +3201,7 @@ const DashboardPage = () => {
               <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
                 <div>
                   <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Sales Registry</h1>
-                  <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
+                  <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
                     <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => { playSynthSound('click'); setActiveTab('dashboard'); window.location.hash = '#dashboard'; }}>Dashboard</span>
                     <span className="text-secondary">/</span>
                     <span className="fw-semibold">Sales</span>
@@ -2894,7 +3322,7 @@ const DashboardPage = () => {
                                   type="button" 
                                   className="btn btn-link text-primary p-0 border-0" 
                                   onClick={() => { playSynthSound('click'); setSelectedInvoiceDetails(sale); }}
-                                  style={{ fontSize: '0.78rem', color: '#007BFF', textDecoration: 'none', fontWeight: '600' }}
+                                  style={{ fontSize: '0.78rem', color: '#0EA5E9', textDecoration: 'none', fontWeight: '600' }}
                                 >
                                   Details
                                 </button>
@@ -2927,7 +3355,7 @@ const DashboardPage = () => {
               <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
                 <div>
                   <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Purchases Registry</h1>
-                  <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
+                  <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
                     <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => { playSynthSound('click'); setActiveTab('dashboard'); window.location.hash = '#dashboard'; }}>Dashboard</span>
                     <span className="text-secondary">/</span>
                     <span className="fw-semibold">Purchases</span>
@@ -3049,7 +3477,7 @@ const DashboardPage = () => {
                                   type="button" 
                                   className="btn btn-link text-primary p-0 border-0" 
                                   onClick={() => { playSynthSound('click'); setSelectedPurchaseDetails(purchase); }}
-                                  style={{ fontSize: '0.78rem', color: '#007BFF', textDecoration: 'none', fontWeight: '600' }}
+                                  style={{ fontSize: '0.78rem', color: '#0EA5E9', textDecoration: 'none', fontWeight: '600' }}
                                 >
                                   Details
                                 </button>
@@ -3084,7 +3512,7 @@ const DashboardPage = () => {
                   <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
                     <div>
                       <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Categories Inventory</h1>
-                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
+                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
                         <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => { playSynthSound('click'); setActiveTab('dashboard'); window.location.hash = '#dashboard'; }}>Dashboard</span>
                         <span className="text-secondary">/</span>
                         <span className="fw-semibold">Categories</span>
@@ -3247,7 +3675,7 @@ const DashboardPage = () => {
                                         setCatImagePreview(cat.image || null);
                                         setCategoriesSubView('add');
                                       }}
-                                      style={{ fontSize: '0.78rem', color: '#007BFF', textDecoration: 'none', fontWeight: '600' }}
+                                      style={{ fontSize: '0.78rem', color: '#0EA5E9', textDecoration: 'none', fontWeight: '600' }}
                                     >
                                       Edit
                                     </button>
@@ -3268,7 +3696,7 @@ const DashboardPage = () => {
                   <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
                     <div>
                       <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>{editingCategoryId ? 'Edit Category' : 'Add Category'}</h1>
-                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
+                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
                         <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => { playSynthSound('click'); setActiveTab('dashboard'); }}>Dashboard</span>
                         <span className="text-secondary">/</span>
                         <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => { playSynthSound('click'); setCategoriesSubView('list'); }}>Categories</span>
@@ -3301,7 +3729,7 @@ const DashboardPage = () => {
                     <div className="col-lg-8 col-md-12">
                       <div className="p-3 rounded-3 shadow-sm border bg-white h-100" style={{ borderColor: '#cbd5e1' }}>
                         <h3 className="fw-bold mb-2 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '0.92rem', color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem', marginBottom: '1.15rem' }}>
-                          <i className="fa-solid fa-tags text-primary me-2" style={{ color: '#007BFF' }}></i> Category Information
+                          <i className="fa-solid fa-tags text-primary me-2" style={{ color: '#0EA5E9' }}></i> Category Information
                         </h3>
 
                         <form onSubmit={handleSaveCategory}>
@@ -3427,7 +3855,7 @@ const DashboardPage = () => {
                                 </div>
                               ) : (
                                 <>
-                                  <i className="fa-solid fa-cloud-arrow-up text-primary mb-1.5" style={{ fontSize: '1.6rem', color: '#007BFF' }}></i>
+                                  <i className="fa-solid fa-cloud-arrow-up text-primary mb-1.5" style={{ fontSize: '1.6rem', color: '#0EA5E9' }}></i>
                                   <div className="fw-bold text-dark mb-0.5" style={{ fontSize: '0.78rem' }}>Drag & drop image here</div>
                                   <div className="text-secondary small" style={{ fontSize: '0.65rem' }}>or click to browse</div>
                                 </>
@@ -3479,7 +3907,7 @@ const DashboardPage = () => {
                             <button 
                               type="submit" 
                               className="btn text-white fw-bold px-4 py-1.5 border-0" 
-                              style={{ backgroundColor: '#007BFF', borderRadius: '6px', fontSize: '0.75rem' }}
+                              style={{ backgroundColor: '#0EA5E9', borderRadius: '6px', fontSize: '0.75rem' }}
                               disabled={catSaving}
                             >
                               {catSaving ? 'Saving...' : (editingCategoryId ? 'Update Category' : 'Save Category')}
@@ -3494,7 +3922,7 @@ const DashboardPage = () => {
                       {/* Live Category Preview Card */}
                       <div className="p-3 rounded-3 border bg-white shadow-sm" style={{ borderColor: '#cbd5e1' }}>
                         <h4 className="fw-bold mb-2.5 d-flex align-items-center text-dark" style={{ fontFamily: 'Outfit', fontSize: '0.85rem' }}>
-                          <i className="fa-regular fa-eye text-primary me-2" style={{ color: '#007BFF' }}></i> Category Preview
+                          <i className="fa-regular fa-eye text-primary me-2" style={{ color: '#0EA5E9' }}></i> Category Preview
                         </h4>
 
                         <div className="d-flex flex-column align-items-center justify-content-center p-3 text-center rounded-3 bg-light border border-dashed mb-3" style={{ minHeight: '180px', borderColor: '#e2e8f0' }}>
@@ -3517,7 +3945,7 @@ const DashboardPage = () => {
                             </div>
                             <div className="d-flex justify-content-between mb-1.5">
                               <span className="text-secondary"><i className="fa-solid fa-link me-1.5"></i>Slug URL:</span>
-                              <span className="fw-semibold text-primary font-monospace" style={{ color: '#007BFF' }}>category/{catSlug || 'slug'}</span>
+                              <span className="fw-semibold text-primary font-monospace" style={{ color: '#0EA5E9' }}>category/{catSlug || 'slug'}</span>
                             </div>
                             <div className="d-flex justify-content-between">
                               <span className="text-secondary"><i className="fa-regular fa-file-lines me-1.5"></i>Description:</span>
@@ -3556,8 +3984,1119 @@ const DashboardPage = () => {
             </div>
           )}
 
+          {/* Render Suppliers Tab */}
+          {activeTab === 'suppliers' && (
+            <div className="suppliers-view animate-fade-in" style={{ animation: 'fadeIn 0.25s ease-out' }}>
+              {suppliersSubView === 'list' ? (
+                <>
+                  {/* Title Banner */}
+                  <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+                    <div>
+                      <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Suppliers Directory</h1>
+                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
+                        <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setActiveTab('dashboard')}>Dashboard</span>
+                        <span className="text-secondary">/</span>
+                        <span className="fw-semibold">Suppliers</span>
+                      </div>
+                    </div>
+                    <button 
+                      className="btn text-white fw-semibold d-flex align-items-center gap-1.5 shadow-sm border-0" 
+                      style={{ backgroundColor: '#0EA5E9', padding: '0.45rem 1.15rem', borderRadius: '6px', fontSize: '0.75rem' }} 
+                      onClick={() => {
+                        playSynthSound('click');
+                        setEditingSupplierId(null);
+                        handleResetSupplierForm();
+                        setSuppliersSubView('add');
+                      }}
+                    >
+                      <i className="fa-solid fa-plus"></i> Add New Supplier
+                    </button>
+                  </div>
+
+                  {/* Search Section */}
+                  <div className="p-3 rounded-3 shadow-sm border bg-white mb-3" style={{ borderColor: '#cbd5e1' }}>
+                    <div className="row g-3 align-items-end">
+                      <div className="col-md-9">
+                        <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Search Suppliers</label>
+                        <div className="position-relative">
+                          <i className="fa-solid fa-magnifying-glass text-secondary position-absolute" style={{ left: '0.75rem', top: '50%', transform: 'translateY(-50%)', fontSize: '0.8rem', color: '#64748b' }}></i>
+                          <input 
+                            type="text" 
+                            className="form-control-premium-dark" 
+                            style={{ paddingLeft: '2.1rem' }} 
+                            placeholder="Search by name, code, contact person..." 
+                            value={supplierSearchQuery}
+                            onChange={(e) => setSupplierSearchQuery(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <div className="col-md-3 d-flex gap-2">
+                        <button 
+                          className="btn text-white fw-semibold w-100 border-0" 
+                          style={{ backgroundColor: '#0EA5E9', fontSize: '0.75rem', borderRadius: '6px', height: '35px' }}
+                          onClick={() => setAppliedSupplierFilters({ search: supplierSearchQuery })}
+                        >
+                          Search
+                        </button>
+                        <button 
+                          className="btn btn-outline-secondary d-flex align-items-center justify-content-center" 
+                          style={{ width: '35px', height: '35px', borderRadius: '6px', backgroundColor: '#ffffff', borderColor: '#cbd5e1' }}
+                          onClick={() => {
+                            setSupplierSearchQuery('');
+                            setAppliedSupplierFilters({ search: '' });
+                            fetchSuppliers();
+                          }}
+                          title="Refresh Filters"
+                        >
+                          <i className="fa-solid fa-rotate"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Data Table */}
+                  <div className="p-3 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#cbd5e1' }}>
+                    <div className="table-responsive">
+                      <table className="table align-middle table-hover-light mb-0">
+                        <thead>
+                          <tr className="small text-secondary" style={{ fontSize: '0.72rem', borderBottom: '2px solid #e2e8f0' }}>
+                            <th>Supplier Name</th>
+                            <th>Supplier Code</th>
+                            <th>Contact Person</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>City & Country</th>
+                            <th>Status</th>
+                            <th className="text-center">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {suppliersList.filter(s => {
+                            const query = appliedSupplierFilters.search.toLowerCase();
+                            return !query || 
+                              s.name.toLowerCase().includes(query) ||
+                              s.code.toLowerCase().includes(query) ||
+                              s.contact_person.toLowerCase().includes(query);
+                          }).length === 0 ? (
+                            <tr>
+                              <td colSpan="8" className="text-center py-5 text-secondary" style={{ color: '#64748b' }}>
+                                <div className="d-flex flex-column align-items-center justify-content-center">
+                                  <i className="fa-solid fa-folder text-muted mb-2.5" style={{ fontSize: '3rem', color: '#cbd5e1', opacity: '0.6' }}></i>
+                                  <p className="mb-0 fw-semibold" style={{ fontSize: '0.8rem' }}>
+                                    No suppliers connected yet. Click "Add New Supplier" to create one.
+                                  </p>
+                                </div>
+                              </td>
+                            </tr>
+                          ) : (
+                            suppliersList.filter(s => {
+                              const query = appliedSupplierFilters.search.toLowerCase();
+                              return !query || 
+                                s.name.toLowerCase().includes(query) ||
+                                s.code.toLowerCase().includes(query) ||
+                                s.contact_person.toLowerCase().includes(query);
+                            }).map(sup => (
+                              <tr key={sup.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                <td className="fw-bold" style={{ color: '#0f172a' }}>{sup.name}</td>
+                                <td className="font-monospace" style={{ fontSize: '0.75rem' }}>{sup.code}</td>
+                                <td>{sup.contact_person || <span className="text-muted small italic">None</span>}</td>
+                                <td>{sup.email || <span className="text-muted small italic">None</span>}</td>
+                                <td>{sup.phone || <span className="text-muted small italic">None</span>}</td>
+                                <td>{sup.city && sup.country ? `${sup.city}, ${sup.country}` : sup.city || sup.country || <span className="text-muted small italic">None</span>}</td>
+                                <td>
+                                  <span className={`badge px-2.5 py-1 ${
+                                    sup.status === 'Active' ? 'bg-success bg-opacity-10 text-success border border-success border-opacity-20' :
+                                    'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-20'
+                                  }`} style={{ fontSize: '0.7rem', borderRadius: '4px' }}>
+                                    {sup.status}
+                                  </span>
+                                </td>
+                                <td className="text-center">
+                                  <div className="d-flex align-items-center justify-content-center gap-2">
+                                    <button 
+                                      type="button" 
+                                      className="btn btn-link text-primary p-0 border-0 fw-semibold" 
+                                      style={{ fontSize: '0.75rem', textDecoration: 'none' }}
+                                      onClick={() => {
+                                        playSynthSound('click');
+                                        setEditingSupplierId(sup.id);
+                                        setSupName(sup.name);
+                                        setSupCode(sup.code);
+                                        setSupContactPerson(sup.contact_person);
+                                        setSupDesignation(sup.designation);
+                                        setSupEmail(sup.email);
+                                        setSupPhone(sup.phone);
+                                        setSupAltPhone(sup.alt_phone);
+                                        setSupWebsite(sup.website);
+                                        setSupAddress(sup.address);
+                                        setSupCountry(sup.country);
+                                        setSupState(sup.state);
+                                        setSupCity(sup.city);
+                                        setSupPinCode(sup.pin_code);
+                                        setSupPaymentTerms(sup.payment_terms);
+                                        setSupCreditLimit(sup.credit_limit.toString());
+                                        setSupTaxId(sup.tax_id);
+                                        setSupNotes(sup.notes);
+                                        setSupStatus(sup.status);
+                                        setSuppliersSubView('add');
+                                      }}
+                                    >
+                                      Edit
+                                    </button>
+                                    <span className="text-muted">|</span>
+                                    <button 
+                                      type="button" 
+                                      className="btn btn-link text-danger p-0 border-0 fw-semibold" 
+                                      style={{ fontSize: '0.75rem', textDecoration: 'none' }}
+                                      onClick={() => handleDeleteSupplier(sup.id)}
+                                    >
+                                      Delete
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                /* PAGE 2: Add / Edit Supplier */
+                <>
+                  {/* Title Banner */}
+                  <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+                    <div>
+                      <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>
+                        {editingSupplierId ? 'Edit Supplier' : 'Add New Supplier'}
+                      </h1>
+                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
+                        <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setActiveTab('dashboard')}>Dashboard</span>
+                        <span className="text-secondary">/</span>
+                        <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setSuppliersSubView('list')}>Suppliers</span>
+                        <span className="text-secondary">/</span>
+                        <span className="fw-semibold">{editingSupplierId ? 'Edit Supplier' : 'Add Supplier'}</span>
+                      </div>
+                    </div>
+                    <div className="d-flex align-items-center gap-2">
+                      <button 
+                        className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1.5 px-3 py-1.5 fw-semibold" 
+                        style={{ fontSize: '0.75rem', borderRadius: '6px', backgroundColor: '#ffffff', borderColor: '#cbd5e1', color: '#475569' }} 
+                        onClick={() => setSuppliersSubView('list')}
+                      >
+                        <i className="fa-solid fa-arrow-left"></i> Back to Suppliers
+                      </button>
+                      <button 
+                        className="btn btn-blue-primary btn-sm d-flex align-items-center gap-1.5 px-3 py-1.5 fw-semibold" 
+                        style={{ fontSize: '0.75rem', borderRadius: '6px' }} 
+                        onClick={handleSaveSupplier}
+                        disabled={supSaving}
+                      >
+                        <i className="fa-solid fa-save"></i> {supSaving ? 'Saving...' : (editingSupplierId ? 'Update Supplier' : 'Save Supplier')}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Main Grid */}
+                  <div className="p-3 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#cbd5e1' }}>
+                    <form onSubmit={handleSaveSupplier}>
+                      <h3 className="fw-bold mb-3 pb-2 text-dark border-bottom" style={{ fontFamily: 'Outfit', fontSize: '0.92rem' }}>
+                        Supplier Profile Information
+                      </h3>
+                      
+                      <div className="row g-3 mb-3">
+                        <div className="col-md-6">
+                          <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Supplier Name <span className="text-danger">*</span></label>
+                          <input 
+                            type="text" 
+                            className="form-control-premium-dark" 
+                            placeholder="Enter company / supplier name" 
+                            value={supName}
+                            onChange={(e) => setSupName(e.target.value)}
+                            required
+                          />
+                        </div>
+                        <div className="col-md-6">
+                          <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Supplier Code <span className="text-danger">*</span></label>
+                          <input 
+                            type="text" 
+                            className="form-control-premium-dark" 
+                            placeholder="e.g. SUP-TECH-01" 
+                            value={supCode}
+                            onChange={(e) => setSupCode(e.target.value)}
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="row g-3 mb-3">
+                        <div className="col-md-6">
+                          <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Contact Person</label>
+                          <input 
+                            type="text" 
+                            className="form-control-premium-dark" 
+                            placeholder="Enter contact person's name" 
+                            value={supContactPerson}
+                            onChange={(e) => setSupContactPerson(e.target.value)}
+                          />
+                        </div>
+                        <div className="col-md-6">
+                          <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Designation</label>
+                          <input 
+                            type="text" 
+                            className="form-control-premium-dark" 
+                            placeholder="e.g. Sales Manager" 
+                            value={supDesignation}
+                            onChange={(e) => setSupDesignation(e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="row g-3 mb-3">
+                        <div className="col-md-4">
+                          <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Email</label>
+                          <input 
+                            type="email" 
+                            className="form-control-premium-dark" 
+                            placeholder="name@company.com" 
+                            value={supEmail}
+                            onChange={(e) => setSupEmail(e.target.value)}
+                          />
+                        </div>
+                        <div className="col-md-4">
+                          <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Phone</label>
+                          <input 
+                            type="text" 
+                            className="form-control-premium-dark" 
+                            placeholder="Enter telephone number" 
+                            value={supPhone}
+                            onChange={(e) => setSupPhone(e.target.value)}
+                          />
+                        </div>
+                        <div className="col-md-4">
+                          <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Alternate Phone</label>
+                          <input 
+                            type="text" 
+                            className="form-control-premium-dark" 
+                            placeholder="Secondary contact phone" 
+                            value={supAltPhone}
+                            onChange={(e) => setSupAltPhone(e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="row g-3 mb-3">
+                        <div className="col-md-6">
+                          <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Website</label>
+                          <input 
+                            type="text" 
+                            className="form-control-premium-dark" 
+                            placeholder="https://example.com" 
+                            value={supWebsite}
+                            onChange={(e) => setSupWebsite(e.target.value)}
+                          />
+                        </div>
+                        <div className="col-md-6">
+                          <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Tax / GST Number</label>
+                          <input 
+                            type="text" 
+                            className="form-control-premium-dark" 
+                            placeholder="Enter tax registration code" 
+                            value={supTaxId}
+                            onChange={(e) => setSupTaxId(e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <h3 className="fw-bold mb-3 pb-2 mt-4 text-dark border-bottom" style={{ fontFamily: 'Outfit', fontSize: '0.92rem' }}>
+                        Address & Terms Information
+                      </h3>
+
+                      <div className="mb-3">
+                        <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Address</label>
+                        <input 
+                          type="text" 
+                          className="form-control-premium-dark" 
+                          placeholder="Street, suite, building details..." 
+                          value={supAddress}
+                          onChange={(e) => setSupAddress(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="row g-3 mb-3">
+                        <div className="col-md-3">
+                          <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>City</label>
+                          <input 
+                            type="text" 
+                            className="form-control-premium-dark" 
+                            placeholder="City" 
+                            value={supCity}
+                            onChange={(e) => setSupCity(e.target.value)}
+                          />
+                        </div>
+                        <div className="col-md-3">
+                          <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>State / Region</label>
+                          <input 
+                            type="text" 
+                            className="form-control-premium-dark" 
+                            placeholder="State / Region" 
+                            value={supState}
+                            onChange={(e) => setSupState(e.target.value)}
+                          />
+                        </div>
+                        <div className="col-md-3">
+                          <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Country</label>
+                          <input 
+                            type="text" 
+                            className="form-control-premium-dark" 
+                            placeholder="Country" 
+                            value={supCountry}
+                            onChange={(e) => setSupCountry(e.target.value)}
+                          />
+                        </div>
+                        <div className="col-md-3">
+                          <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Postal Code</label>
+                          <input 
+                            type="text" 
+                            className="form-control-premium-dark" 
+                            placeholder="PIN / Zip" 
+                            value={supPinCode}
+                            onChange={(e) => setSupPinCode(e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="row g-3 mb-3">
+                        <div className="col-md-4">
+                          <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Payment Terms</label>
+                          <select 
+                            className="form-control-premium-dark" 
+                            value={supPaymentTerms}
+                            onChange={(e) => setSupPaymentTerms(e.target.value)}
+                          >
+                            <option value="net_15">Net 15</option>
+                            <option value="net_30">Net 30</option>
+                            <option value="net_60">Net 60</option>
+                            <option value="cod">Cash on Delivery</option>
+                          </select>
+                        </div>
+                        <div className="col-md-4">
+                          <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Credit Limit ($)</label>
+                          <input 
+                            type="number" 
+                            className="form-control-premium-dark" 
+                            placeholder="0.00" 
+                            value={supCreditLimit}
+                            onChange={(e) => setSupCreditLimit(e.target.value)}
+                          />
+                        </div>
+                        <div className="col-md-4">
+                          <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Status <span className="text-danger">*</span></label>
+                          <select 
+                            className="form-control-premium-dark" 
+                            value={supStatus}
+                            onChange={(e) => setSupStatus(e.target.value)}
+                            required
+                          >
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="mb-4">
+                        <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Notes</label>
+                        <textarea 
+                          className="form-control-premium-dark" 
+                          style={{ minHeight: '100px' }}
+                          placeholder="Describe business terms, special agreements, etc..." 
+                          value={supNotes}
+                          onChange={(e) => setSupNotes(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="pt-3 d-flex justify-content-end gap-2" style={{ borderTop: '1px solid #e2e8f0' }}>
+                        <button 
+                          type="button" 
+                          className="btn btn-outline-secondary px-3.5 py-1.5 fw-semibold" 
+                          style={{ fontSize: '0.75rem', borderRadius: '6px', borderColor: '#cbd5e1', backgroundColor: '#ffffff', color: '#475569' }} 
+                          onClick={handleResetSupplierForm}
+                        >
+                          Reset
+                        </button>
+                        <button 
+                          type="button" 
+                          className="btn btn-outline-secondary px-3.5 py-1.5 fw-semibold" 
+                          style={{ fontSize: '0.75rem', borderRadius: '6px', borderColor: '#cbd5e1', backgroundColor: '#ffffff', color: '#475569' }} 
+                          onClick={() => setSuppliersSubView('list')}
+                        >
+                          Cancel
+                        </button>
+                        <button 
+                          type="submit" 
+                          className="btn text-white fw-bold px-4 py-1.5 border-0" 
+                          style={{ backgroundColor: '#0EA5E9', borderRadius: '6px', fontSize: '0.75rem' }}
+                          disabled={supSaving}
+                        >
+                          {supSaving ? 'Saving...' : (editingSupplierId ? 'Update Supplier' : 'Save Supplier')}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Render Customers Tab */}
+          {activeTab === 'customers' && (
+            <div className="customers-view animate-fade-in" style={{ animation: 'fadeIn 0.25s ease-out' }}>
+              {customersSubView === 'list' ? (
+                <>
+                  {/* Title Banner */}
+                  <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+                    <div>
+                      <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Customers List</h1>
+                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
+                        <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setActiveTab('dashboard')}>Dashboard</span>
+                        <span className="text-secondary">/</span>
+                        <span className="fw-semibold">Customers</span>
+                      </div>
+                    </div>
+                    <button 
+                      className="btn text-white fw-semibold d-flex align-items-center gap-1.5 shadow-sm border-0" 
+                      style={{ backgroundColor: '#0EA5E9', padding: '0.45rem 1.15rem', borderRadius: '6px', fontSize: '0.75rem' }} 
+                      onClick={() => {
+                        playSynthSound('click');
+                        setEditingCustomerId(null);
+                        handleResetCustomerForm();
+                        setCustomersSubView('add');
+                      }}
+                    >
+                      <i className="fa-solid fa-plus"></i> Add New Customer
+                    </button>
+                  </div>
+
+                  {/* Search Section */}
+                  <div className="p-3 rounded-3 shadow-sm border bg-white mb-3" style={{ borderColor: '#cbd5e1' }}>
+                    <div className="row g-3 align-items-end">
+                      <div className="col-md-9">
+                        <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Search Customer Directory</label>
+                        <div className="position-relative">
+                          <i className="fa-solid fa-magnifying-glass text-secondary position-absolute" style={{ left: '0.75rem', top: '50%', transform: 'translateY(-50%)', fontSize: '0.8rem', color: '#64748b' }}></i>
+                          <input 
+                            type="text" 
+                            className="form-control-premium-dark" 
+                            style={{ paddingLeft: '2.1rem' }} 
+                            placeholder="Search by name, email, phone..." 
+                            value={customerSearchQuery}
+                            onChange={(e) => setCustomerSearchQuery(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <div className="col-md-3 d-flex gap-2">
+                        <button 
+                          className="btn text-white fw-semibold w-100 border-0" 
+                          style={{ backgroundColor: '#0EA5E9', fontSize: '0.75rem', borderRadius: '6px', height: '35px' }}
+                          onClick={() => setAppliedCustomerFilters({ search: customerSearchQuery })}
+                        >
+                          Search
+                        </button>
+                        <button 
+                          className="btn btn-outline-secondary d-flex align-items-center justify-content-center" 
+                          style={{ width: '35px', height: '35px', borderRadius: '6px', backgroundColor: '#ffffff', borderColor: '#cbd5e1' }}
+                          onClick={() => {
+                            setCustomerSearchQuery('');
+                            setAppliedCustomerFilters({ search: '' });
+                            fetchCustomers();
+                          }}
+                          title="Refresh Filters"
+                        >
+                          <i className="fa-solid fa-rotate"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Data Table */}
+                  <div className="p-3 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#cbd5e1' }}>
+                    <div className="table-responsive">
+                      <table className="table align-middle table-hover-light mb-0">
+                        <thead>
+                          <tr className="small text-secondary" style={{ fontSize: '0.72rem', borderBottom: '2px solid #e2e8f0' }}>
+                            <th>Customer Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Address</th>
+                            <th>Added On</th>
+                            <th className="text-center">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {customersList.filter(c => {
+                            const query = appliedCustomerFilters.search.toLowerCase();
+                            return !query || 
+                              c.name.toLowerCase().includes(query) ||
+                              c.email.toLowerCase().includes(query) ||
+                              c.phone.toLowerCase().includes(query);
+                          }).length === 0 ? (
+                            <tr>
+                              <td colSpan="6" className="text-center py-5 text-secondary" style={{ color: '#64748b' }}>
+                                <div className="d-flex flex-column align-items-center justify-content-center">
+                                  <i className="fa-solid fa-folder text-muted mb-2.5" style={{ fontSize: '3rem', color: '#cbd5e1', opacity: '0.6' }}></i>
+                                  <p className="mb-0 fw-semibold" style={{ fontSize: '0.8rem' }}>
+                                    No customer profiles registered yet. Click "Add New Customer" to register one.
+                                  </p>
+                                </div>
+                              </td>
+                            </tr>
+                          ) : (
+                            customersList.filter(c => {
+                              const query = appliedCustomerFilters.search.toLowerCase();
+                              return !query || 
+                                c.name.toLowerCase().includes(query) ||
+                                c.email.toLowerCase().includes(query) ||
+                                c.phone.toLowerCase().includes(query);
+                            }).map(cust => (
+                              <tr key={cust.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                <td className="fw-bold" style={{ color: '#0f172a' }}>{cust.name}</td>
+                                <td>{cust.email || <span className="text-muted small italic">None</span>}</td>
+                                <td>{cust.phone || <span className="text-muted small italic">None</span>}</td>
+                                <td>{cust.address || <span className="text-muted small italic">None</span>}</td>
+                                <td>{cust.created_at ? new Date(cust.created_at).toLocaleDateString() : 'N/A'}</td>
+                                <td className="text-center">
+                                  <div className="d-flex align-items-center justify-content-center gap-2">
+                                    <button 
+                                      type="button" 
+                                      className="btn btn-link text-primary p-0 border-0 fw-semibold" 
+                                      style={{ fontSize: '0.75rem', textDecoration: 'none' }}
+                                      onClick={() => {
+                                        playSynthSound('click');
+                                        setEditingCustomerId(cust.id);
+                                        setCustName(cust.name);
+                                        setCustEmail(cust.email);
+                                        setCustPhone(cust.phone);
+                                        setCustAddress(cust.address);
+                                        setCustCity(cust.city || '');
+                                        setCustState(cust.state || '');
+                                        setCustCountry(cust.country || '');
+                                        setCustZipCode(cust.zip_code || '');
+                                        setCustNotes(cust.notes || '');
+                                        setCustStatus(cust.status || 'Active');
+                                        setCustomersSubView('add');
+                                      }}
+                                    >
+                                      Edit
+                                    </button>
+                                    <span className="text-muted">|</span>
+                                    <button 
+                                      type="button" 
+                                      className="btn btn-link text-danger p-0 border-0 fw-semibold" 
+                                      style={{ fontSize: '0.75rem', textDecoration: 'none' }}
+                                      onClick={() => handleDeleteCustomer(cust.id)}
+                                    >
+                                      Delete
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                /* PAGE 2: Add / Edit Customer */
+                <>
+                  {/* Title Banner */}
+                  <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+                    <div>
+                      <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>
+                        {editingCustomerId ? 'Edit Customer' : 'Add New Customer'}
+                      </h1>
+                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
+                        <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setActiveTab('dashboard')}>Dashboard</span>
+                        <span className="text-secondary">/</span>
+                        <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setCustomersSubView('list')}>Customers</span>
+                        <span className="text-secondary">/</span>
+                        <span className="fw-semibold">{editingCustomerId ? 'Edit Customer' : 'Add Customer'}</span>
+                      </div>
+                    </div>
+                    <div className="d-flex align-items-center gap-2">
+                      <button 
+                        className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1.5 px-3 py-1.5 fw-semibold" 
+                        style={{ fontSize: '0.75rem', borderRadius: '6px', backgroundColor: '#ffffff', borderColor: '#cbd5e1', color: '#475569' }} 
+                        onClick={() => setCustomersSubView('list')}
+                      >
+                        <i className="fa-solid fa-arrow-left"></i> Back to Customers
+                      </button>
+                      <button 
+                        className="btn btn-blue-primary btn-sm d-flex align-items-center gap-1.5 px-3 py-1.5 fw-semibold" 
+                        style={{ fontSize: '0.75rem', borderRadius: '6px' }} 
+                        onClick={handleSaveCustomer}
+                        disabled={custSaving}
+                      >
+                        <i className="fa-solid fa-save"></i> {custSaving ? 'Saving...' : (editingCustomerId ? 'Update Customer' : 'Save Customer')}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Main Grid */}
+                  <div className="p-3 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#cbd5e1' }}>
+                    <form onSubmit={handleSaveCustomer}>
+                      <h3 className="fw-bold mb-3 pb-2 text-dark border-bottom" style={{ fontFamily: 'Outfit', fontSize: '0.92rem' }}>
+                        Customer Profile Details
+                      </h3>
+
+                      <div className="row g-3 mb-3">
+                        <div className="col-md-6">
+                          <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Customer Name <span className="text-danger">*</span></label>
+                          <input 
+                            type="text" 
+                            className="form-control-premium-dark" 
+                            placeholder="Enter customer name" 
+                            value={custName}
+                            onChange={(e) => setCustName(e.target.value)}
+                            required
+                          />
+                        </div>
+                        <div className="col-md-6">
+                          <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Email Address</label>
+                          <input 
+                            type="email" 
+                            className="form-control-premium-dark" 
+                            placeholder="name@email.com" 
+                            value={custEmail}
+                            onChange={(e) => setCustEmail(e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="row g-3 mb-3">
+                        <div className="col-md-6">
+                          <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Phone Number</label>
+                          <input 
+                            type="text" 
+                            className="form-control-premium-dark" 
+                            placeholder="Enter contact number" 
+                            value={custPhone}
+                            onChange={(e) => setCustPhone(e.target.value)}
+                          />
+                        </div>
+                        <div className="col-md-6">
+                          <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Status</label>
+                          <select 
+                            className="form-control-premium-dark" 
+                            value={custStatus}
+                            onChange={(e) => setCustStatus(e.target.value)}
+                          >
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <h3 className="fw-bold mb-3 pb-2 mt-4 text-dark border-bottom" style={{ fontFamily: 'Outfit', fontSize: '0.92rem' }}>
+                        Address Information
+                      </h3>
+
+                      <div className="mb-3">
+                        <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Street Address</label>
+                        <input 
+                          type="text" 
+                          className="form-control-premium-dark" 
+                          placeholder="Apartment, suite, street name..." 
+                          value={custAddress}
+                          onChange={(e) => setCustAddress(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="row g-3 mb-3">
+                        <div className="col-md-3">
+                          <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>City</label>
+                          <input 
+                            type="text" 
+                            className="form-control-premium-dark" 
+                            placeholder="City" 
+                            value={custCity}
+                            onChange={(e) => setCustCity(e.target.value)}
+                          />
+                        </div>
+                        <div className="col-md-3">
+                          <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>State / Region</label>
+                          <input 
+                            type="text" 
+                            className="form-control-premium-dark" 
+                            placeholder="State" 
+                            value={custState}
+                            onChange={(e) => setCustState(e.target.value)}
+                          />
+                        </div>
+                        <div className="col-md-3">
+                          <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Country</label>
+                          <input 
+                            type="text" 
+                            className="form-control-premium-dark" 
+                            placeholder="Country" 
+                            value={custCountry}
+                            onChange={(e) => setCustCountry(e.target.value)}
+                          />
+                        </div>
+                        <div className="col-md-3">
+                          <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Postal Code</label>
+                          <input 
+                            type="text" 
+                            className="form-control-premium-dark" 
+                            placeholder="Zip / Postal Code" 
+                            value={custZipCode}
+                            onChange={(e) => setCustZipCode(e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="mb-4">
+                        <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Customer Notes</label>
+                        <textarea 
+                          className="form-control-premium-dark" 
+                          style={{ minHeight: '100px' }}
+                          placeholder="Add any internal customer descriptions or records..." 
+                          value={custNotes}
+                          onChange={(e) => setCustNotes(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="pt-3 d-flex justify-content-end gap-2" style={{ borderTop: '1px solid #e2e8f0' }}>
+                        <button 
+                          type="button" 
+                          className="btn btn-outline-secondary px-3.5 py-1.5 fw-semibold" 
+                          style={{ fontSize: '0.75rem', borderRadius: '6px', borderColor: '#cbd5e1', backgroundColor: '#ffffff', color: '#475569' }} 
+                          onClick={handleResetCustomerForm}
+                        >
+                          Reset
+                        </button>
+                        <button 
+                          type="button" 
+                          className="btn btn-outline-secondary px-3.5 py-1.5 fw-semibold" 
+                          style={{ fontSize: '0.75rem', borderRadius: '6px', borderColor: '#cbd5e1', backgroundColor: '#ffffff', color: '#475569' }} 
+                          onClick={() => setCustomersSubView('list')}
+                        >
+                          Cancel
+                        </button>
+                        <button 
+                          type="submit" 
+                          className="btn text-white fw-bold px-4 py-1.5 border-0" 
+                          style={{ backgroundColor: '#0EA5E9', borderRadius: '6px', fontSize: '0.75rem' }}
+                          disabled={custSaving}
+                        >
+                          {custSaving ? 'Saving...' : (editingCustomerId ? 'Update Customer' : 'Save Customer')}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Render Reports Tab */}
+          {activeTab === 'reports' && (
+            <div className="reports-view animate-fade-in" style={{ animation: 'fadeIn 0.25s ease-out' }}>
+              {/* Title Banner */}
+              <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+                <div>
+                  <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Audit & Reports</h1>
+                  <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
+                    <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setActiveTab('dashboard')}>Dashboard</span>
+                    <span className="text-secondary">/</span>
+                    <span className="fw-semibold">Reports</span>
+                  </div>
+                </div>
+                <button 
+                  className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1.5 px-3 py-1.5 fw-semibold" 
+                  style={{ fontSize: '0.75rem', borderRadius: '6px', backgroundColor: '#ffffff', borderColor: '#cbd5e1', color: '#475569' }} 
+                  onClick={handleExportReportsPDF}
+                >
+                  <i className="fa-solid fa-print"></i> Export to PDF / Print
+                </button>
+              </div>
+
+              {/* Tab Navigation Menu */}
+              <div className="d-flex rounded-3 bg-light p-1 mb-3 gap-1 shadow-sm border" style={{ borderColor: '#cbd5e1' }}>
+                <button 
+                  className="btn btn-sm flex-fill fw-semibold py-2 d-flex align-items-center justify-content-center gap-2"
+                  style={reportsActiveTab === 'sales' ? {
+                    backgroundColor: '#0EA5E9',
+                    color: '#ffffff',
+                    borderRadius: '6px',
+                    fontSize: '0.78rem',
+                    border: '0'
+                  } : {
+                    backgroundColor: 'transparent',
+                    color: '#475569',
+                    fontSize: '0.78rem',
+                    border: '0'
+                  }}
+                  onClick={() => { playSynthSound('click'); setReportsActiveTab('sales'); }}
+                >
+                  <i className="fa-solid fa-chart-line"></i> Sales Audit
+                </button>
+                <button 
+                  className="btn btn-sm flex-fill fw-semibold py-2 d-flex align-items-center justify-content-center gap-2"
+                  style={reportsActiveTab === 'valuation' ? {
+                    backgroundColor: '#0EA5E9',
+                    color: '#ffffff',
+                    borderRadius: '6px',
+                    fontSize: '0.78rem',
+                    border: '0'
+                  } : {
+                    backgroundColor: 'transparent',
+                    color: '#475569',
+                    fontSize: '0.78rem',
+                    border: '0'
+                  }}
+                  onClick={() => { playSynthSound('click'); setReportsActiveTab('valuation'); }}
+                >
+                  <i className="fa-solid fa-warehouse"></i> Inventory Valuation
+                </button>
+                <button 
+                  className="btn btn-sm flex-fill fw-semibold py-2 d-flex align-items-center justify-content-center gap-2"
+                  style={reportsActiveTab === 'purchase' ? {
+                    backgroundColor: '#0EA5E9',
+                    color: '#ffffff',
+                    borderRadius: '6px',
+                    fontSize: '0.78rem',
+                    border: '0'
+                  } : {
+                    backgroundColor: 'transparent',
+                    color: '#475569',
+                    fontSize: '0.78rem',
+                    border: '0'
+                  }}
+                  onClick={() => { playSynthSound('click'); setReportsActiveTab('purchase'); }}
+                >
+                  <i className="fa-solid fa-truck-field"></i> Purchase Log
+                </button>
+              </div>
+
+              {/* Tab Contents */}
+              {reportsLoading ? (
+                <div className="p-5 text-center bg-white rounded-3 shadow-sm border" style={{ borderColor: '#cbd5e1' }}>
+                  <div className="spinner-border text-info mb-2" role="status" style={{ width: '1.8rem', height: '1.8rem' }}>
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                  <div className="text-secondary small">Compiling reports analytics...</div>
+                </div>
+              ) : (
+                <>
+                  {reportsActiveTab === 'sales' && (
+                    <div className="p-3 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#cbd5e1' }}>
+                      <h3 className="fw-bold mb-0.5 text-dark" style={{ fontFamily: 'Outfit', fontSize: '0.95rem' }}>Daily Sales Income Aggregation</h3>
+                      <p className="text-secondary mb-3" style={{ fontSize: '0.7rem' }}>A summary audit of your billing invoices grouped by transaction date.</p>
+
+                      <div className="table-responsive">
+                        <table className="table align-middle table-hover-light mb-0">
+                          <thead>
+                            <tr className="small text-secondary" style={{ fontSize: '0.72rem', borderBottom: '2px solid #e2e8f0' }}>
+                              <th>Sale Date</th>
+                              <th>Invoices Issued</th>
+                              <th>Total Daily Revenue</th>
+                              <th className="text-center">Audit Action</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {salesAuditList.length === 0 ? (
+                              <tr>
+                                <td colSpan="4" className="text-center py-5 text-secondary" style={{ color: '#64748b' }}>
+                                  <div className="d-flex flex-column align-items-center justify-content-center">
+                                    <i className="fa-solid fa-magnifying-glass-chart text-muted mb-2.5" style={{ fontSize: '3rem', color: '#cbd5e1', opacity: '0.6' }}></i>
+                                    <p className="mb-0 fw-semibold" style={{ fontSize: '0.8rem' }}>
+                                      No sales ledger records found in your database.
+                                    </p>
+                                  </div>
+                                </td>
+                              </tr>
+                            ) : (
+                              salesAuditList.map((s, idx) => (
+                                <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                  <td className="fw-semibold">{new Date(s.saleDate).toLocaleDateString()}</td>
+                                  <td>{s.invoicesIssued} invoices</td>
+                                  <td className="fw-bold text-success">${parseFloat(s.totalDailyRevenue).toFixed(2)}</td>
+                                  <td className="text-center">
+                                    <button 
+                                      className="btn btn-outline-info btn-xs py-0.5 px-2 fw-semibold" 
+                                      style={{ fontSize: '0.68rem', borderRadius: '4px' }}
+                                      onClick={() => {
+                                        playSynthSound('click');
+                                        setActiveTab('sales');
+                                      }}
+                                    >
+                                      View Sales Registry
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {reportsActiveTab === 'valuation' && (
+                    <div className="d-flex flex-column gap-3">
+                      {/* Summary Cards */}
+                      <div className="row g-3">
+                        <div className="col-md-4">
+                          <div className="p-3 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#cbd5e1' }}>
+                            <div className="text-secondary small mb-1.5" style={{ fontSize: '0.72rem', fontWeight: '500' }}>Total Inventory Value (Cost)</div>
+                            <div className="fw-bold text-dark mb-1" style={{ fontSize: '1.6rem', fontFamily: 'Outfit' }}>
+                              ${(inventoryValuationData.summary?.totalInventoryValue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </div>
+                            <div className="text-muted small" style={{ fontSize: '0.65rem' }}>Computed from wholesale purchase prices.</div>
+                          </div>
+                        </div>
+                        <div className="col-md-4">
+                          <div className="p-3 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#cbd5e1' }}>
+                            <div className="text-secondary small mb-1.5" style={{ fontSize: '0.72rem', fontWeight: '500' }}>Expected Sales Return</div>
+                            <div className="fw-bold text-dark mb-1" style={{ fontSize: '1.6rem', fontFamily: 'Outfit' }}>
+                              ${(inventoryValuationData.summary?.expectedSalesReturn || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </div>
+                            <div className="text-muted small" style={{ fontSize: '0.65rem' }}>Computed from catalog retail pricing.</div>
+                          </div>
+                        </div>
+                        <div className="col-md-4">
+                          <div className="p-3 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#cbd5e1' }}>
+                            <div className="text-secondary small mb-1.5" style={{ fontSize: '0.72rem', fontWeight: '500', color: '#0ea5e9' }}>Potential Profit Earnings</div>
+                            <div className="fw-bold mb-1" style={{ fontSize: '1.6rem', fontFamily: 'Outfit', color: '#0ea5e9' }}>
+                              ${(inventoryValuationData.summary?.potentialProfit || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </div>
+                            <div className="text-muted small" style={{ fontSize: '0.65rem' }}>Expected margin if all inventory is cleared.</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Main Valuation Audit Card */}
+                      <div className="p-3 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#cbd5e1' }}>
+                        <h3 className="fw-bold mb-0.5 text-dark" style={{ fontFamily: 'Outfit', fontSize: '0.95rem' }}>Catalog Valuation Audit</h3>
+                        <p className="text-secondary mb-3" style={{ fontSize: '0.7rem' }}>Detailed breakdown of total items currently locked in stock and their relative worth.</p>
+
+                        <div className="table-responsive">
+                          <table className="table align-middle table-hover-light mb-0">
+                            <thead>
+                              <tr className="small text-secondary" style={{ fontSize: '0.72rem', borderBottom: '2px solid #e2e8f0' }}>
+                                <th>Product</th>
+                                <th>Category</th>
+                                <th>On Hand Qty</th>
+                                <th>Purchase Cost</th>
+                                <th>Total Cost Value</th>
+                                <th>Selling Price</th>
+                                <th>Expected Value</th>
+                                <th>Margin Contribution</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {(inventoryValuationData.items || []).length === 0 ? (
+                                <tr>
+                                  <td colSpan="8" className="text-center py-5 text-secondary" style={{ color: '#64748b' }}>
+                                    <div className="d-flex flex-column align-items-center justify-content-center">
+                                      <i className="fa-solid fa-box-open text-muted mb-2.5" style={{ fontSize: '3rem', color: '#cbd5e1', opacity: '0.6' }}></i>
+                                      <p className="mb-0 fw-semibold" style={{ fontSize: '0.8rem' }}>
+                                        No inventory products found to audit.
+                                      </p>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ) : (
+                                (inventoryValuationData.items || []).map((item, idx) => (
+                                  <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                    <td>
+                                      <div className="fw-bold text-dark">{item.name}</div>
+                                      <span className="small text-muted font-monospace" style={{ fontSize: '0.68rem' }}>{item.sku}</span>
+                                    </td>
+                                    <td>{item.category}</td>
+                                    <td className="fw-semibold">{item.quantity}</td>
+                                    <td>${parseFloat(item.purchaseCost).toFixed(2)}</td>
+                                    <td className="fw-semibold">${parseFloat(item.totalCostValue).toFixed(2)}</td>
+                                    <td>${parseFloat(item.sellingPrice).toFixed(2)}</td>
+                                    <td className="fw-semibold text-primary">${parseFloat(item.expectedValue).toFixed(2)}</td>
+                                    <td>
+                                      <span className={`badge px-2 py-0.5 ${item.marginContribution > 0 ? 'bg-success bg-opacity-10 text-success' : 'bg-secondary bg-opacity-10 text-secondary'}`} style={{ fontSize: '0.68rem' }}>
+                                        {item.marginContribution}%
+                                      </span>
+                                    </td>
+                                  </tr>
+                                ))
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {reportsActiveTab === 'purchase' && (
+                    <div className="p-3 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#cbd5e1' }}>
+                      <h3 className="fw-bold mb-0.5 text-dark" style={{ fontFamily: 'Outfit', fontSize: '0.95rem' }}>Supplier Purchase Order Aggregation</h3>
+                      <p className="text-secondary mb-3" style={{ fontSize: '0.7rem' }}>A daily summary log of purchase orders grouped by vendor transaction date.</p>
+
+                      <div className="table-responsive">
+                        <table className="table align-middle table-hover-light mb-0">
+                          <thead>
+                            <tr className="small text-secondary" style={{ fontSize: '0.72rem', borderBottom: '2px solid #e2e8f0' }}>
+                              <th>Purchase Date</th>
+                              <th>Orders Completed</th>
+                              <th>Total Cost Outflow</th>
+                              <th className="text-center">Audit Action</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {purchaseLogList.length === 0 ? (
+                              <tr>
+                                <td colSpan="4" className="text-center py-5 text-secondary" style={{ color: '#64748b' }}>
+                                  <div className="d-flex flex-column align-items-center justify-content-center">
+                                    <i className="fa-solid fa-magnifying-glass-chart text-muted mb-2.5" style={{ fontSize: '3rem', color: '#cbd5e1', opacity: '0.6' }}></i>
+                                    <p className="mb-0 fw-semibold" style={{ fontSize: '0.8rem' }}>
+                                      No purchase log entries found in your database.
+                                    </p>
+                                  </div>
+                                </td>
+                              </tr>
+                            ) : (
+                              purchaseLogList.map((p, idx) => (
+                                <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                  <td className="fw-semibold">{new Date(p.purchaseDate).toLocaleDateString()}</td>
+                                  <td>{p.ordersCompleted} orders</td>
+                                  <td className="fw-bold text-danger">${parseFloat(p.totalCostOutflow).toFixed(2)}</td>
+                                  <td className="text-center">
+                                    <button 
+                                      className="btn btn-outline-info btn-xs py-0.5 px-2 fw-semibold" 
+                                      style={{ fontSize: '0.68rem', borderRadius: '4px' }}
+                                      onClick={() => {
+                                        playSynthSound('click');
+                                        setActiveTab('purchases');
+                                      }}
+                                    >
+                                      View Purchases Registry
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
           {/* Render Fallback for other tabs */}
-          {activeTab !== 'dashboard' && activeTab !== 'billing' && activeTab !== 'products' && activeTab !== 'sales' && activeTab !== 'purchases' && activeTab !== 'categories' && (
+          {activeTab !== 'dashboard' && activeTab !== 'billing' && activeTab !== 'products' && activeTab !== 'sales' && activeTab !== 'purchases' && activeTab !== 'categories' && activeTab !== 'suppliers' && activeTab !== 'customers' && activeTab !== 'reports' && (
             <div className="p-5 text-center rounded-4 border bg-white" style={{ borderColor: '#cbd5e1', margin: '3rem auto', maxWidth: '500px', boxShadow: '0 4px 6px -1px rgba(14, 165, 233, 0.05)' }}>
               <i className="fa-solid fa-screwdriver-wrench text-secondary mb-3" style={{ fontSize: '3rem', color: '#94a3b8' }}></i>
               <h4 className="fw-bold text-dark text-capitalize" style={{ fontFamily: 'Outfit', fontSize: '1.1rem' }}>{activeTab.replace('-', ' ')} Page</h4>
@@ -3596,7 +5135,7 @@ const DashboardPage = () => {
                 {/* Modal Header */}
                 <div className="p-3 border-bottom d-flex align-items-center justify-content-between" style={{ backgroundColor: '#ffffff' }}>
                   <h3 className="fw-bold mb-0 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '1.05rem', color: '#0f172a' }}>
-                    <i className="fa-solid fa-file-invoice-dollar text-primary me-2.5" style={{ color: '#007BFF', fontSize: '1.2rem' }}></i>
+                    <i className="fa-solid fa-file-invoice-dollar text-primary me-2.5" style={{ color: '#0EA5E9', fontSize: '1.2rem' }}></i>
                     Record New Sale
                   </h3>
                   <button 
@@ -3684,7 +5223,7 @@ const DashboardPage = () => {
                         className="d-flex flex-column align-items-center justify-content-center border border-dashed rounded-3 p-3 text-center position-relative"
                         style={{
                           minHeight: '140px',
-                          borderColor: saleDragOver ? '#007BFF' : '#cbd5e1',
+                          borderColor: saleDragOver ? '#0EA5E9' : '#cbd5e1',
                           backgroundColor: saleDragOver ? 'rgba(0, 123, 255, 0.05)' : '#f8fafc',
                           transition: 'all 0.2s ease',
                           cursor: 'pointer'
@@ -3708,7 +5247,7 @@ const DashboardPage = () => {
                           </div>
                         ) : (
                           <>
-                            <i className="fa-solid fa-cloud-arrow-up text-primary mb-1.5" style={{ fontSize: '1.8rem', color: '#007BFF' }}></i>
+                            <i className="fa-solid fa-cloud-arrow-up text-primary mb-1.5" style={{ fontSize: '1.8rem', color: '#0EA5E9' }}></i>
                             <div className="fw-bold text-dark mb-0.5" style={{ fontSize: '0.78rem' }}>Drag & drop receipt here</div>
                             <div className="text-secondary small" style={{ fontSize: '0.68rem' }}>or click to browse</div>
                             <div className="text-muted mt-1" style={{ fontSize: '0.6rem' }}>JPG, PNG or WEBP (Max. 2MB)</div>
@@ -3745,7 +5284,7 @@ const DashboardPage = () => {
                     <button 
                       type="submit" 
                       className="btn text-white fw-bold px-4 py-1.5 border-0" 
-                      style={{ backgroundColor: '#007BFF', borderRadius: '6px', fontSize: '0.75rem' }}
+                      style={{ backgroundColor: '#0EA5E9', borderRadius: '6px', fontSize: '0.75rem' }}
                     >
                       <i className="fa-solid fa-save me-1.5"></i> Save Invoice
                     </button>
@@ -3785,7 +5324,7 @@ const DashboardPage = () => {
                 {/* Modal Header */}
                 <div className="p-3 border-bottom d-flex align-items-center justify-content-between" style={{ backgroundColor: '#ffffff' }}>
                   <h3 className="fw-bold mb-0 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '1.05rem', color: '#0f172a' }}>
-                    <i className="fa-solid fa-circle-info text-primary me-2.5" style={{ color: '#007BFF', fontSize: '1.1rem' }}></i>
+                    <i className="fa-solid fa-circle-info text-primary me-2.5" style={{ color: '#0EA5E9', fontSize: '1.1rem' }}></i>
                     Invoice Details: {selectedInvoiceDetails.invoice_number}
                   </h3>
                   <button 
@@ -3893,7 +5432,7 @@ const DashboardPage = () => {
                 {/* Modal Header */}
                 <div className="p-3 border-bottom d-flex align-items-center justify-content-between" style={{ backgroundColor: '#ffffff' }}>
                   <h3 className="fw-bold mb-0 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '1.05rem', color: '#0f172a' }}>
-                    <i className="fa-solid fa-truck text-primary me-2.5" style={{ color: '#007BFF', fontSize: '1.2rem' }}></i>
+                    <i className="fa-solid fa-truck text-primary me-2.5" style={{ color: '#0EA5E9', fontSize: '1.2rem' }}></i>
                     Record New Purchase
                   </h3>
                   <button 
@@ -3988,7 +5527,7 @@ const DashboardPage = () => {
                     <button 
                       type="submit" 
                       className="btn text-white fw-bold px-4 py-1.5 border-0" 
-                      style={{ backgroundColor: '#007BFF', borderRadius: '6px', fontSize: '0.75rem' }}
+                      style={{ backgroundColor: '#0EA5E9', borderRadius: '6px', fontSize: '0.75rem' }}
                     >
                       <i className="fa-solid fa-save me-1.5"></i> Save Record
                     </button>
@@ -4028,7 +5567,7 @@ const DashboardPage = () => {
                 {/* Modal Header */}
                 <div className="p-3 border-bottom d-flex align-items-center justify-content-between" style={{ backgroundColor: '#ffffff' }}>
                   <h3 className="fw-bold mb-0 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '1.05rem', color: '#0f172a' }}>
-                    <i className="fa-solid fa-circle-info text-primary me-2.5" style={{ color: '#007BFF', fontSize: '1.1rem' }}></i>
+                    <i className="fa-solid fa-circle-info text-primary me-2.5" style={{ color: '#0EA5E9', fontSize: '1.1rem' }}></i>
                     Purchase Details: {selectedPurchaseDetails.purchase_number}
                   </h3>
                   <button 

@@ -17,6 +17,9 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/comments', require('./routes/comments'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/categories', require('./routes/categories'));
+app.use('/api/suppliers', require('./routes/suppliers'));
+app.use('/api/customers', require('./routes/customers'));
+app.use('/api/reports', require('./routes/reports'));
 
 // Basic Health Check Route
 app.get('/api/health', (req, res) => {
