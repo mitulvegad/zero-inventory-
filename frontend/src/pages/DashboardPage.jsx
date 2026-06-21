@@ -120,6 +120,197 @@ const DashboardPage = () => {
   // Selected Invoice for detailed preview modal
   const [selectedInvoiceDetails, setSelectedInvoiceDetails] = useState(null);
 
+  // Purchases Registry States
+  const [purchasesList, setPurchasesList] = useState([
+    { id: '1', purchase_number: 'PRCH-20260621-1001', supplier_name: 'Alpha Supplier', purchase_date: '2026-06-21', grand_total: 550.00, payment_status: 'Paid' },
+    { id: '2', purchase_number: 'PRCH-20260620-1002', supplier_name: 'Beta Vendor', purchase_date: '2026-06-20', grand_total: 1200.00, payment_status: 'Pending' }
+  ]);
+  const [purchasesSearch, setPurchasesSearch] = useState('');
+  const [purchasesPaymentStatusFilter, setPurchasesPaymentStatusFilter] = useState('All');
+  const [appliedPurchasesFilters, setAppliedPurchasesFilters] = useState({ search: '', paymentStatus: 'All' });
+  const [showRecordPurchaseModal, setShowRecordPurchaseModal] = useState(false);
+
+  // Record Purchase Form States
+  const [purchasePoNumber, setPurchasePoNumber] = useState('');
+  const [purchaseSupplierName, setPurchaseSupplierName] = useState('');
+  const [purchaseDateInput, setPurchaseDateInput] = useState('');
+  const [purchaseGrandTotalInput, setPurchaseGrandTotalInput] = useState('');
+  const [purchasePaymentStatus, setPurchasePaymentStatus] = useState('Paid');
+
+  // Selected Purchase for detailed preview modal
+  const [selectedPurchaseDetails, setSelectedPurchaseDetails] = useState(null);
+
+  // Purchases functions
+  const handleOpenRecordPurchaseModal = () => {
+    playSynthSound('click');
+    const today = new Date();
+    const dateStr = today.getFullYear() + 
+      String(today.getMonth() + 1).padStart(2, '0') + 
+      String(today.getDate()).padStart(2, '0');
+    const randomNum = Math.floor(1000 + Math.random() * 9000);
+    setPurchasePoNumber(`PRCH-${dateStr}-${randomNum}`);
+    
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    setPurchaseDateInput(`${year}-${month}-${day}`);
+    
+    setPurchaseSupplierName('');
+    setPurchaseGrandTotalInput('0.00');
+    setPurchasePaymentStatus('Paid');
+    setShowRecordPurchaseModal(true);
+  };
+
+  const handleSavePurchaseFromModal = (e) => {
+    e.preventDefault();
+
+    if (!purchaseSupplierName || !purchaseDateInput || !purchaseGrandTotalInput) {
+      triggerAlert('Required Info', 'Please fill in all required fields marked with a red asterisk.', 'error');
+      return;
+    }
+
+    const total = parseFloat(purchaseGrandTotalInput) || 0;
+    if (total <= 0) {
+      triggerAlert('Invalid Amount', 'Grand Total must be greater than 0.', 'error');
+      return;
+    }
+
+    const newPurchase = {
+      id: (purchasesList.length + 1).toString(),
+      purchase_number: purchasePoNumber,
+      supplier_name: purchaseSupplierName,
+      purchase_date: purchaseDateInput,
+      grand_total: total,
+      payment_status: purchasePaymentStatus
+    };
+
+    setPurchasesList([newPurchase, ...purchasesList]);
+
+    // Prepend to recentPurchases so it syncs with dashboard activity
+    const newRecentPurchase = {
+      _id: newPurchase.id,
+      purchase_number: newPurchase.purchase_number,
+      supplier_name: newPurchase.supplier_name,
+      grand_total: newPurchase.grand_total,
+      purchase_date: newPurchase.purchase_date
+    };
+    setRecentPurchases(prevPurchases => [newRecentPurchase, ...prevPurchases]);
+
+    setShowRecordPurchaseModal(false);
+    triggerAlert('Purchase Saved', `Purchase record ${purchasePoNumber} has been saved successfully!`, 'success');
+  };
+
+  const handleDeletePurchase = (purchaseId) => {
+    playSynthSound('click');
+    const purchaseToDelete = purchasesList.find(p => p.id === purchaseId);
+    if (!purchaseToDelete) return;
+
+    setPurchasesList(prevList => prevList.filter(p => p.id !== purchaseId));
+    setRecentPurchases(prevPurchases => prevPurchases.filter(p => p._id !== purchaseId && p.id !== purchaseId));
+    
+    triggerAlert('Purchase Deleted', `Purchase Order ${purchaseToDelete.purchase_number} has been deleted successfully!`, 'success');
+  };
+
+  const handleApplyPurchasesFilters = () => {
+    playSynthSound('click');
+    setAppliedPurchasesFilters({
+      search: purchasesSearch,
+      paymentStatus: purchasesPaymentStatusFilter
+    });
+  };
+
+  const handleRefreshPurchasesFilters = () => {
+    playSynthSound('click');
+    setPurchasesSearch('');
+    setPurchasesPaymentStatusFilter('All');
+    setAppliedPurchasesFilters({ search: '', paymentStatus: 'All' });
+    setHeaderSearch('');
+  };
+
+  const handleExportPurchasesPDF = () => {
+    playSynthSound('click');
+    
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      triggerAlert('Popup Blocked', 'Please allow popups to export the purchases report.', 'error');
+      return;
+    }
+
+    const htmlContent = `
+      <html>
+        <head>
+          <title>Purchases Report - Zero Inventory</title>
+          <style>
+            body { font-family: 'Inter', sans-serif; padding: 20px; color: #333; }
+            h1 { font-family: 'Outfit', sans-serif; color: #0f172a; margin-bottom: 5px; }
+            p { color: #64748b; font-size: 14px; margin-bottom: 20px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: left; font-size: 12px; }
+            th { background-color: #f8fafc; font-weight: bold; color: #475569; }
+            tr:nth-child(even) { background-color: #f8fafc; }
+            .badge { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+            .badge-paid { background-color: #dcfce7; color: #15803d; }
+            .badge-pending { background-color: #fef3c7; color: #d97706; }
+            .badge-failed { background-color: #fee2e2; color: #b91c1c; }
+            .grand-total { font-weight: bold; }
+            .summary { margin-top: 30px; border-top: 2px solid #e2e8f0; padding-top: 15px; text-align: right; }
+          </style>
+        </head>
+        <body>
+          <h1>Zero Inventory - Purchases Registry Report</h1>
+          <p>Generated on ${new Date().toLocaleString()}</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Purchase Number</th>
+                <th>Supplier / Vendor</th>
+                <th>Purchase Date</th>
+                <th>Payment Status</th>
+                <th>Grand Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${filteredPurchases.map(p => `
+                <tr>
+                  <td><strong>${p.purchase_number}</strong></td>
+                  <td>${p.supplier_name}</td>
+                  <td>${new Date(p.purchase_date).toLocaleDateString()}</td>
+                  <td><span class="badge ${p.payment_status === 'Paid' ? 'badge-paid' : p.payment_status === 'Pending' ? 'badge-pending' : 'badge-failed'}">${p.payment_status}</span></td>
+                  <td class="grand-total">$${parseFloat(p.grand_total).toFixed(2)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          <div class="summary">
+            <h3>Total Purchases Amount: $${filteredPurchases.reduce((sum, p) => sum + parseFloat(p.grand_total), 0).toFixed(2)}</h3>
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+              window.onafterprint = function() {
+                window.close();
+              };
+            }
+          </script>
+        </body>
+      </html>
+    `;
+    
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+  };
+
+  const filteredPurchases = purchasesList.filter(p => {
+    const searchMatch = !appliedPurchasesFilters.search ||
+      p.purchase_number.toLowerCase().includes(appliedPurchasesFilters.search.toLowerCase()) ||
+      p.supplier_name.toLowerCase().includes(appliedPurchasesFilters.search.toLowerCase());
+
+    const paymentMatch = appliedPurchasesFilters.paymentStatus === 'All' ||
+      p.payment_status.toLowerCase() === appliedPurchasesFilters.paymentStatus.toLowerCase();
+
+    return searchMatch && paymentMatch;
+  });
+
   // Drag and Drop File Handlers for Recording Sale
   const handleSaleDragOver = (e) => {
     e.preventDefault();
@@ -721,6 +912,19 @@ const DashboardPage = () => {
           }));
           setSalesList(apiSales);
         }
+
+        // Synchronize backend purchases if available
+        if (res.data.recentActivity?.purchases && res.data.recentActivity.purchases.length > 0) {
+          const apiPurchases = res.data.recentActivity.purchases.map((p, idx) => ({
+            id: p._id || p.id || `api-purch-${idx}`,
+            purchase_number: p.purchase_number,
+            supplier_name: p.supplier_name,
+            purchase_date: p.purchase_date,
+            grand_total: p.grand_total,
+            payment_status: 'Paid'
+          }));
+          setPurchasesList(apiPurchases);
+        }
         
         setLoading(false);
       } catch (err) {
@@ -1067,6 +1271,9 @@ const DashboardPage = () => {
                   } else if (activeTab === 'sales') {
                     setSalesSearch(e.target.value);
                     setAppliedSalesFilters(prev => ({ ...prev, search: e.target.value }));
+                  } else if (activeTab === 'purchases') {
+                    setPurchasesSearch(e.target.value);
+                    setAppliedPurchasesFilters(prev => ({ ...prev, search: e.target.value }));
                   }
                 }}
               />
@@ -2467,8 +2674,163 @@ const DashboardPage = () => {
             </div>
           )}
 
+          {/* Render Purchases Tab */}
+          {activeTab === 'purchases' && (
+            <div className="purchases-registry-view animate-fade-in" style={{ animation: 'fadeIn 0.25s ease-out' }}>
+              
+              {/* Title Banner */}
+              <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+                <div>
+                  <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Purchases Registry</h1>
+                  <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
+                    <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => { playSynthSound('click'); setActiveTab('dashboard'); window.location.hash = '#dashboard'; }}>Dashboard</span>
+                    <span className="text-secondary">/</span>
+                    <span className="fw-semibold">Purchases</span>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center gap-2">
+                  <button 
+                    className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1.5 px-3 py-1.5 fw-semibold" 
+                    style={{ fontSize: '0.75rem', borderRadius: '6px', backgroundColor: '#ffffff', borderColor: '#cbd5e1', color: '#475569' }} 
+                    onClick={handleExportPurchasesPDF}
+                  >
+                    <i className="fa-solid fa-file-export"></i> Export / Print PDF
+                  </button>
+                  <button 
+                    className="btn btn-blue-primary btn-sm d-flex align-items-center gap-1.5 px-3 py-1.5 fw-semibold" 
+                    style={{ fontSize: '0.75rem', borderRadius: '6px' }} 
+                    onClick={handleOpenRecordPurchaseModal}
+                  >
+                    <i className="fa-solid fa-cart-shopping"></i> Record New Purchase
+                  </button>
+                </div>
+              </div>
+
+              {/* Filters Section */}
+              <div className="p-3 rounded-3 shadow-sm border bg-white mb-3" style={{ borderColor: '#cbd5e1' }}>
+                <div className="row g-3 align-items-end">
+                  <div className="col-md-5">
+                    <label className="form-label mb-1 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Search Purchases</label>
+                    <div className="position-relative">
+                      <i className="fa-solid fa-magnifying-glass text-secondary position-absolute" style={{ left: '0.75rem', top: '50%', transform: 'translateY(-50%)', fontSize: '0.8rem', color: '#64748b' }}></i>
+                      <input 
+                        type="text" 
+                        className="form-control-premium-dark" 
+                        style={{ paddingLeft: '2.1rem' }} 
+                        placeholder="Search Order No. or Supplier Name..." 
+                        value={purchasesSearch}
+                        onChange={(e) => setPurchasesSearch(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-4">
+                    <label className="form-label mb-1 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Payment Status</label>
+                    <select 
+                      className="form-control-premium-dark"
+                      value={purchasesPaymentStatusFilter}
+                      onChange={(e) => setPurchasesPaymentStatusFilter(e.target.value)}
+                    >
+                      <option value="All">All payment status</option>
+                      <option value="Paid">Paid</option>
+                      <option value="Pending">Pending</option>
+                      <option value="Failed">Failed</option>
+                    </select>
+                  </div>
+                  <div className="col-md-3 d-flex gap-2">
+                    <button 
+                      className="btn btn-blue-primary w-100 py-2 fw-semibold"
+                      style={{ fontSize: '0.8rem', borderRadius: '6px' }}
+                      onClick={handleApplyPurchasesFilters}
+                    >
+                      Search
+                    </button>
+                    <button 
+                      className="btn btn-outline-secondary d-flex align-items-center justify-content-center"
+                      style={{ width: '38px', height: '38px', borderRadius: '6px', borderColor: '#cbd5e1', backgroundColor: '#ffffff' }}
+                      onClick={handleRefreshPurchasesFilters}
+                      title="Refresh Filters"
+                    >
+                      <i className="fa-solid fa-arrows-rotate" style={{ color: '#475569' }}></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Data Table */}
+              <div className="p-3 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#cbd5e1' }}>
+                <div className="table-responsive">
+                  <table className="table align-middle table-hover-light mb-0">
+                    <thead>
+                      <tr className="small text-secondary" style={{ fontSize: '0.72rem', borderBottom: '2px solid #e2e8f0' }}>
+                        <th>Purchase Number</th>
+                        <th>Supplier / Vendor</th>
+                        <th>Purchase Date</th>
+                        <th>Grand Total</th>
+                        <th>Payment Status</th>
+                        <th className="text-center">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredPurchases.length === 0 ? (
+                        <tr>
+                          <td colSpan="6" className="text-center py-5 text-secondary" style={{ color: '#64748b' }}>
+                            <div className="d-flex flex-column align-items-center justify-content-center">
+                              <i className="fa-solid fa-folder-open text-muted mb-2.5" style={{ fontSize: '3rem', color: '#cbd5e1', opacity: '0.6' }}></i>
+                              <p className="mb-0 fw-semibold" style={{ fontSize: '0.8rem' }}>
+                                No purchase entries logged yet. Click "Record New Purchase" to add one.
+                              </p>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredPurchases.map(purchase => (
+                          <tr key={purchase.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            <td className="fw-bold" style={{ color: '#0f172a' }}>{purchase.purchase_number}</td>
+                            <td>{purchase.supplier_name}</td>
+                            <td>{new Date(purchase.purchase_date).toLocaleDateString()}</td>
+                            <td className="fw-semibold text-dark">${parseFloat(purchase.grand_total).toFixed(2)}</td>
+                            <td>
+                              <span className={`badge px-2.5 py-1 ${
+                                purchase.payment_status === 'Paid' ? 'bg-success bg-opacity-10 text-success border border-success border-opacity-20' :
+                                purchase.payment_status === 'Pending' ? 'bg-warning bg-opacity-10 text-warning border border-warning border-opacity-20' :
+                                'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-20'
+                              }`} style={{ fontSize: '0.7rem', borderRadius: '4px' }}>
+                                {purchase.payment_status}
+                              </span>
+                            </td>
+                            <td className="text-center">
+                              <div className="d-flex align-items-center justify-content-center gap-3">
+                                <button 
+                                  type="button" 
+                                  className="btn btn-link text-primary p-0 border-0" 
+                                  onClick={() => { playSynthSound('click'); setSelectedPurchaseDetails(purchase); }}
+                                  style={{ fontSize: '0.78rem', color: '#007BFF', textDecoration: 'none', fontWeight: '600' }}
+                                >
+                                  Details
+                                </button>
+                                <button 
+                                  type="button" 
+                                  className="btn btn-link text-danger p-0 border-0" 
+                                  onClick={() => handleDeletePurchase(purchase.id)}
+                                  title="Delete Purchase"
+                                  style={{ display: 'flex', alignItems: 'center' }}
+                                >
+                                  <i className="fa-solid fa-trash-can" style={{ fontSize: '0.85rem' }}></i>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Render Fallback for other tabs */}
-          {activeTab !== 'dashboard' && activeTab !== 'billing' && activeTab !== 'products' && activeTab !== 'sales' && (
+          {activeTab !== 'dashboard' && activeTab !== 'billing' && activeTab !== 'products' && activeTab !== 'sales' && activeTab !== 'purchases' && (
             <div className="p-5 text-center rounded-4 border bg-white" style={{ borderColor: '#cbd5e1', margin: '3rem auto', maxWidth: '500px', boxShadow: '0 4px 6px -1px rgba(14, 165, 233, 0.05)' }}>
               <i className="fa-solid fa-screwdriver-wrench text-secondary mb-3" style={{ fontSize: '3rem', color: '#94a3b8' }}></i>
               <h4 className="fw-bold text-dark text-capitalize" style={{ fontFamily: 'Outfit', fontSize: '1.1rem' }}>{activeTab.replace('-', ' ')} Page</h4>
@@ -2766,6 +3128,227 @@ const DashboardPage = () => {
                     className="btn btn-secondary btn-sm px-4 py-1.5 fw-semibold border-0" 
                     style={{ fontSize: '0.75rem', borderRadius: '6px', backgroundColor: '#64748b' }} 
                     onClick={() => { playSynthSound('click'); setSelectedInvoiceDetails(null); }}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Record New Purchase Modal */}
+          {showRecordPurchaseModal && (
+            <div 
+              className="modal-backdrop-custom" 
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 1000
+              }}
+            >
+              <div 
+                className="modal-card-custom bg-white rounded-3 shadow-lg" 
+                style={{
+                  width: '100%',
+                  maxWidth: '520px',
+                  border: '1px solid #cbd5e1',
+                  overflow: 'hidden',
+                  animation: 'scaleUp 0.2s ease-out'
+                }}
+              >
+                {/* Modal Header */}
+                <div className="p-3 border-bottom d-flex align-items-center justify-content-between" style={{ backgroundColor: '#ffffff' }}>
+                  <h3 className="fw-bold mb-0 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '1.05rem', color: '#0f172a' }}>
+                    <i className="fa-solid fa-truck text-primary me-2.5" style={{ color: '#007BFF', fontSize: '1.2rem' }}></i>
+                    Record New Purchase
+                  </h3>
+                  <button 
+                    type="button" 
+                    className="btn-close" 
+                    style={{ border: 'none', background: 'transparent', fontSize: '1.1rem', color: '#64748b', cursor: 'pointer' }}
+                    onClick={() => { playSynthSound('click'); setShowRecordPurchaseModal(false); }}
+                  >
+                    <i className="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+
+                {/* Modal Body */}
+                <form onSubmit={handleSavePurchaseFromModal}>
+                  <div className="p-3" style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
+                    
+                    <div className="form-group mb-3">
+                      <label className="form-label mb-1 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Purchase PO Number <span className="text-danger">*</span></label>
+                      <input 
+                        type="text" 
+                        className="form-control" 
+                        style={{ backgroundColor: '#f1f5f9', border: '1px solid #cbd5e1', color: '#64748b', fontSize: '0.82rem', padding: '0.5rem 0.75rem', borderRadius: '6px', width: '100%', cursor: 'not-allowed', fontWeight: 'bold' }} 
+                        value={purchasePoNumber} 
+                        readOnly 
+                        disabled 
+                      />
+                    </div>
+
+                    <div className="form-group mb-3">
+                      <label className="form-label mb-1 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Supplier / Vendor Name <span className="text-danger">*</span></label>
+                      <input 
+                        type="text" 
+                        className="form-control-premium-dark" 
+                        placeholder="Enter supplier or vendor name" 
+                        value={purchaseSupplierName} 
+                        onChange={(e) => setPurchaseSupplierName(e.target.value)} 
+                        required 
+                      />
+                    </div>
+
+                    <div className="row g-3 mb-3">
+                      <div className="col-md-6">
+                        <label className="form-label mb-1 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Purchase Date <span className="text-danger">*</span></label>
+                        <input 
+                          type="date" 
+                          className="form-control-premium-dark" 
+                          value={purchaseDateInput} 
+                          onChange={(e) => setPurchaseDateInput(e.target.value)} 
+                          required 
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label mb-1 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Grand Total ($) <span className="text-danger">*</span></label>
+                        <input 
+                          type="number" 
+                          step="0.01"
+                          className="form-control-premium-dark" 
+                          placeholder="0.00" 
+                          value={purchaseGrandTotalInput} 
+                          onChange={(e) => setPurchaseGrandTotalInput(e.target.value)} 
+                          required 
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-group mb-3">
+                      <label className="form-label mb-1 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Payment Status <span className="text-danger">*</span></label>
+                      <select 
+                        className="form-control-premium-dark" 
+                        value={purchasePaymentStatus} 
+                        onChange={(e) => setPurchasePaymentStatus(e.target.value)}
+                        required
+                      >
+                        <option value="Paid">Paid</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Failed">Failed</option>
+                      </select>
+                    </div>
+
+                  </div>
+
+                  {/* Modal Footer */}
+                  <div className="p-3 border-top d-flex justify-content-end gap-2" style={{ backgroundColor: '#f8fafc' }}>
+                    <button 
+                      type="button" 
+                      className="btn btn-outline-secondary px-3.5 py-1.5 fw-semibold" 
+                      style={{ fontSize: '0.75rem', borderRadius: '6px', borderColor: '#cbd5e1', backgroundColor: '#ffffff', color: '#475569' }} 
+                      onClick={() => { playSynthSound('click'); setShowRecordPurchaseModal(false); }}
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      type="submit" 
+                      className="btn text-white fw-bold px-4 py-1.5 border-0" 
+                      style={{ backgroundColor: '#007BFF', borderRadius: '6px', fontSize: '0.75rem' }}
+                    >
+                      <i className="fa-solid fa-save me-1.5"></i> Save Record
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Selected Purchase Details Modal */}
+          {selectedPurchaseDetails && (
+            <div 
+              className="modal-backdrop-custom" 
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 1000
+              }}
+            >
+              <div 
+                className="modal-card-custom bg-white rounded-3 shadow-lg" 
+                style={{
+                  width: '100%',
+                  maxWidth: '500px',
+                  border: '1px solid #cbd5e1',
+                  overflow: 'hidden',
+                  animation: 'scaleUp 0.2s ease-out'
+                }}
+              >
+                {/* Modal Header */}
+                <div className="p-3 border-bottom d-flex align-items-center justify-content-between" style={{ backgroundColor: '#ffffff' }}>
+                  <h3 className="fw-bold mb-0 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '1.05rem', color: '#0f172a' }}>
+                    <i className="fa-solid fa-circle-info text-primary me-2.5" style={{ color: '#007BFF', fontSize: '1.1rem' }}></i>
+                    Purchase Details: {selectedPurchaseDetails.purchase_number}
+                  </h3>
+                  <button 
+                    type="button" 
+                    className="btn-close" 
+                    style={{ border: 'none', background: 'transparent', fontSize: '1.1rem', color: '#64748b', cursor: 'pointer' }}
+                    onClick={() => { playSynthSound('click'); setSelectedPurchaseDetails(null); }}
+                  >
+                    <i className="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+
+                {/* Modal Body */}
+                <div className="p-3">
+                  <div className="d-flex flex-column gap-2.5 mb-1">
+                    <div className="d-flex justify-content-between py-1 border-bottom" style={{ fontSize: '0.78rem' }}>
+                      <span className="text-secondary">Supplier / Vendor:</span>
+                      <span className="fw-bold text-dark">{selectedPurchaseDetails.supplier_name}</span>
+                    </div>
+                    <div className="d-flex justify-content-between py-1 border-bottom" style={{ fontSize: '0.78rem' }}>
+                      <span className="text-secondary">Purchase Date:</span>
+                      <span className="fw-bold text-dark">{new Date(selectedPurchaseDetails.purchase_date).toLocaleDateString()}</span>
+                    </div>
+                    <div className="d-flex justify-content-between py-1 border-bottom" style={{ fontSize: '0.78rem' }}>
+                      <span className="text-secondary">Payment Status:</span>
+                      <span className={`badge px-2.5 py-1 ${
+                        selectedPurchaseDetails.payment_status === 'Paid' ? 'bg-success bg-opacity-10 text-success border border-success border-opacity-20' :
+                        selectedPurchaseDetails.payment_status === 'Pending' ? 'bg-warning bg-opacity-10 text-warning border border-warning border-opacity-20' :
+                        'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-20'
+                      }`} style={{ fontSize: '0.7rem', borderRadius: '4px' }}>
+                        {selectedPurchaseDetails.payment_status}
+                      </span>
+                    </div>
+                    <div className="d-flex justify-content-between py-1 border-bottom" style={{ fontSize: '0.78rem' }}>
+                      <span className="text-secondary fw-semibold">Grand Total:</span>
+                      <span className="fw-extrabold text-success" style={{ fontSize: '1.05rem' }}>${parseFloat(selectedPurchaseDetails.grand_total).toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Modal Footer */}
+                <div className="p-3 border-top d-flex justify-content-end" style={{ backgroundColor: '#f8fafc' }}>
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary btn-sm px-4 py-1.5 fw-semibold border-0" 
+                    style={{ fontSize: '0.75rem', borderRadius: '6px', backgroundColor: '#64748b' }} 
+                    onClick={() => { playSynthSound('click'); setSelectedPurchaseDetails(null); }}
                   >
                     Close
                   </button>
