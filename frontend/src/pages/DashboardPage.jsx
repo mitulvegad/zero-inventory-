@@ -162,6 +162,7 @@ const DashboardPage = () => {
   const [catImagePreview, setCatImagePreview] = useState(null);
   const [catDescription, setCatDescription] = useState('');
   const [catSaving, setCatSaving] = useState(false);
+  const [editingCategoryId, setEditingCategoryId] = useState(null);
 
   // Selected Purchase for detailed preview modal
   const [selectedPurchaseDetails, setSelectedPurchaseDetails] = useState(null);
@@ -342,6 +343,7 @@ const DashboardPage = () => {
     setCatImage('');
     setCatImagePreview(null);
     setCatDescription('');
+    setEditingCategoryId(null);
   };
 
   const handleSaveCategory = async (e) => {
@@ -364,22 +366,48 @@ const DashboardPage = () => {
     };
 
     try {
-      const res = await api.post('/categories', categoryData);
-      // Prepend the new category from backend
-      const newCategory = {
-        id: res.data._id || res.data.id,
-        name: res.data.name,
-        slug: res.data.slug,
-        parent_category: res.data.parent_category,
-        description: res.data.description || '',
-        status: res.data.status || 'Active',
-        icon: res.data.icon || 'fa-tag',
-        color: res.data.color || '#0EA5E9',
-        image: res.data.image || ''
-      };
-      setCategoriesList([newCategory, ...categoriesList]);
-      
-      triggerAlert('Success', `Category "${newCategory.name}" has been created successfully!`, 'success');
+      if (editingCategoryId) {
+        // Edit Mode
+        let updatedCategory;
+        if (editingCategoryId.length === 24) {
+          const res = await api.put(`/categories/${editingCategoryId}`, categoryData);
+          updatedCategory = {
+            id: res.data._id || res.data.id,
+            name: res.data.name,
+            slug: res.data.slug,
+            parent_category: res.data.parent_category,
+            description: res.data.description || '',
+            status: res.data.status || 'Active',
+            icon: res.data.icon || 'fa-tag',
+            color: res.data.color || '#0EA5E9',
+            image: res.data.image || ''
+          };
+        } else {
+          // Local mock update
+          updatedCategory = {
+            id: editingCategoryId,
+            ...categoryData
+          };
+        }
+        setCategoriesList(prev => prev.map(c => c.id === editingCategoryId ? updatedCategory : c));
+        triggerAlert('Success', `Category "${updatedCategory.name}" has been updated successfully!`, 'success');
+      } else {
+        // Create Mode
+        const res = await api.post('/categories', categoryData);
+        const newCategory = {
+          id: res.data._id || res.data.id,
+          name: res.data.name,
+          slug: res.data.slug,
+          parent_category: res.data.parent_category,
+          description: res.data.description || '',
+          status: res.data.status || 'Active',
+          icon: res.data.icon || 'fa-tag',
+          color: res.data.color || '#0EA5E9',
+          image: res.data.image || ''
+        };
+        setCategoriesList([newCategory, ...categoriesList]);
+        triggerAlert('Success', `Category "${newCategory.name}" has been created successfully!`, 'success');
+      }
       handleResetCategoryForm();
       setCategoriesSubView('list');
     } catch (err) {
@@ -3133,6 +3161,7 @@ const DashboardPage = () => {
                             <th>Parent Category</th>
                             <th>Description</th>
                             <th>Status</th>
+                            <th className="text-center">Delete</th>
                             <th className="text-center">Actions</th>
                           </tr>
                         </thead>
@@ -3148,7 +3177,7 @@ const DashboardPage = () => {
                             return searchMatch && statusMatch;
                           }).length === 0 ? (
                             <tr>
-                              <td colSpan="6" className="text-center py-5 text-secondary" style={{ color: '#64748b' }}>
+                              <td colSpan="7" className="text-center py-5 text-secondary" style={{ color: '#64748b' }}>
                                 <div className="d-flex flex-column align-items-center justify-content-center">
                                   <i className="fa-solid fa-folder-open text-muted mb-2.5" style={{ fontSize: '3rem', color: '#cbd5e1', opacity: '0.6' }}></i>
                                   <p className="mb-0 fw-semibold" style={{ fontSize: '0.8rem' }}>
@@ -3189,12 +3218,24 @@ const DashboardPage = () => {
                                   </span>
                                 </td>
                                 <td className="text-center">
+                                  <button 
+                                    type="button" 
+                                    className="btn btn-link text-danger p-0 border-0" 
+                                    onClick={() => handleDeleteCategory(cat.id)}
+                                    title="Delete Category"
+                                    style={{ display: 'inline-flex', alignItems: 'center' }}
+                                  >
+                                    <i className="fa-solid fa-trash-can" style={{ fontSize: '0.85rem' }}></i>
+                                  </button>
+                                </td>
+                                <td className="text-center">
                                   <div className="d-flex align-items-center justify-content-center gap-2">
                                     <button 
                                       type="button" 
                                       className="btn btn-link text-primary p-0 border-0" 
                                       onClick={() => {
                                         playSynthSound('click');
+                                        setEditingCategoryId(cat.id);
                                         setCatName(cat.name);
                                         setCatSlug(cat.slug);
                                         setCatParent(cat.parent_category || '');
@@ -3226,13 +3267,13 @@ const DashboardPage = () => {
                   {/* Title Banner */}
                   <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
                     <div>
-                      <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Add Category</h1>
+                      <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>{editingCategoryId ? 'Edit Category' : 'Add Category'}</h1>
                       <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
                         <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => { playSynthSound('click'); setActiveTab('dashboard'); }}>Dashboard</span>
                         <span className="text-secondary">/</span>
                         <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => { playSynthSound('click'); setCategoriesSubView('list'); }}>Categories</span>
                         <span className="text-secondary">/</span>
-                        <span className="fw-semibold">Add Category</span>
+                        <span className="fw-semibold">{editingCategoryId ? 'Edit Category' : 'Add Category'}</span>
                       </div>
                     </div>
                     <div className="d-flex align-items-center gap-2">
@@ -3249,7 +3290,7 @@ const DashboardPage = () => {
                         onClick={handleSaveCategory}
                         disabled={catSaving}
                       >
-                        <i className="fa-solid fa-save"></i> {catSaving ? 'Saving...' : 'Save Category'}
+                        <i className="fa-solid fa-save"></i> {catSaving ? 'Saving...' : (editingCategoryId ? 'Update Category' : 'Save Category')}
                       </button>
                     </div>
                   </div>
@@ -3441,7 +3482,7 @@ const DashboardPage = () => {
                               style={{ backgroundColor: '#007BFF', borderRadius: '6px', fontSize: '0.75rem' }}
                               disabled={catSaving}
                             >
-                              {catSaving ? 'Saving...' : 'Save Category'}
+                              {catSaving ? 'Saving...' : (editingCategoryId ? 'Update Category' : 'Save Category')}
                             </button>
                           </div>
                         </form>

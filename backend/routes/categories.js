@@ -67,6 +67,74 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
+// @route   PUT /api/categories/:id
+// @desc    Update a category
+// @access  Private
+router.put('/:id', auth, async (req, res) => {
+  const { name, slug, parent_category, icon, color, image, description, status } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ message: 'Category name is required' });
+  }
+
+  // Auto-generate slug if not provided, or clean the provided one
+  let finalSlug = slug || name;
+  finalSlug = finalSlug
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_]+/g, '-')
+    .replace(/-+/g, '-');
+
+  try {
+    const category = await Category.findById(req.params.id);
+
+    if (!category) {
+      return res.status(404).json({ message: 'Category not found' });
+    }
+
+    // Check user authorization
+    if (category.user_id.toString() !== req.user.id) {
+      return res.status(401).json({ message: 'User not authorized' });
+    }
+
+    // Check if category name already exists for this user (excluding this category)
+    const existingName = await Category.findOne({ 
+      user_id: req.user.id, 
+      name: name.trim(), 
+      _id: { $ne: req.params.id } 
+    });
+    if (existingName) {
+      return res.status(400).json({ message: 'A category with this name already exists' });
+    }
+
+    // Check if URL slug already exists for this user (excluding this category)
+    const existingSlug = await Category.findOne({ 
+      user_id: req.user.id, 
+      slug: finalSlug, 
+      _id: { $ne: req.params.id } 
+    });
+    if (existingSlug) {
+      return res.status(400).json({ message: 'A category with this URL slug already exists' });
+    }
+
+    category.name = name.trim();
+    category.slug = finalSlug;
+    category.parent_category = parent_category || null;
+    category.icon = icon || 'fa-tag';
+    category.color = color || '#0EA5E9';
+    category.image = image || '';
+    category.description = description || '';
+    category.status = status || 'Active';
+
+    const updatedCategory = await category.save();
+    res.json(updatedCategory);
+  } catch (err) {
+    console.error('Error updating category:', err.message);
+    res.status(500).json({ message: 'Server error updating category' });
+  }
+});
+
 // @route   DELETE /api/categories/:id
 // @desc    Delete a category
 // @access  Private
