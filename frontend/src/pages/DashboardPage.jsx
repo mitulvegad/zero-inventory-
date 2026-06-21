@@ -98,6 +98,241 @@ const DashboardPage = () => {
   const [inventoryStockFilter, setInventoryStockFilter] = useState('All');
   const [appliedFilters, setAppliedFilters] = useState({ search: '', category: 'All', stock: 'All' });
 
+  // Sales Registry States
+  const [salesList, setSalesList] = useState([
+    { id: '1', invoice_number: 'INV-20260621-1001', customer_name: 'mitul kumar', sale_date: '2026-06-21', grand_total: 120.50, payment_method: 'Cash', status: 'Paid', receipt_image: '' },
+    { id: '2', invoice_number: 'INV-20260620-1002', customer_name: 'amit kumar', sale_date: '2026-06-20', grand_total: 45.00, payment_method: 'Card', status: 'Paid', receipt_image: '' }
+  ]);
+  const [salesSearch, setSalesSearch] = useState('');
+  const [salesPaymentFilter, setSalesPaymentFilter] = useState('All');
+  const [appliedSalesFilters, setAppliedSalesFilters] = useState({ search: '', paymentMethod: 'All' });
+  const [showRecordSaleModal, setShowRecordSaleModal] = useState(false);
+
+  // Record Sale Form States
+  const [saleInvoiceNumber, setSaleInvoiceNumber] = useState('');
+  const [saleCustomerName, setSaleCustomerName] = useState('');
+  const [saleDateInput, setSaleDateInput] = useState('');
+  const [saleGrandTotalInput, setSaleGrandTotalInput] = useState('');
+  const [salePaymentMethod, setSalePaymentMethod] = useState('Cash');
+  const [saleReceiptImage, setSaleReceiptImage] = useState(null);
+  const [saleDragOver, setSaleDragOver] = useState(false);
+
+  // Selected Invoice for detailed preview modal
+  const [selectedInvoiceDetails, setSelectedInvoiceDetails] = useState(null);
+
+  // Drag and Drop File Handlers for Recording Sale
+  const handleSaleDragOver = (e) => {
+    e.preventDefault();
+    setSaleDragOver(true);
+  };
+
+  const handleSaleDragLeave = () => {
+    setSaleDragOver(false);
+  };
+
+  const handleSaleDrop = (e) => {
+    e.preventDefault();
+    setSaleDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      handleSaleFileLoad(file);
+    }
+  };
+
+  const handleSaleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      handleSaleFileLoad(file);
+    }
+  };
+
+  const handleSaleFileLoad = (file) => {
+    if (file.size > 2 * 1024 * 1024) {
+      triggerAlert('File Too Large', 'Maximum image size allowed is 2MB.', 'error');
+      return;
+    }
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      triggerAlert('Invalid File Type', 'Please upload a JPG, PNG, or WEBP image file.', 'error');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setSaleReceiptImage(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaleRemoveImage = () => {
+    playSynthSound('click');
+    setSaleReceiptImage(null);
+  };
+
+  const handleOpenRecordSaleModal = () => {
+    playSynthSound('click');
+    const today = new Date();
+    const dateStr = today.getFullYear() + 
+      String(today.getMonth() + 1).padStart(2, '0') + 
+      String(today.getDate()).padStart(2, '0');
+    // Generate a random 4-digit number
+    const randomNum = Math.floor(1000 + Math.random() * 9000);
+    setSaleInvoiceNumber(`INV-${dateStr}-${randomNum}`);
+    
+    // Set default date to today in YYYY-MM-DD format for date input
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    setSaleDateInput(`${year}-${month}-${day}`);
+    
+    // Reset other form fields
+    setSaleCustomerName('');
+    setSaleGrandTotalInput('0.00');
+    setSalePaymentMethod('Cash');
+    setSaleReceiptImage(null);
+    setShowRecordSaleModal(true);
+  };
+
+  const handleSaveInvoiceFromModal = (e) => {
+    e.preventDefault();
+
+    if (!saleCustomerName || !saleDateInput || !saleGrandTotalInput) {
+      triggerAlert('Required Info', 'Please fill in all required fields marked with a red asterisk.', 'error');
+      return;
+    }
+
+    const total = parseFloat(saleGrandTotalInput) || 0;
+    if (total <= 0) {
+      triggerAlert('Invalid Amount', 'Grand Total must be greater than 0.', 'error');
+      return;
+    }
+
+    const newSale = {
+      id: (salesList.length + 1).toString(),
+      invoice_number: saleInvoiceNumber,
+      customer_name: saleCustomerName,
+      sale_date: saleDateInput,
+      grand_total: total,
+      payment_method: salePaymentMethod,
+      status: 'Paid',
+      receipt_image: saleReceiptImage || ''
+    };
+
+    setSalesList([newSale, ...salesList]);
+
+    // Prepend to recentSales so it syncs with the dashboard activity
+    const newRecentSale = {
+      _id: newSale.id,
+      invoice_number: newSale.invoice_number,
+      customer_name: newSale.customer_name,
+      grand_total: newSale.grand_total,
+      sale_date: newSale.sale_date
+    };
+    setRecentSales(prevSales => [newRecentSale, ...prevSales]);
+
+    setShowRecordSaleModal(false);
+    triggerAlert('Invoice Saved', `Invoice ${saleInvoiceNumber} has been recorded successfully!`, 'success');
+  };
+
+  const handleApplySalesFilters = () => {
+    playSynthSound('click');
+    setAppliedSalesFilters({
+      search: salesSearch,
+      paymentMethod: salesPaymentFilter
+    });
+  };
+
+  const handleRefreshSalesFilters = () => {
+    playSynthSound('click');
+    setSalesSearch('');
+    setSalesPaymentFilter('All');
+    setAppliedSalesFilters({ search: '', paymentMethod: 'All' });
+    setHeaderSearch('');
+  };
+
+  const handleExportPDF = () => {
+    playSynthSound('click');
+    
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      triggerAlert('Popup Blocked', 'Please allow popups to export the sales report.', 'error');
+      return;
+    }
+
+    const htmlContent = `
+      <html>
+        <head>
+          <title>Sales Report - Zero Inventory</title>
+          <style>
+            body { font-family: 'Inter', sans-serif; padding: 20px; color: #333; }
+            h1 { font-family: 'Outfit', sans-serif; color: #0f172a; margin-bottom: 5px; }
+            p { color: #64748b; font-size: 14px; margin-bottom: 20px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: left; font-size: 12px; }
+            th { background-color: #f8fafc; font-weight: bold; color: #475569; }
+            tr:nth-child(even) { background-color: #f8fafc; }
+            .badge { background-color: #dcfce7; color: #15803d; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+            .grand-total { font-weight: bold; }
+            .summary { margin-top: 30px; border-top: 2px solid #e2e8f0; padding-top: 15px; text-align: right; }
+          </style>
+        </head>
+        <body>
+          <h1>Zero Inventory - Sales Registry Report</h1>
+          <p>Generated on ${new Date().toLocaleString()}</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Invoice Number</th>
+                <th>Customer Name</th>
+                <th>Date</th>
+                <th>Payment Method</th>
+                <th>Status</th>
+                <th>Grand Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${filteredSales.map(sale => `
+                <tr>
+                  <td><strong>${sale.invoice_number}</strong></td>
+                  <td>${sale.customer_name}</td>
+                  <td>${new Date(sale.sale_date).toLocaleDateString()}</td>
+                  <td>${sale.payment_method}</td>
+                  <td><span class="badge">${sale.status}</span></td>
+                  <td class="grand-total">$${parseFloat(sale.grand_total).toFixed(2)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          <div class="summary">
+            <h3>Total Sales Amount: $${filteredSales.reduce((sum, s) => sum + parseFloat(s.grand_total), 0).toFixed(2)}</h3>
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+              window.onafterprint = function() {
+                window.close();
+              };
+            }
+          </script>
+        </body>
+      </html>
+    `;
+    
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+  };
+
+  const filteredSales = salesList.filter(s => {
+    const searchMatch = !appliedSalesFilters.search ||
+      s.invoice_number.toLowerCase().includes(appliedSalesFilters.search.toLowerCase()) ||
+      s.customer_name.toLowerCase().includes(appliedSalesFilters.search.toLowerCase());
+
+    const paymentMatch = appliedSalesFilters.paymentMethod === 'All' ||
+      s.payment_method.toLowerCase() === appliedSalesFilters.paymentMethod.toLowerCase();
+
+    return searchMatch && paymentMatch;
+  });
+
+
   // Add Product Form States
   const [newProdName, setNewProdName] = useState('');
   const [newProdSku, setNewProdSku] = useState('');
@@ -382,6 +617,22 @@ const DashboardPage = () => {
         setLowStockAlerts(res.data.lowStockAlerts || []);
         setRecentSales(res.data.recentActivity?.sales || []);
         setRecentPurchases(res.data.recentActivity?.purchases || []);
+        
+        // Synchronize backend sales if available
+        if (res.data.recentActivity?.sales && res.data.recentActivity.sales.length > 0) {
+          const apiSales = res.data.recentActivity.sales.map((s, idx) => ({
+            id: s._id || s.id || `api-${idx}`,
+            invoice_number: s.invoice_number,
+            customer_name: s.customer_name,
+            sale_date: s.sale_date,
+            grand_total: s.grand_total,
+            payment_method: s.payment_method || 'Cash',
+            status: 'Paid',
+            receipt_image: ''
+          }));
+          setSalesList(apiSales);
+        }
+        
         setLoading(false);
       } catch (err) {
         console.error('Failed to load dashboard data:', err);
@@ -555,6 +806,27 @@ const DashboardPage = () => {
           background-size: 1.1rem;
           padding-right: 1.75rem;
         }
+        .btn-blue-primary {
+          background-color: #007BFF !important;
+          border-color: #007BFF !important;
+          color: #ffffff !important;
+          font-weight: 600 !important;
+          transition: all 0.2s ease !important;
+        }
+        .btn-blue-primary:hover {
+          background-color: #0056b3 !important;
+          border-color: #0056b3 !important;
+        }
+        @keyframes scaleUp {
+          from {
+            transform: scale(0.95);
+            opacity: 0;
+          }
+          to {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
       `}</style>
       
       {/* Sidebar navigation */}
@@ -703,6 +975,9 @@ const DashboardPage = () => {
                   if (activeTab === 'products') {
                     setInventorySearch(e.target.value);
                     setAppliedFilters(prev => ({ ...prev, search: e.target.value }));
+                  } else if (activeTab === 'sales') {
+                    setSalesSearch(e.target.value);
+                    setAppliedSalesFilters(prev => ({ ...prev, search: e.target.value }));
                   }
                 }}
               />
@@ -1936,13 +2211,453 @@ const DashboardPage = () => {
             </div>
           )}
 
+          {/* Render Sales Tab */}
+          {activeTab === 'sales' && (
+            <div className="sales-registry-view animate-fade-in" style={{ animation: 'fadeIn 0.25s ease-out' }}>
+              
+              {/* Title Banner */}
+              <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+                <div>
+                  <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Sales Registry</h1>
+                  <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
+                    <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => { playSynthSound('click'); setActiveTab('dashboard'); window.location.hash = '#dashboard'; }}>Dashboard</span>
+                    <span className="text-secondary">/</span>
+                    <span className="fw-semibold">Sales</span>
+                  </div>
+                </div>
+                <div className="d-flex align-items-center gap-2">
+                  <button 
+                    className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1.5 px-3 py-1.5 fw-semibold" 
+                    style={{ fontSize: '0.75rem', borderRadius: '6px', backgroundColor: '#ffffff', borderColor: '#cbd5e1', color: '#475569' }} 
+                    onClick={handleExportPDF}
+                  >
+                    <i className="fa-solid fa-file-export"></i> Export / Print PDF
+                  </button>
+                  <button 
+                    className="btn btn-blue-primary btn-sm d-flex align-items-center gap-1.5 px-3 py-1.5 fw-semibold" 
+                    style={{ fontSize: '0.75rem', borderRadius: '6px' }} 
+                    onClick={handleOpenRecordSaleModal}
+                  >
+                    <i className="fa-solid fa-file-invoice"></i> Record New Invoice
+                  </button>
+                </div>
+              </div>
+
+              {/* Filters Section */}
+              <div className="p-3 rounded-3 shadow-sm border bg-white mb-3" style={{ borderColor: '#cbd5e1' }}>
+                <div className="row g-3 align-items-end">
+                  <div className="col-md-5">
+                    <label className="form-label mb-1 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Search Invoices</label>
+                    <div className="position-relative">
+                      <i className="fa-solid fa-magnifying-glass text-secondary position-absolute" style={{ left: '0.75rem', top: '50%', transform: 'translateY(-50%)', fontSize: '0.8rem', color: '#64748b' }}></i>
+                      <input 
+                        type="text" 
+                        className="form-control-premium-dark" 
+                        style={{ paddingLeft: '2.1rem' }} 
+                        placeholder="Search Invoice No. or Customer Name..." 
+                        value={salesSearch}
+                        onChange={(e) => setSalesSearch(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-4">
+                    <label className="form-label mb-1 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Payment Method</label>
+                    <select 
+                      className="form-control-premium-dark"
+                      value={salesPaymentFilter}
+                      onChange={(e) => setSalesPaymentFilter(e.target.value)}
+                    >
+                      <option value="All">All payment methods</option>
+                      <option value="Cash">Cash</option>
+                      <option value="Card">Card</option>
+                      <option value="UPI">UPI</option>
+                      <option value="Net Banking">Net Banking</option>
+                    </select>
+                  </div>
+                  <div className="col-md-3 d-flex gap-2">
+                    <button 
+                      className="btn btn-blue-primary w-100 py-2 fw-semibold"
+                      style={{ fontSize: '0.8rem', borderRadius: '6px' }}
+                      onClick={handleApplySalesFilters}
+                    >
+                      Search
+                    </button>
+                    <button 
+                      className="btn btn-outline-secondary d-flex align-items-center justify-content-center"
+                      style={{ width: '38px', height: '38px', borderRadius: '6px', borderColor: '#cbd5e1', backgroundColor: '#ffffff' }}
+                      onClick={handleRefreshSalesFilters}
+                      title="Refresh Filters"
+                    >
+                      <i className="fa-solid fa-arrows-rotate" style={{ color: '#475569' }}></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Data Table */}
+              <div className="p-3 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#cbd5e1' }}>
+                <div className="table-responsive">
+                  <table className="table align-middle table-hover-light mb-0">
+                    <thead>
+                      <tr className="small text-secondary" style={{ fontSize: '0.72rem', borderBottom: '2px solid #e2e8f0' }}>
+                        <th>Invoice Number</th>
+                        <th>Customer Name</th>
+                        <th>Date</th>
+                        <th>Grand Total</th>
+                        <th>Payment Method</th>
+                        <th>Status</th>
+                        <th className="text-center">Details</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredSales.length === 0 ? (
+                        <tr>
+                          <td colSpan="7" className="text-center py-5 text-secondary" style={{ color: '#64748b' }}>
+                            <div className="d-flex flex-column align-items-center justify-content-center">
+                              <i className="fa-solid fa-folder-open text-muted mb-2.5" style={{ fontSize: '3rem', color: '#cbd5e1', opacity: '0.6' }}></i>
+                              <p className="mb-0 fw-semibold" style={{ fontSize: '0.8rem' }}>
+                                No sales invoices recorded yet. Click "Record New Invoice" to add one.
+                              </p>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredSales.map(sale => (
+                          <tr key={sale.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            <td className="fw-bold" style={{ color: '#0f172a' }}>{sale.invoice_number}</td>
+                            <td>{sale.customer_name}</td>
+                            <td>{new Date(sale.sale_date).toLocaleDateString()}</td>
+                            <td className="fw-semibold text-dark">${parseFloat(sale.grand_total).toFixed(2)}</td>
+                            <td>{sale.payment_method}</td>
+                            <td>
+                              <span className="badge bg-success bg-opacity-10 text-success border border-success border-opacity-20 px-2.5 py-1" style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#10b981', borderColor: 'rgba(16, 185, 129, 0.2)', fontSize: '0.7rem', borderRadius: '4px' }}>
+                                {sale.status}
+                              </span>
+                            </td>
+                            <td className="text-center">
+                              <button 
+                                type="button" 
+                                className="btn btn-link text-primary p-0 border-0" 
+                                onClick={() => { playSynthSound('click'); setSelectedInvoiceDetails(sale); }}
+                                style={{ fontSize: '0.78rem', color: '#007BFF', textDecoration: 'none', fontWeight: '600' }}
+                              >
+                                Details
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Render Fallback for other tabs */}
-          {activeTab !== 'dashboard' && activeTab !== 'billing' && activeTab !== 'products' && (
+          {activeTab !== 'dashboard' && activeTab !== 'billing' && activeTab !== 'products' && activeTab !== 'sales' && (
             <div className="p-5 text-center rounded-4 border bg-white" style={{ borderColor: '#cbd5e1', margin: '3rem auto', maxWidth: '500px', boxShadow: '0 4px 6px -1px rgba(14, 165, 233, 0.05)' }}>
               <i className="fa-solid fa-screwdriver-wrench text-secondary mb-3" style={{ fontSize: '3rem', color: '#94a3b8' }}></i>
               <h4 className="fw-bold text-dark text-capitalize" style={{ fontFamily: 'Outfit', fontSize: '1.1rem' }}>{activeTab.replace('-', ' ')} Page</h4>
               <p className="text-secondary small mb-4" style={{ fontSize: '0.78rem' }}>This module is currently under database migration or client synchronization node.</p>
               <a href="#dashboard" onClick={() => { playSynthSound('click'); setActiveTab('dashboard'); }} className="btn btn-premium-primary btn-sm px-3.5 py-1.5 fw-semibold" style={{ fontSize: '0.75rem', borderRadius: '6px' }}>Go back to Dashboard</a>
+            </div>
+          )}
+
+          {/* Record New Sale Modal */}
+          {showRecordSaleModal && (
+            <div 
+              className="modal-backdrop-custom" 
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 1000
+              }}
+            >
+              <div 
+                className="modal-card-custom bg-white rounded-3 shadow-lg" 
+                style={{
+                  width: '100%',
+                  maxWidth: '520px',
+                  border: '1px solid #cbd5e1',
+                  overflow: 'hidden',
+                  animation: 'scaleUp 0.2s ease-out'
+                }}
+              >
+                {/* Modal Header */}
+                <div className="p-3 border-bottom d-flex align-items-center justify-content-between" style={{ backgroundColor: '#ffffff' }}>
+                  <h3 className="fw-bold mb-0 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '1.05rem', color: '#0f172a' }}>
+                    <i className="fa-solid fa-file-invoice-dollar text-primary me-2.5" style={{ color: '#007BFF', fontSize: '1.2rem' }}></i>
+                    Record New Sale
+                  </h3>
+                  <button 
+                    type="button" 
+                    className="btn-close" 
+                    style={{ border: 'none', background: 'transparent', fontSize: '1.1rem', color: '#64748b', cursor: 'pointer' }}
+                    onClick={() => { playSynthSound('click'); setShowRecordSaleModal(false); }}
+                  >
+                    <i className="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+
+                {/* Modal Body */}
+                <form onSubmit={handleSaveInvoiceFromModal}>
+                  <div className="p-3" style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
+                    
+                    <div className="form-group mb-3">
+                      <label className="form-label mb-1 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Invoice Number <span className="text-danger">*</span></label>
+                      <input 
+                        type="text" 
+                        className="form-control" 
+                        style={{ backgroundColor: '#f1f5f9', border: '1px solid #cbd5e1', color: '#64748b', fontSize: '0.82rem', padding: '0.5rem 0.75rem', borderRadius: '6px', width: '100%', cursor: 'not-allowed', fontWeight: 'bold' }} 
+                        value={saleInvoiceNumber} 
+                        readOnly 
+                        disabled 
+                      />
+                    </div>
+
+                    <div className="form-group mb-3">
+                      <label className="form-label mb-1 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Customer Name <span className="text-danger">*</span></label>
+                      <input 
+                        type="text" 
+                        className="form-control-premium-dark" 
+                        placeholder="Enter customer name" 
+                        value={saleCustomerName} 
+                        onChange={(e) => setSaleCustomerName(e.target.value)} 
+                        required 
+                      />
+                    </div>
+
+                    <div className="row g-3 mb-3">
+                      <div className="col-md-6">
+                        <label className="form-label mb-1 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Sale Date <span className="text-danger">*</span></label>
+                        <input 
+                          type="date" 
+                          className="form-control-premium-dark" 
+                          value={saleDateInput} 
+                          onChange={(e) => setSaleDateInput(e.target.value)} 
+                          required 
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label mb-1 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Grand Total ($) <span className="text-danger">*</span></label>
+                        <input 
+                          type="number" 
+                          step="0.01"
+                          className="form-control-premium-dark" 
+                          placeholder="0.00" 
+                          value={saleGrandTotalInput} 
+                          onChange={(e) => setSaleGrandTotalInput(e.target.value)} 
+                          required 
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-group mb-3">
+                      <label className="form-label mb-1 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Payment Method <span className="text-danger">*</span></label>
+                      <select 
+                        className="form-control-premium-dark" 
+                        value={salePaymentMethod} 
+                        onChange={(e) => setSalePaymentMethod(e.target.value)}
+                        required
+                      >
+                        <option value="Cash">Cash</option>
+                        <option value="Card">Card</option>
+                        <option value="UPI">UPI</option>
+                        <option value="Net Banking">Net Banking</option>
+                      </select>
+                    </div>
+
+                    {/* Drag and drop image upload */}
+                    <div className="form-group mb-2">
+                      <label className="form-label mb-1 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Upload Receipt / Image</label>
+                      <div 
+                        className="d-flex flex-column align-items-center justify-content-center border border-dashed rounded-3 p-3 text-center position-relative"
+                        style={{
+                          minHeight: '140px',
+                          borderColor: saleDragOver ? '#007BFF' : '#cbd5e1',
+                          backgroundColor: saleDragOver ? 'rgba(0, 123, 255, 0.05)' : '#f8fafc',
+                          transition: 'all 0.2s ease',
+                          cursor: 'pointer'
+                        }}
+                        onDragOver={handleSaleDragOver}
+                        onDragLeave={handleSaleDragLeave}
+                        onDrop={handleSaleDrop}
+                        onClick={() => document.getElementById('sale-file-input').click()}
+                      >
+                        <input 
+                          type="file" 
+                          id="sale-file-input" 
+                          className="d-none" 
+                          accept="image/jpeg,image/png,image/webp" 
+                          onChange={handleSaleFileChange}
+                        />
+
+                        {saleReceiptImage ? (
+                          <div className="w-100 h-100 d-flex align-items-center justify-content-center position-relative">
+                            <img src={saleReceiptImage} alt="Receipt preview" style={{ maxWidth: '100%', maxHeight: '110px', borderRadius: '4px', objectFit: 'contain' }} />
+                          </div>
+                        ) : (
+                          <>
+                            <i className="fa-solid fa-cloud-arrow-up text-primary mb-1.5" style={{ fontSize: '1.8rem', color: '#007BFF' }}></i>
+                            <div className="fw-bold text-dark mb-0.5" style={{ fontSize: '0.78rem' }}>Drag & drop receipt here</div>
+                            <div className="text-secondary small" style={{ fontSize: '0.68rem' }}>or click to browse</div>
+                            <div className="text-muted mt-1" style={{ fontSize: '0.6rem' }}>JPG, PNG or WEBP (Max. 2MB)</div>
+                          </>
+                        )}
+                      </div>
+
+                      {saleReceiptImage && (
+                        <div className="mt-2 text-center">
+                          <button 
+                            type="button" 
+                            className="btn btn-outline-danger btn-sm py-1 fw-semibold d-flex align-items-center justify-content-center gap-1.5 w-100" 
+                            style={{ fontSize: '0.7rem', borderRadius: '6px' }} 
+                            onClick={handleSaleRemoveImage}
+                          >
+                            <i className="fa-solid fa-trash-can"></i> Remove Image
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                  </div>
+
+                  {/* Modal Footer */}
+                  <div className="p-3 border-top d-flex justify-content-end gap-2" style={{ backgroundColor: '#f8fafc' }}>
+                    <button 
+                      type="button" 
+                      className="btn btn-outline-secondary px-3.5 py-1.5 fw-semibold" 
+                      style={{ fontSize: '0.75rem', borderRadius: '6px', borderColor: '#cbd5e1', backgroundColor: '#ffffff', color: '#475569' }} 
+                      onClick={() => { playSynthSound('click'); setShowRecordSaleModal(false); }}
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      type="submit" 
+                      className="btn text-white fw-bold px-4 py-1.5 border-0" 
+                      style={{ backgroundColor: '#007BFF', borderRadius: '6px', fontSize: '0.75rem' }}
+                    >
+                      <i className="fa-solid fa-save me-1.5"></i> Save Invoice
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Selected Invoice Details Modal */}
+          {selectedInvoiceDetails && (
+            <div 
+              className="modal-backdrop-custom" 
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 1000
+              }}
+            >
+              <div 
+                className="modal-card-custom bg-white rounded-3 shadow-lg" 
+                style={{
+                  width: '100%',
+                  maxWidth: '500px',
+                  border: '1px solid #cbd5e1',
+                  overflow: 'hidden',
+                  animation: 'scaleUp 0.2s ease-out'
+                }}
+              >
+                {/* Modal Header */}
+                <div className="p-3 border-bottom d-flex align-items-center justify-content-between" style={{ backgroundColor: '#ffffff' }}>
+                  <h3 className="fw-bold mb-0 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '1.05rem', color: '#0f172a' }}>
+                    <i className="fa-solid fa-circle-info text-primary me-2.5" style={{ color: '#007BFF', fontSize: '1.1rem' }}></i>
+                    Invoice Details: {selectedInvoiceDetails.invoice_number}
+                  </h3>
+                  <button 
+                    type="button" 
+                    className="btn-close" 
+                    style={{ border: 'none', background: 'transparent', fontSize: '1.1rem', color: '#64748b', cursor: 'pointer' }}
+                    onClick={() => { playSynthSound('click'); setSelectedInvoiceDetails(null); }}
+                  >
+                    <i className="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+
+                {/* Modal Body */}
+                <div className="p-3">
+                  <div className="d-flex flex-column gap-2.5 mb-3">
+                    <div className="d-flex justify-content-between py-1 border-bottom" style={{ fontSize: '0.78rem' }}>
+                      <span className="text-secondary">Customer Name:</span>
+                      <span className="fw-bold text-dark">{selectedInvoiceDetails.customer_name}</span>
+                    </div>
+                    <div className="d-flex justify-content-between py-1 border-bottom" style={{ fontSize: '0.78rem' }}>
+                      <span className="text-secondary">Invoice Date:</span>
+                      <span className="fw-bold text-dark">{new Date(selectedInvoiceDetails.sale_date).toLocaleDateString()}</span>
+                    </div>
+                    <div className="d-flex justify-content-between py-1 border-bottom" style={{ fontSize: '0.78rem' }}>
+                      <span className="text-secondary">Payment Method:</span>
+                      <span className="fw-bold text-dark">{selectedInvoiceDetails.payment_method}</span>
+                    </div>
+                    <div className="d-flex justify-content-between py-1 border-bottom" style={{ fontSize: '0.78rem' }}>
+                      <span className="text-secondary">Status:</span>
+                      <span className="badge bg-success bg-opacity-10 text-success border border-success border-opacity-20 px-2 py-0.5" style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#10b981', borderColor: 'rgba(16, 185, 129, 0.2)', fontSize: '0.7rem', borderRadius: '4px' }}>
+                        {selectedInvoiceDetails.status}
+                      </span>
+                    </div>
+                    <div className="d-flex justify-content-between py-1 border-bottom" style={{ fontSize: '0.78rem' }}>
+                      <span className="text-secondary fw-semibold">Grand Total:</span>
+                      <span className="fw-extrabold text-success" style={{ fontSize: '1.05rem' }}>${parseFloat(selectedInvoiceDetails.grand_total).toFixed(2)}</span>
+                    </div>
+                  </div>
+
+                  {/* Uploaded Receipt Image Preview */}
+                  <div className="form-group mb-2">
+                    <label className="form-label mb-1.5 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Uploaded Receipt / Image</label>
+                    <div 
+                      className="d-flex align-items-center justify-content-center border rounded-3 p-2 bg-light text-center"
+                      style={{
+                        minHeight: '180px',
+                        borderColor: '#cbd5e1',
+                        backgroundColor: '#f8fafc',
+                      }}
+                    >
+                      {selectedInvoiceDetails.receipt_image ? (
+                        <img src={selectedInvoiceDetails.receipt_image} alt="Receipt copy" style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '4px', objectFit: 'contain' }} />
+                      ) : (
+                        <div className="d-flex flex-column align-items-center text-muted">
+                          <i className="fa-regular fa-image mb-2 opacity-40" style={{ fontSize: '2.5rem' }}></i>
+                          <span className="small text-secondary" style={{ fontSize: '0.72rem' }}>No receipt image attached to this invoice.</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Modal Footer */}
+                <div className="p-3 border-top d-flex justify-content-end" style={{ backgroundColor: '#f8fafc' }}>
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary btn-sm px-4 py-1.5 fw-semibold border-0" 
+                    style={{ fontSize: '0.75rem', borderRadius: '6px', backgroundColor: '#64748b' }} 
+                    onClick={() => { playSynthSound('click'); setSelectedInvoiceDetails(null); }}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>
