@@ -959,7 +959,55 @@ a:hover {
 }
 
 /* Responsive Overrides */
+.new-sidebar {
+    width: 280px;
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: fixed;
+    z-index: 1000;
+    border-right: 1px solid #e2e8f0;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.new-main {
+    flex-grow: 1;
+    margin-left: 280px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    width: calc(100% - 280px);
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Sidebar Backdrop Overlay on Mobile */
+.sidebar-backdrop-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 999;
+    display: none;
+    backdrop-filter: blur(2px);
+}
+.sidebar-backdrop-overlay.show {
+    display: block;
+}
+
 @media (max-width: 992px) {
+    .new-sidebar {
+        transform: translateX(-100%);
+    }
+    .new-sidebar.mobile-open {
+        transform: translateX(0);
+    }
+    .new-main {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
     .dashboard-sidebar {
         width: 70px;
     }
@@ -984,6 +1032,28 @@ a:hover {
     .hero-section {
         padding: 6rem 0 4rem 0;
     }
+    
+    /* Shrink padding on mobile to make room */
+    .content-area {
+        padding: 0.75rem 0.75rem !important;
+    }
+    
+    /* Make SaaS Code badge more compact on small screens */
+    .header-saas-box {
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .header-saas-label {
+        display: none !important;
+    }
+}
+
+/* Modal Responsive Centered styles */
+.modal-card-custom {
+    width: calc(100% - 24px) !important;
+    margin: 12px !important;
 }
 
 /* ==========================================

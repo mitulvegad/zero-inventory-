@@ -93,6 +93,9 @@ const DashboardPage = () => {
   const [productsSubView, setProductsSubView] = useState('list'); // 'list' or 'add'
   const [editingProductId, setEditingProductId] = useState(null);
   
+  // Mobile sidebar toggle state
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  
   const [inventorySearch, setInventorySearch] = useState('');
   const [inventoryCategoryFilter, setInventoryCategoryFilter] = useState('All');
   const [inventoryStockFilter, setInventoryStockFilter] = useState('All');
@@ -1122,8 +1125,11 @@ const DashboardPage = () => {
         }
       `}</style>
       
+      {/* Mobile Sidebar Backdrop Overlay */}
+      <div className={`sidebar-backdrop-overlay ${mobileSidebarOpen ? 'show' : ''}`} onClick={() => setMobileSidebarOpen(false)}></div>
+
       {/* Sidebar navigation */}
-      <aside className="new-sidebar" style={{ width: '280px', backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column', height: '100vh', position: 'fixed', zIndex: 100, borderRight: '1px solid #e2e8f0' }}>
+      <aside className={`new-sidebar ${mobileSidebarOpen ? 'mobile-open' : ''}`}>
         <div className="logo-area" style={{ padding: '1rem', borderBottom: '1px solid #e2e8f0' }}>
           <div className="d-flex align-items-center gap-2">
             <i className="fa-solid fa-cubes text-info" style={{ color: '#0ea5e9', fontSize: '1.3rem' }}></i>
@@ -1135,7 +1141,7 @@ const DashboardPage = () => {
         </div>
 
         {/* Scrollable Navigation Area */}
-        <div className="sidebar-nav-container" style={{ flexGrow: 1, overflowY: 'auto', padding: '0.85rem 0.85rem 0 0.85rem' }}>
+        <div className="sidebar-nav-container" style={{ flexGrow: 1, overflowY: 'auto', padding: '0.85rem 0.85rem 0 0.85rem' }} onClick={() => setMobileSidebarOpen(false)}>
           <ul className="sidebar-nav-list" style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.55rem', margin: 0 }}>
             <li className={`sidebar-nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} style={{ display: 'block' }}>
               <a href="#dashboard" onClick={() => { playSynthSound('click'); setActiveTab('dashboard'); }} className={activeTab === 'dashboard' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'dashboard' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
@@ -1249,12 +1255,17 @@ const DashboardPage = () => {
       </aside>
 
       {/* Main content body */}
-      <main className="new-main" style={{ flexGrow: 1, marginLeft: '280px', display: 'flex', flexDirection: 'column', minHeight: '100vh', width: 'calc(100% - 280px)' }}>
+      <main className="new-main">
         
         {/* Header Tools */}
-        <header className="new-header" style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #e2e8f0', height: '50px', padding: '0 1.25rem', display: 'flex', alignItems: 'center', justifycontent: 'space-between', sticky: 'top', zIndex: 90 }}>
+        <header className="new-header" style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #e2e8f0', height: '50px', padding: '0 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 90 }}>
           <div className="d-flex align-items-center gap-3" style={{ flexGrow: 1 }}>
-            <button className="btn p-0 text-secondary border-0 d-lg-none" id="sidebarToggle"><i className="fa-solid fa-bars fs-5"></i></button>
+            <button 
+              className="btn p-0 text-secondary border-0 d-lg-none" 
+              onClick={() => { playSynthSound('click'); setMobileSidebarOpen(!mobileSidebarOpen); }}
+            >
+              <i className="fa-solid fa-bars fs-5"></i>
+            </button>
             <div className="header-search-box d-none d-lg-flex align-items-center px-2.5 py-0.5 rounded-pill" style={{ backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0', width: '250px' }}>
               <i className="fa-solid fa-magnifying-glass text-secondary me-1.5" style={{ color: '#64748b', fontSize: '0.8rem' }}></i>
               <input 
