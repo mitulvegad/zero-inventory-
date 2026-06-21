@@ -391,6 +391,28 @@ const DashboardPage = () => {
     }
   };
 
+  const handleDeleteCategory = async (categoryId) => {
+    playSynthSound('click');
+    const categoryToDelete = categoriesList.find(c => c.id === categoryId);
+    if (!categoryToDelete) return;
+
+    const confirmDelete = window.confirm(`Are you sure you want to delete the category "${categoryToDelete.name}"?`);
+    if (!confirmDelete) return;
+
+    try {
+      // If it's a valid MongoDB ObjectId (24 hex characters)
+      if (categoryId && typeof categoryId === 'string' && categoryId.length === 24) {
+        await api.delete(`/categories/${categoryId}`);
+      }
+      setCategoriesList(prev => prev.filter(c => c.id !== categoryId));
+      triggerAlert('Deleted', `Category "${categoryToDelete.name}" has been deleted successfully!`, 'success');
+    } catch (err) {
+      console.error('Error deleting category:', err);
+      const errMsg = err.response?.data?.message || 'Server error deleting category.';
+      triggerAlert('Delete Failed', errMsg, 'error');
+    }
+  };
+
   const handleExportPurchasesPDF = () => {
     playSynthSound('click');
     
