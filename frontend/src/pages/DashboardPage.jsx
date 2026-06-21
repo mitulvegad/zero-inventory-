@@ -1762,8 +1762,8 @@ const DashboardPage = () => {
           padding-right: 1.75rem;
         }
         .btn-blue-primary {
-          background-color: #0EA5E9 !important;
-          border-color: #0EA5E9 !important;
+          background-color: #007BFF !important;
+          border-color: #007BFF !important;
           color: #ffffff !important;
           font-weight: 600 !important;
           transition: all 0.2s ease !important;
@@ -2703,7 +2703,7 @@ const DashboardPage = () => {
                   <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
                     <div>
                       <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Products Inventory</h1>
-                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
+                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
                         <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setActiveTab('dashboard')}>Dashboard</span>
                         <span className="text-secondary">/</span>
                         <span className="fw-semibold">Products</span>
@@ -2711,7 +2711,7 @@ const DashboardPage = () => {
                     </div>
                     <button 
                       className="btn text-white fw-semibold d-flex align-items-center gap-1.5 shadow-sm border-0" 
-                      style={{ backgroundColor: '#0EA5E9', padding: '0.45rem 1.15rem', borderRadius: '6px', fontSize: '0.75rem' }} 
+                      style={{ backgroundColor: '#007BFF', padding: '0.45rem 1.15rem', borderRadius: '6px', fontSize: '0.75rem' }} 
                       onClick={() => {
                         playSynthSound('click');
                         setEditingProductId(null);
@@ -2769,7 +2769,7 @@ const DashboardPage = () => {
                       <div className="col-md-2 col-sm-12 d-flex gap-2">
                         <button 
                           className="btn text-white fw-semibold w-100 border-0" 
-                          style={{ backgroundColor: '#0EA5E9', fontSize: '0.75rem', borderRadius: '6px', height: '35px' }}
+                          style={{ backgroundColor: '#007BFF', fontSize: '0.75rem', borderRadius: '6px', height: '35px' }}
                           onClick={handleApplyFilters}
                         >
                           Filter
@@ -2885,7 +2885,7 @@ const DashboardPage = () => {
                   <div className="d-flex justify-content-between align-items-center mb-3">
                     <div>
                       <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>{editingProductId ? 'Edit Product' : 'Add New Product'}</h1>
-                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
+                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
                         <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setActiveTab('dashboard')}>Dashboard</span>
                         <span className="text-secondary">/</span>
                         <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setProductsSubView('list')}>Products</span>
@@ -2908,7 +2908,7 @@ const DashboardPage = () => {
                     <div className="col-lg-8 col-md-12">
                       <div className="p-3 rounded-3 shadow-sm border bg-white h-100" style={{ borderColor: '#cbd5e1' }}>
                         <h3 className="fw-bold mb-2 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '0.92rem', color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem', marginBottom: '1.15rem' }}>
-                          <i className="fa-solid fa-box text-primary me-2" style={{ color: '#0EA5E9' }}></i> Product Information
+                          <i className="fa-solid fa-box text-primary me-2" style={{ color: '#007BFF' }}></i> Product Information
                         </h3>
 
                         <form onSubmit={handleSaveProduct}>
@@ -3073,7 +3073,7 @@ const DashboardPage = () => {
                             <button 
                               type="submit" 
                               className="btn text-white fw-bold px-4 py-1.5 border-0" 
-                              style={{ backgroundColor: '#0EA5E9', borderRadius: '6px', fontSize: '0.75rem' }}
+                              style={{ backgroundColor: '#007BFF', borderRadius: '6px', fontSize: '0.75rem' }}
                             >
                               <i className="fa-solid fa-save me-1.5"></i> Save Product
                             </button>
@@ -3087,14 +3087,14 @@ const DashboardPage = () => {
                       {/* Image Upload Zone */}
                       <div className="p-3 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#cbd5e1' }}>
                         <h3 className="fw-bold mb-2 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '0.92rem', color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem', marginBottom: '1.15rem' }}>
-                          <i className="fa-regular fa-image text-primary me-2" style={{ color: '#0EA5E9' }}></i> Product Image
+                          <i className="fa-regular fa-image text-primary me-2" style={{ color: '#007BFF' }}></i> Product Image
                         </h3>
 
                         <div 
                           className="d-flex flex-column align-items-center justify-content-center border border-dashed rounded-3 p-4 text-center position-relative"
                           style={{
                             minHeight: '180px',
-                            borderColor: newProdDragOver ? '#0EA5E9' : '#cbd5e1',
+                            borderColor: newProdDragOver ? '#007BFF' : '#cbd5e1',
                             backgroundColor: newProdDragOver ? 'rgba(0, 123, 255, 0.05)' : '#f8fafc',
                             transition: 'all 0.2s ease',
                             cursor: 'pointer'
@@ -3118,7 +3118,7 @@ const DashboardPage = () => {
                             </div>
                           ) : (
                             <>
-                              <i className="fa-solid fa-cloud-arrow-up text-primary mb-2" style={{ fontSize: '2rem', color: '#0EA5E9' }}></i>
+                              <i className="fa-solid fa-cloud-arrow-up text-primary mb-2" style={{ fontSize: '2rem', color: '#007BFF' }}></i>
                               <div className="fw-bold text-dark mb-1" style={{ fontSize: '0.8rem' }}>Drag & drop an image here</div>
                               <div className="text-secondary small" style={{ fontSize: '0.7rem' }}>or click to browse</div>
                               <div className="text-muted mt-2" style={{ fontSize: '0.62rem' }}>JPG, PNG or WEBP (Max. 2MB)</div>
@@ -3143,7 +3143,7 @@ const DashboardPage = () => {
                       {/* Summary Card */}
                       <div className="p-3 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#cbd5e1' }}>
                         <h3 className="fw-bold mb-2 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '0.92rem', color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem', marginBottom: '1.15rem' }}>
-                          <i className="fa-solid fa-list-check text-primary me-2" style={{ color: '#0EA5E9' }}></i> Summary
+                          <i className="fa-solid fa-list-check text-primary me-2" style={{ color: '#007BFF' }}></i> Summary
                         </h3>
 
                         <div className="d-flex flex-column gap-2.5">
@@ -3201,7 +3201,7 @@ const DashboardPage = () => {
               <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
                 <div>
                   <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Sales Registry</h1>
-                  <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
+                  <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
                     <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => { playSynthSound('click'); setActiveTab('dashboard'); window.location.hash = '#dashboard'; }}>Dashboard</span>
                     <span className="text-secondary">/</span>
                     <span className="fw-semibold">Sales</span>
@@ -3322,7 +3322,7 @@ const DashboardPage = () => {
                                   type="button" 
                                   className="btn btn-link text-primary p-0 border-0" 
                                   onClick={() => { playSynthSound('click'); setSelectedInvoiceDetails(sale); }}
-                                  style={{ fontSize: '0.78rem', color: '#0EA5E9', textDecoration: 'none', fontWeight: '600' }}
+                                  style={{ fontSize: '0.78rem', color: '#007BFF', textDecoration: 'none', fontWeight: '600' }}
                                 >
                                   Details
                                 </button>
@@ -3355,7 +3355,7 @@ const DashboardPage = () => {
               <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
                 <div>
                   <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Purchases Registry</h1>
-                  <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
+                  <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
                     <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => { playSynthSound('click'); setActiveTab('dashboard'); window.location.hash = '#dashboard'; }}>Dashboard</span>
                     <span className="text-secondary">/</span>
                     <span className="fw-semibold">Purchases</span>
@@ -3477,7 +3477,7 @@ const DashboardPage = () => {
                                   type="button" 
                                   className="btn btn-link text-primary p-0 border-0" 
                                   onClick={() => { playSynthSound('click'); setSelectedPurchaseDetails(purchase); }}
-                                  style={{ fontSize: '0.78rem', color: '#0EA5E9', textDecoration: 'none', fontWeight: '600' }}
+                                  style={{ fontSize: '0.78rem', color: '#007BFF', textDecoration: 'none', fontWeight: '600' }}
                                 >
                                   Details
                                 </button>
@@ -3512,7 +3512,7 @@ const DashboardPage = () => {
                   <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
                     <div>
                       <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Categories Inventory</h1>
-                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
+                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
                         <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => { playSynthSound('click'); setActiveTab('dashboard'); window.location.hash = '#dashboard'; }}>Dashboard</span>
                         <span className="text-secondary">/</span>
                         <span className="fw-semibold">Categories</span>
@@ -3675,7 +3675,7 @@ const DashboardPage = () => {
                                         setCatImagePreview(cat.image || null);
                                         setCategoriesSubView('add');
                                       }}
-                                      style={{ fontSize: '0.78rem', color: '#0EA5E9', textDecoration: 'none', fontWeight: '600' }}
+                                      style={{ fontSize: '0.78rem', color: '#007BFF', textDecoration: 'none', fontWeight: '600' }}
                                     >
                                       Edit
                                     </button>
@@ -3696,7 +3696,7 @@ const DashboardPage = () => {
                   <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
                     <div>
                       <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>{editingCategoryId ? 'Edit Category' : 'Add Category'}</h1>
-                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
+                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
                         <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => { playSynthSound('click'); setActiveTab('dashboard'); }}>Dashboard</span>
                         <span className="text-secondary">/</span>
                         <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => { playSynthSound('click'); setCategoriesSubView('list'); }}>Categories</span>
@@ -3729,7 +3729,7 @@ const DashboardPage = () => {
                     <div className="col-lg-8 col-md-12">
                       <div className="p-3 rounded-3 shadow-sm border bg-white h-100" style={{ borderColor: '#cbd5e1' }}>
                         <h3 className="fw-bold mb-2 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '0.92rem', color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem', marginBottom: '1.15rem' }}>
-                          <i className="fa-solid fa-tags text-primary me-2" style={{ color: '#0EA5E9' }}></i> Category Information
+                          <i className="fa-solid fa-tags text-primary me-2" style={{ color: '#007BFF' }}></i> Category Information
                         </h3>
 
                         <form onSubmit={handleSaveCategory}>
@@ -3855,7 +3855,7 @@ const DashboardPage = () => {
                                 </div>
                               ) : (
                                 <>
-                                  <i className="fa-solid fa-cloud-arrow-up text-primary mb-1.5" style={{ fontSize: '1.6rem', color: '#0EA5E9' }}></i>
+                                  <i className="fa-solid fa-cloud-arrow-up text-primary mb-1.5" style={{ fontSize: '1.6rem', color: '#007BFF' }}></i>
                                   <div className="fw-bold text-dark mb-0.5" style={{ fontSize: '0.78rem' }}>Drag & drop image here</div>
                                   <div className="text-secondary small" style={{ fontSize: '0.65rem' }}>or click to browse</div>
                                 </>
@@ -3907,7 +3907,7 @@ const DashboardPage = () => {
                             <button 
                               type="submit" 
                               className="btn text-white fw-bold px-4 py-1.5 border-0" 
-                              style={{ backgroundColor: '#0EA5E9', borderRadius: '6px', fontSize: '0.75rem' }}
+                              style={{ backgroundColor: '#007BFF', borderRadius: '6px', fontSize: '0.75rem' }}
                               disabled={catSaving}
                             >
                               {catSaving ? 'Saving...' : (editingCategoryId ? 'Update Category' : 'Save Category')}
@@ -3922,7 +3922,7 @@ const DashboardPage = () => {
                       {/* Live Category Preview Card */}
                       <div className="p-3 rounded-3 border bg-white shadow-sm" style={{ borderColor: '#cbd5e1' }}>
                         <h4 className="fw-bold mb-2.5 d-flex align-items-center text-dark" style={{ fontFamily: 'Outfit', fontSize: '0.85rem' }}>
-                          <i className="fa-regular fa-eye text-primary me-2" style={{ color: '#0EA5E9' }}></i> Category Preview
+                          <i className="fa-regular fa-eye text-primary me-2" style={{ color: '#007BFF' }}></i> Category Preview
                         </h4>
 
                         <div className="d-flex flex-column align-items-center justify-content-center p-3 text-center rounded-3 bg-light border border-dashed mb-3" style={{ minHeight: '180px', borderColor: '#e2e8f0' }}>
@@ -3945,7 +3945,7 @@ const DashboardPage = () => {
                             </div>
                             <div className="d-flex justify-content-between mb-1.5">
                               <span className="text-secondary"><i className="fa-solid fa-link me-1.5"></i>Slug URL:</span>
-                              <span className="fw-semibold text-primary font-monospace" style={{ color: '#0EA5E9' }}>category/{catSlug || 'slug'}</span>
+                              <span className="fw-semibold text-primary font-monospace" style={{ color: '#007BFF' }}>category/{catSlug || 'slug'}</span>
                             </div>
                             <div className="d-flex justify-content-between">
                               <span className="text-secondary"><i className="fa-regular fa-file-lines me-1.5"></i>Description:</span>
@@ -3993,7 +3993,7 @@ const DashboardPage = () => {
                   <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
                     <div>
                       <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Suppliers Directory</h1>
-                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
+                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
                         <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setActiveTab('dashboard')}>Dashboard</span>
                         <span className="text-secondary">/</span>
                         <span className="fw-semibold">Suppliers</span>
@@ -4001,7 +4001,7 @@ const DashboardPage = () => {
                     </div>
                     <button 
                       className="btn text-white fw-semibold d-flex align-items-center gap-1.5 shadow-sm border-0" 
-                      style={{ backgroundColor: '#0EA5E9', padding: '0.45rem 1.15rem', borderRadius: '6px', fontSize: '0.75rem' }} 
+                      style={{ backgroundColor: '#007BFF', padding: '0.45rem 1.15rem', borderRadius: '6px', fontSize: '0.75rem' }} 
                       onClick={() => {
                         playSynthSound('click');
                         setEditingSupplierId(null);
@@ -4033,7 +4033,7 @@ const DashboardPage = () => {
                       <div className="col-md-3 d-flex gap-2">
                         <button 
                           className="btn text-white fw-semibold w-100 border-0" 
-                          style={{ backgroundColor: '#0EA5E9', fontSize: '0.75rem', borderRadius: '6px', height: '35px' }}
+                          style={{ backgroundColor: '#007BFF', fontSize: '0.75rem', borderRadius: '6px', height: '35px' }}
                           onClick={() => setAppliedSupplierFilters({ search: supplierSearchQuery })}
                         >
                           Search
@@ -4171,7 +4171,7 @@ const DashboardPage = () => {
                       <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>
                         {editingSupplierId ? 'Edit Supplier' : 'Add New Supplier'}
                       </h1>
-                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
+                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
                         <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setActiveTab('dashboard')}>Dashboard</span>
                         <span className="text-secondary">/</span>
                         <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setSuppliersSubView('list')}>Suppliers</span>
@@ -4436,7 +4436,7 @@ const DashboardPage = () => {
                         <button 
                           type="submit" 
                           className="btn text-white fw-bold px-4 py-1.5 border-0" 
-                          style={{ backgroundColor: '#0EA5E9', borderRadius: '6px', fontSize: '0.75rem' }}
+                          style={{ backgroundColor: '#007BFF', borderRadius: '6px', fontSize: '0.75rem' }}
                           disabled={supSaving}
                         >
                           {supSaving ? 'Saving...' : (editingSupplierId ? 'Update Supplier' : 'Save Supplier')}
@@ -4458,7 +4458,7 @@ const DashboardPage = () => {
                   <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
                     <div>
                       <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Customers List</h1>
-                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
+                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
                         <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setActiveTab('dashboard')}>Dashboard</span>
                         <span className="text-secondary">/</span>
                         <span className="fw-semibold">Customers</span>
@@ -4466,7 +4466,7 @@ const DashboardPage = () => {
                     </div>
                     <button 
                       className="btn text-white fw-semibold d-flex align-items-center gap-1.5 shadow-sm border-0" 
-                      style={{ backgroundColor: '#0EA5E9', padding: '0.45rem 1.15rem', borderRadius: '6px', fontSize: '0.75rem' }} 
+                      style={{ backgroundColor: '#007BFF', padding: '0.45rem 1.15rem', borderRadius: '6px', fontSize: '0.75rem' }} 
                       onClick={() => {
                         playSynthSound('click');
                         setEditingCustomerId(null);
@@ -4498,7 +4498,7 @@ const DashboardPage = () => {
                       <div className="col-md-3 d-flex gap-2">
                         <button 
                           className="btn text-white fw-semibold w-100 border-0" 
-                          style={{ backgroundColor: '#0EA5E9', fontSize: '0.75rem', borderRadius: '6px', height: '35px' }}
+                          style={{ backgroundColor: '#007BFF', fontSize: '0.75rem', borderRadius: '6px', height: '35px' }}
                           onClick={() => setAppliedCustomerFilters({ search: customerSearchQuery })}
                         >
                           Search
@@ -4617,7 +4617,7 @@ const DashboardPage = () => {
                       <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>
                         {editingCustomerId ? 'Edit Customer' : 'Add New Customer'}
                       </h1>
-                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
+                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
                         <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setActiveTab('dashboard')}>Dashboard</span>
                         <span className="text-secondary">/</span>
                         <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setCustomersSubView('list')}>Customers</span>
@@ -4788,7 +4788,7 @@ const DashboardPage = () => {
                         <button 
                           type="submit" 
                           className="btn text-white fw-bold px-4 py-1.5 border-0" 
-                          style={{ backgroundColor: '#0EA5E9', borderRadius: '6px', fontSize: '0.75rem' }}
+                          style={{ backgroundColor: '#007BFF', borderRadius: '6px', fontSize: '0.75rem' }}
                           disabled={custSaving}
                         >
                           {custSaving ? 'Saving...' : (editingCustomerId ? 'Update Customer' : 'Save Customer')}
@@ -4808,7 +4808,7 @@ const DashboardPage = () => {
               <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
                 <div>
                   <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Audit & Reports</h1>
-                  <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
+                  <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
                     <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setActiveTab('dashboard')}>Dashboard</span>
                     <span className="text-secondary">/</span>
                     <span className="fw-semibold">Reports</span>
@@ -5135,7 +5135,7 @@ const DashboardPage = () => {
                 {/* Modal Header */}
                 <div className="p-3 border-bottom d-flex align-items-center justify-content-between" style={{ backgroundColor: '#ffffff' }}>
                   <h3 className="fw-bold mb-0 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '1.05rem', color: '#0f172a' }}>
-                    <i className="fa-solid fa-file-invoice-dollar text-primary me-2.5" style={{ color: '#0EA5E9', fontSize: '1.2rem' }}></i>
+                    <i className="fa-solid fa-file-invoice-dollar text-primary me-2.5" style={{ color: '#007BFF', fontSize: '1.2rem' }}></i>
                     Record New Sale
                   </h3>
                   <button 
@@ -5223,7 +5223,7 @@ const DashboardPage = () => {
                         className="d-flex flex-column align-items-center justify-content-center border border-dashed rounded-3 p-3 text-center position-relative"
                         style={{
                           minHeight: '140px',
-                          borderColor: saleDragOver ? '#0EA5E9' : '#cbd5e1',
+                          borderColor: saleDragOver ? '#007BFF' : '#cbd5e1',
                           backgroundColor: saleDragOver ? 'rgba(0, 123, 255, 0.05)' : '#f8fafc',
                           transition: 'all 0.2s ease',
                           cursor: 'pointer'
@@ -5247,7 +5247,7 @@ const DashboardPage = () => {
                           </div>
                         ) : (
                           <>
-                            <i className="fa-solid fa-cloud-arrow-up text-primary mb-1.5" style={{ fontSize: '1.8rem', color: '#0EA5E9' }}></i>
+                            <i className="fa-solid fa-cloud-arrow-up text-primary mb-1.5" style={{ fontSize: '1.8rem', color: '#007BFF' }}></i>
                             <div className="fw-bold text-dark mb-0.5" style={{ fontSize: '0.78rem' }}>Drag & drop receipt here</div>
                             <div className="text-secondary small" style={{ fontSize: '0.68rem' }}>or click to browse</div>
                             <div className="text-muted mt-1" style={{ fontSize: '0.6rem' }}>JPG, PNG or WEBP (Max. 2MB)</div>
@@ -5284,7 +5284,7 @@ const DashboardPage = () => {
                     <button 
                       type="submit" 
                       className="btn text-white fw-bold px-4 py-1.5 border-0" 
-                      style={{ backgroundColor: '#0EA5E9', borderRadius: '6px', fontSize: '0.75rem' }}
+                      style={{ backgroundColor: '#007BFF', borderRadius: '6px', fontSize: '0.75rem' }}
                     >
                       <i className="fa-solid fa-save me-1.5"></i> Save Invoice
                     </button>
@@ -5324,7 +5324,7 @@ const DashboardPage = () => {
                 {/* Modal Header */}
                 <div className="p-3 border-bottom d-flex align-items-center justify-content-between" style={{ backgroundColor: '#ffffff' }}>
                   <h3 className="fw-bold mb-0 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '1.05rem', color: '#0f172a' }}>
-                    <i className="fa-solid fa-circle-info text-primary me-2.5" style={{ color: '#0EA5E9', fontSize: '1.1rem' }}></i>
+                    <i className="fa-solid fa-circle-info text-primary me-2.5" style={{ color: '#007BFF', fontSize: '1.1rem' }}></i>
                     Invoice Details: {selectedInvoiceDetails.invoice_number}
                   </h3>
                   <button 
@@ -5432,7 +5432,7 @@ const DashboardPage = () => {
                 {/* Modal Header */}
                 <div className="p-3 border-bottom d-flex align-items-center justify-content-between" style={{ backgroundColor: '#ffffff' }}>
                   <h3 className="fw-bold mb-0 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '1.05rem', color: '#0f172a' }}>
-                    <i className="fa-solid fa-truck text-primary me-2.5" style={{ color: '#0EA5E9', fontSize: '1.2rem' }}></i>
+                    <i className="fa-solid fa-truck text-primary me-2.5" style={{ color: '#007BFF', fontSize: '1.2rem' }}></i>
                     Record New Purchase
                   </h3>
                   <button 
@@ -5527,7 +5527,7 @@ const DashboardPage = () => {
                     <button 
                       type="submit" 
                       className="btn text-white fw-bold px-4 py-1.5 border-0" 
-                      style={{ backgroundColor: '#0EA5E9', borderRadius: '6px', fontSize: '0.75rem' }}
+                      style={{ backgroundColor: '#007BFF', borderRadius: '6px', fontSize: '0.75rem' }}
                     >
                       <i className="fa-solid fa-save me-1.5"></i> Save Record
                     </button>
@@ -5567,7 +5567,7 @@ const DashboardPage = () => {
                 {/* Modal Header */}
                 <div className="p-3 border-bottom d-flex align-items-center justify-content-between" style={{ backgroundColor: '#ffffff' }}>
                   <h3 className="fw-bold mb-0 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '1.05rem', color: '#0f172a' }}>
-                    <i className="fa-solid fa-circle-info text-primary me-2.5" style={{ color: '#0EA5E9', fontSize: '1.1rem' }}></i>
+                    <i className="fa-solid fa-circle-info text-primary me-2.5" style={{ color: '#007BFF', fontSize: '1.1rem' }}></i>
                     Purchase Details: {selectedPurchaseDetails.purchase_number}
                   </h3>
                   <button 
