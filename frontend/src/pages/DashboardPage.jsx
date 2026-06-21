@@ -42,6 +42,114 @@ const DashboardPage = () => {
   const [rating, setRating] = useState('5');
   const [commentText, setCommentText] = useState('');
 
+  // Active Tab State with URL Hash Syncing
+  const [activeTab, setActiveTab] = useState('dashboard');
+  
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.slice(1);
+      if (hash) {
+        if (hash === 'billing' || hash === 'billing-subscription') {
+          setActiveTab('billing');
+        } else {
+          setActiveTab(hash);
+        }
+      } else {
+        setActiveTab('dashboard');
+      }
+    };
+    handleHashChange();
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  // Billing States
+  const [invoiceId, setInvoiceId] = useState('');
+  useEffect(() => {
+    const today = new Date();
+    const dateStr = today.getFullYear() + String(today.getMonth() + 1).padStart(2, '0') + String(today.getDate()).padStart(2, '0');
+    const randStr = Math.floor(1000 + Math.random() * 9000);
+    setInvoiceId(`INV-${dateStr}-${randStr}`);
+  }, [activeTab]);
+
+  const billingDate = new Date().toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+
+  const [customerName, setCustomerName] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('Cash');
+  const [selectedProducts, setSelectedProducts] = useState([]);
+  const [catalogSearch, setCatalogSearch] = useState('');
+  const [itemSearch, setItemSearch] = useState('');
+
+  const [inventoryProducts, setInventoryProducts] = useState([
+    { id: '1', sku: 'PROD-TSHIRT-01', name: 'Cotton Premium T-Shirt', quantity: 45, price: 19.99, taxRate: 5 },
+    { id: '2', sku: 'PROD-MOUSE-02', name: 'Wireless Ergonomic Mouse', quantity: 28, price: 29.99, taxRate: 12 },
+    { id: '3', sku: 'PROD-HEAD-03', name: 'Noise Cancelling Headphones', quantity: 12, price: 99.99, taxRate: 18 },
+    { id: '4', sku: 'PROD-KEYB-04', name: 'Mechanical RGB Keyboard', quantity: 18, price: 59.99, taxRate: 18 },
+    { id: '5', sku: 'PROD-BACK-05', name: 'Waterproof Laptop Backpack', quantity: 30, price: 39.99, taxRate: 12 }
+  ]);
+
+  const billingSubtotal = selectedProducts.reduce((sum, p) => sum + (p.price * p.qtyToSell), 0);
+  const billingTaxAmount = selectedProducts.reduce((sum, p) => sum + (p.price * p.qtyToSell * (p.taxRate / 100)), 0);
+  const billingGrandTotal = billingSubtotal + billingTaxAmount;
+
+  const addProductToInvoice = (product) => {
+    const existing = selectedProducts.find(p => p.id === product.id);
+    if (existing) {
+      if (existing.qtyToSell >= product.quantity) {
+        triggerAlert('Limit Reached', `Only ${product.quantity} units are available in stock.`, 'error');
+        return;
+      }
+      setSelectedProducts(selectedProducts.map(p => 
+        p.id === product.id ? { ...p, qtyToSell: p.qtyToSell + 1 } : p
+      ));
+    } else {
+      setSelectedProducts([...selectedProducts, { ...product, qtyToSell: 1 }]);
+    }
+  };
+
+  const handleQtyChange = (productId, newQty) => {
+    const parsedQty = parseInt(newQty) || 0;
+    const prod = inventoryProducts.find(p => p.id === productId);
+    if (prod && parsedQty > prod.quantity) {
+      triggerAlert('Limit Reached', `Only ${prod.quantity} units are available in stock.`, 'error');
+      return;
+    }
+    setSelectedProducts(selectedProducts.map(p => 
+      p.id === productId ? { ...p, qtyToSell: Math.max(1, parsedQty) } : p
+    ));
+  };
+
+  const handleTaxChange = (productId, newTax) => {
+    setSelectedProducts(selectedProducts.map(p => 
+      p.id === productId ? { ...p, taxRate: parseFloat(newTax) || 0 } : p
+    ));
+  };
+
+  const removeProductFromInvoice = (productId) => {
+    setSelectedProducts(selectedProducts.filter(p => p.id !== productId));
+  };
+
+  const handleGenerateInvoice = (e) => {
+    e.preventDefault();
+    if (!customerName) {
+      triggerAlert('Required Info', 'Please enter a customer name.', 'error');
+      return;
+    }
+    if (selectedProducts.length === 0) {
+      triggerAlert('Required Info', 'Please add at least one product to the invoice.', 'error');
+      return;
+    }
+    triggerAlert('Invoice Generated', `Invoice ${invoiceId} for ${customerName} has been generated successfully! Grand Total: $${billingGrandTotal.toFixed(2)}`, 'success');
+    setCustomerName('');
+    setSelectedProducts([]);
+    setItemSearch('');
+    setCatalogSearch('');
+  };
+
   // Sound Synth Helper (Disabled to remove all sound effects)
   const playSynthSound = (type) => {};
 
@@ -253,64 +361,64 @@ const DashboardPage = () => {
         {/* Scrollable Navigation Area */}
         <div className="sidebar-nav-container" style={{ flexGrow: 1, overflowY: 'auto', padding: '0.85rem 0.85rem 0 0.85rem' }}>
           <ul className="sidebar-nav-list" style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.55rem', margin: 0 }}>
-            <li className="sidebar-nav-item active" style={{ display: 'block' }}>
-              <a href="#dashboard" onClick={() => playSynthSound('click')} className="text-info d-flex align-items-center gap-2 rounded text-decoration-none" style={{ backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' }}>
-                <i className="fa-solid fa-house text-info" style={{ color: '#0ea5e9', width: '18px', fontSize: '0.95rem' }}></i> Dashboard
+            <li className={`sidebar-nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} style={{ display: 'block' }}>
+              <a href="#dashboard" onClick={() => playSynthSound('click')} className={activeTab === 'dashboard' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'dashboard' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
+                <i className="fa-solid fa-house text-info" style={{ color: activeTab === 'dashboard' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Dashboard
               </a>
             </li>
-            <li className="sidebar-nav-item">
-              <a href="#billing" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
-                <i className="fa-solid fa-file-invoice" style={{ width: '18px', fontSize: '0.95rem' }}></i> Generate Bill
+            <li className={`sidebar-nav-item ${activeTab === 'billing' ? 'active' : ''}`}>
+              <a href="#billing" onClick={() => playSynthSound('click')} className={activeTab === 'billing' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'billing' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
+                <i className="fa-solid fa-file-invoice" style={{ color: activeTab === 'billing' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Generate Bill
               </a>
             </li>
-            <li className="sidebar-nav-item">
-              <a href="#products" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
-                <i className="fa-solid fa-box-open" style={{ width: '18px', fontSize: '0.95rem' }}></i> Products
+            <li className={`sidebar-nav-item ${activeTab === 'products' ? 'active' : ''}`}>
+              <a href="#products" onClick={() => playSynthSound('click')} className={activeTab === 'products' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'products' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
+                <i className="fa-solid fa-box-open" style={{ color: activeTab === 'products' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Products
               </a>
             </li>
-            <li className="sidebar-nav-item">
-              <a href="#sales" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
-                <i className="fa-solid fa-chart-line" style={{ width: '18px', fontSize: '0.95rem' }}></i> Sales
+            <li className={`sidebar-nav-item ${activeTab === 'sales' ? 'active' : ''}`}>
+              <a href="#sales" onClick={() => playSynthSound('click')} className={activeTab === 'sales' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'sales' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
+                <i className="fa-solid fa-chart-line" style={{ color: activeTab === 'sales' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Sales
               </a>
             </li>
-            <li className="sidebar-nav-item">
-              <a href="#purchases" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
-                <i className="fa-solid fa-cart-shopping" style={{ width: '18px', fontSize: '0.95rem' }}></i> Purchases
+            <li className={`sidebar-nav-item ${activeTab === 'purchases' ? 'active' : ''}`}>
+              <a href="#purchases" onClick={() => playSynthSound('click')} className={activeTab === 'purchases' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'purchases' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
+                <i className="fa-solid fa-cart-shopping" style={{ color: activeTab === 'purchases' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Purchases
               </a>
             </li>
-            <li className="sidebar-nav-item">
-              <a href="#inventory" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
-                <i className="fa-solid fa-warehouse" style={{ width: '18px', fontSize: '0.95rem' }}></i> Inventory
+            <li className={`sidebar-nav-item ${activeTab === 'inventory' ? 'active' : ''}`}>
+              <a href="#inventory" onClick={() => playSynthSound('click')} className={activeTab === 'inventory' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'inventory' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
+                <i className="fa-solid fa-warehouse" style={{ color: activeTab === 'inventory' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Inventory
               </a>
             </li>
-            <li className="sidebar-nav-item">
-              <a href="#categories" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
-                <i className="fa-solid fa-tags" style={{ width: '18px', fontSize: '0.95rem' }}></i> Categories
+            <li className={`sidebar-nav-item ${activeTab === 'categories' ? 'active' : ''}`}>
+              <a href="#categories" onClick={() => playSynthSound('click')} className={activeTab === 'categories' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'categories' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
+                <i className="fa-solid fa-tags" style={{ color: activeTab === 'categories' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Categories
               </a>
             </li>
-            <li className="sidebar-nav-item">
-              <a href="#suppliers" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
-                <i className="fa-solid fa-truck-field" style={{ width: '18px', fontSize: '0.95rem' }}></i> Suppliers
+            <li className={`sidebar-nav-item ${activeTab === 'suppliers' ? 'active' : ''}`}>
+              <a href="#suppliers" onClick={() => playSynthSound('click')} className={activeTab === 'suppliers' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'suppliers' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
+                <i className="fa-solid fa-truck-field" style={{ color: activeTab === 'suppliers' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Suppliers
               </a>
             </li>
-            <li className="sidebar-nav-item">
-              <a href="#customers" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
-                <i className="fa-solid fa-users" style={{ width: '18px', fontSize: '0.95rem' }}></i> Customers
+            <li className={`sidebar-nav-item ${activeTab === 'customers' ? 'active' : ''}`}>
+              <a href="#customers" onClick={() => playSynthSound('click')} className={activeTab === 'customers' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'customers' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
+                <i className="fa-solid fa-users" style={{ color: activeTab === 'customers' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Customers
               </a>
             </li>
-            <li className="sidebar-nav-item">
-              <a href="#reports" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
-                <i className="fa-solid fa-chart-pie" style={{ width: '18px', fontSize: '0.95rem' }}></i> Reports
+            <li className={`sidebar-nav-item ${activeTab === 'reports' ? 'active' : ''}`}>
+              <a href="#reports" onClick={() => playSynthSound('click')} className={activeTab === 'reports' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'reports' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
+                <i className="fa-solid fa-chart-pie" style={{ color: activeTab === 'reports' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Reports
               </a>
             </li>
-            <li className="sidebar-nav-item">
-              <a href="#billing-subscription" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
-                <i className="fa-solid fa-credit-card" style={{ width: '18px', fontSize: '0.95rem' }}></i> Billing & Subscription
+            <li className={`sidebar-nav-item ${activeTab === 'billing' ? 'active' : ''}`}>
+              <a href="#billing-subscription" onClick={() => playSynthSound('click')} className={activeTab === 'billing' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'billing' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
+                <i className="fa-solid fa-credit-card" style={{ color: activeTab === 'billing' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Billing & Subscription
               </a>
             </li>
-            <li className="sidebar-nav-item">
-              <a href="#settings" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
-                <i className="fa-solid fa-gear" style={{ width: '18px', fontSize: '0.95rem' }}></i> Settings
+            <li className={`sidebar-nav-item ${activeTab === 'settings' ? 'active' : ''}`}>
+              <a href="#settings" onClick={() => playSynthSound('click')} className={activeTab === 'settings' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'settings' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
+                <i className="fa-solid fa-gear" style={{ color: activeTab === 'settings' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Settings
               </a>
             </li>
           </ul>
@@ -404,395 +512,728 @@ const DashboardPage = () => {
         {/* Dashboard Content Container */}
         <div className="content-area" style={{ flexGrow: 1, padding: '1rem 1.25rem' }}>
           
-          {/* SaaS License Key Generated Banner */}
-          {justRegistered && showSaasKeyAlert && (
-            <div className="mb-3 p-3 rounded-3 shadow-sm" style={{ backgroundColor: '#f0f9ff', border: '1.5px solid #0ea5e9', position: 'relative' }}>
-              <button 
-                type="button"
-                className="btn-close position-absolute" 
-                style={{ top: '10px', right: '10px', border: 'none', background: 'transparent', fontSize: '1rem', color: '#64748b', cursor: 'pointer' }}
-                onClick={() => { playSynthSound('click'); setShowSaasKeyAlert(false); }}
-              >
-                <i className="fa-solid fa-xmark"></i>
-              </button>
-              <div className="row align-items-center">
-                <div className="col-lg-8">
-                  <h4 className="text-info fw-bold mb-1" style={{ color: '#0ea5e9', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem' }}>
-                    <i className="fa-solid fa-key"></i> SaaS License Key Generated
-                  </h4>
-                  <p className="text-secondary small mb-0" style={{ color: '#475569', fontSize: '0.75rem' }}>
-                    Your credentials have been generated successfully. Copy the key below and save it. You will need it along with your Email and Password to log back into your Dashboard.
-                  </p>
+          {/* Render Dashboard Tab */}
+          {activeTab === 'dashboard' && (
+            <>
+              {/* SaaS License Key Generated Banner */}
+              {justRegistered && showSaasKeyAlert && (
+                <div className="mb-3 p-3 rounded-3 shadow-sm" style={{ backgroundColor: '#f0f9ff', border: '1.5px solid #0ea5e9', position: 'relative' }}>
+                  <button 
+                    type="button"
+                    className="btn-close position-absolute" 
+                    style={{ top: '10px', right: '10px', border: 'none', background: 'transparent', fontSize: '1rem', color: '#64748b', cursor: 'pointer' }}
+                    onClick={() => { playSynthSound('click'); setShowSaasKeyAlert(false); }}
+                  >
+                    <i className="fa-solid fa-xmark"></i>
+                  </button>
+                  <div className="row align-items-center">
+                    <div className="col-lg-8">
+                      <h4 className="text-info fw-bold mb-1" style={{ color: '#0ea5e9', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem' }}>
+                        <i className="fa-solid fa-key"></i> SaaS License Key Generated
+                      </h4>
+                      <p className="text-secondary small mb-0" style={{ color: '#475569', fontSize: '0.75rem' }}>
+                        Your credentials have been generated successfully. Copy the key below and save it. You will need it along with your Email and Password to log back into your Dashboard.
+                      </p>
+                    </div>
+                    <div className="col-lg-4 text-lg-end mt-2 mt-lg-0">
+                      <div className="d-inline-flex align-items-center gap-1.5 bg-black bg-opacity-40 p-1.5 rounded border border-info border-opacity-30 font-monospace" style={{ fontSize: '0.75rem' }}>
+                        <span className="text-info fw-bold px-1.5">{saasCode}</span>
+                        <button className="btn btn-sm btn-info text-white" style={{ backgroundColor: '#0ea5e9', borderColor: '#0ea5e9', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '24px', height: '24px', padding: 0 }} onClick={handleCopyCode}>
+                          <i className="fa-regular fa-copy" style={{ fontSize: '0.7rem' }}></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="col-lg-4 text-lg-end mt-2 mt-lg-0">
-                  <div className="d-inline-flex align-items-center gap-1.5 bg-black bg-opacity-40 p-1.5 rounded border border-info border-opacity-30 font-monospace" style={{ fontSize: '0.75rem' }}>
-                    <span className="text-info fw-bold px-1.5">{saasCode}</span>
-                    <button className="btn btn-sm btn-info text-white" style={{ backgroundColor: '#0ea5e9', borderColor: '#0ea5e9', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '24px', height: '24px', padding: 0 }} onClick={handleCopyCode}>
-                      <i className="fa-regular fa-copy" style={{ fontSize: '0.7rem' }}></i>
-                    </button>
+              )}
+
+              {/* Main Title Banner */}
+              <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+                <div>
+                  <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Dashboard</h1>
+                  <p className="small mb-0" style={{ color: '#64748b', fontSize: '0.75rem' }}>Welcome back, Merchant! Here's what's happening with your store today.</p>
+                </div>
+                <div className="d-flex align-items-center gap-2">
+                  <div className="px-2.5 py-1 border rounded-3 shadow-sm small fw-medium" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc', color: '#475569', fontSize: '0.75rem' }}>
+                    <i className="fa-regular fa-calendar me-1.5"></i>Jun 20, 2026 - Jun 20, 2026
+                  </div>
+                  <button className="btn btn-premium-primary fw-semibold d-flex align-items-center gap-1.5 shadow-sm" style={{ padding: '0.3rem 0.8rem', borderRadius: '6px', fontSize: '0.75rem' }} onClick={() => triggerAlert('Audit Logs', 'Opening audit logs database records...')}>
+                    <i className="fa-solid fa-clock-rotate-left"></i> View Audit Reports
+                  </button>
+                </div>
+              </div>
+
+              {/* 4 Stat Summary Cards */}
+              <div className="row g-3 mb-3">
+                <div className="col-sm-6 col-xl-3">
+                  <div className="metric-card p-3 rounded-3 shadow-sm border d-flex justify-content-between align-items-center" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc' }}>
+                    <div className="metric-info">
+                      <h3 className="text-uppercase fw-semibold mb-0.5" style={{ fontSize: '0.7rem', letterSpacing: '0.5px', color: '#64748b' }}>Total Products</h3>
+                      <div className="metric-number fw-extrabold" style={{ color: '#0f172a', fontSize: '1.3rem' }}>{stats.totalProducts}</div>
+                    </div>
+                    <div className="metric-icon-box rounded-3 d-flex align-items-center justify-content-center bg-info bg-opacity-10 text-info" style={{ width: '36px', height: '36px', fontSize: '1.1rem', backgroundColor: 'rgba(14, 165, 233, 0.1)', color: '#0ea5e9' }}>
+                      <i className="fa-solid fa-box"></i>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-sm-6 col-xl-3">
+                  <div className="metric-card p-3 rounded-3 shadow-sm border d-flex justify-content-between align-items-center" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc' }}>
+                    <div className="metric-info">
+                      <h3 className="text-uppercase fw-semibold mb-0.5" style={{ fontSize: '0.7rem', letterSpacing: '0.5px', color: '#64748b' }}>Total Stock Value</h3>
+                      <div className="metric-number fw-extrabold" style={{ color: '#0f172a', fontSize: '1.3rem' }}>${stats.totalStockValue.toFixed(2)}</div>
+                    </div>
+                    <div className="metric-icon-box rounded-3 d-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success" style={{ width: '36px', height: '36px', fontSize: '1.1rem', backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
+                      <i className="fa-solid fa-coins"></i>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-sm-6 col-xl-3">
+                  <div className="metric-card p-3 rounded-3 shadow-sm border d-flex justify-content-between align-items-center" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc' }}>
+                    <div className="metric-info">
+                      <h3 className="text-uppercase fw-semibold mb-0.5" style={{ fontSize: '0.7rem', letterSpacing: '0.5px', color: '#64748b' }}>Total Item Units</h3>
+                      <div className="metric-number fw-extrabold" style={{ color: '#0f172a', fontSize: '1.3rem' }}>{stats.totalItemUnits}</div>
+                    </div>
+                    <div className="metric-icon-box rounded-3 d-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary" style={{ width: '36px', height: '36px', fontSize: '1.1rem', backgroundColor: 'rgba(79, 70, 229, 0.1)', color: '#4f46e5' }}>
+                      <i className="fa-solid fa-boxes-stacked"></i>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-sm-6 col-xl-3">
+                  <div className="metric-card p-3 rounded-3 shadow-sm border d-flex justify-content-between align-items-center" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc' }}>
+                    <div className="metric-info">
+                      <h3 className="text-uppercase fw-semibold mb-0.5" style={{ fontSize: '0.7rem', letterSpacing: '0.5px', color: '#64748b' }}>Low Stock Warns</h3>
+                      <div className="metric-number fw-extrabold" style={{ color: '#ef4444', fontSize: '1.3rem' }}>{stats.lowStockWarns}</div>
+                    </div>
+                    <div className="metric-icon-box rounded-3 d-flex align-items-center justify-content-center bg-danger bg-opacity-10 text-danger" style={{ width: '36px', height: '36px', fontSize: '1.1rem', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
+                      <i className="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Grid Row: Category Distribution & Valuation (Left) vs Monthly Revenue (Right) */}
+              <div className="row g-3 mb-3">
+                <div className="col-lg-8">
+                  <div className="p-3 rounded-3 shadow-sm border h-100" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc' }}>
+                    <div className="d-flex justify-content-between align-items-center mb-2.5">
+                      <div>
+                        <h3 className="fw-bold mb-0.5" style={{ fontSize: '0.92rem', color: '#0f172a' }}>Category Distribution & Valuation</h3>
+                        <p className="small mb-0" style={{ color: '#64748b', fontSize: '0.72rem' }}>Real-time asset valuation across your active segments</p>
+                      </div>
+                      <button className="btn btn-link text-info text-decoration-none p-0 fw-semibold" style={{ color: '#0ea5e9', fontSize: '0.75rem' }} onClick={() => triggerAlert('Categories', 'Manage category catalog details...')}>Manage Categories</button>
+                    </div>
+
+                    <div className="table-responsive">
+                      <table className="table align-middle table-hover-light">
+                        <thead>
+                          <tr className="small" style={{ color: '#475569' }}>
+                            <th>Category Name</th>
+                            <th>Products Count</th>
+                            <th>Total Units</th>
+                            <th>Asset Valuation</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {categoryValuation.length === 0 ? (
+                            <tr>
+                              <td colSpan="4" className="text-center py-4 text-secondary" style={{ color: '#64748b' }}>
+                                <i className="fa-regular fa-folder-open fa-2x mb-2 text-secondary opacity-30"></i>
+                                <p className="small mb-0" style={{ fontSize: '0.75rem' }}>No category details registered.</p>
+                              </td>
+                            </tr>
+                          ) : (
+                            categoryValuation.map((cat, idx) => (
+                              <tr key={idx}>
+                                <td className="fw-semibold" style={{ color: '#0f172a' }}>{cat.categoryName}</td>
+                                <td style={{ color: '#475569' }}>{cat.productsCount}</td>
+                                <td style={{ color: '#475569' }}>{cat.totalUnits}</td>
+                                <td className="fw-semibold text-info" style={{ color: '#0ea5e9' }}>${cat.assetValuation.toFixed(2)}</td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="col-lg-4">
+                  <div className="p-3 rounded-3 shadow-sm border h-100" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc' }}>
+                    <div className="d-flex justify-content-between align-items-center mb-2.5">
+                      <div>
+                        <h3 className="fw-bold mb-0.5" style={{ fontSize: '0.92rem', color: '#0f172a' }}>Monthly Revenue</h3>
+                        <p className="small mb-0" style={{ color: '#64748b', fontSize: '0.72rem' }}>Historical monthly sales run-rate</p>
+                      </div>
+                      <button className="btn btn-link text-info text-decoration-none p-0 fw-semibold" style={{ color: '#0ea5e9', fontSize: '0.75rem' }} onClick={() => triggerAlert('Invoices', 'Viewing historical invoices records...')}>View Invoices</button>
+                    </div>
+
+                    <div className="table-responsive">
+                      <table className="table align-middle table-hover-light">
+                        <thead>
+                          <tr className="small" style={{ color: '#475569' }}>
+                            <th>Month</th>
+                            <th>Invoices</th>
+                            <th>Revenue</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {monthlyRevenue.length === 0 ? (
+                            <tr>
+                              <td colSpan="3" className="text-center py-4 text-secondary" style={{ color: '#64748b' }}>
+                                <i className="fa-regular fa-file-lines fa-2x mb-2 text-secondary opacity-30"></i>
+                                <p className="small mb-0" style={{ fontSize: '0.75rem' }}>No invoices recorded yet.</p>
+                              </td>
+                            </tr>
+                          ) : (
+                            monthlyRevenue.map((item, idx) => (
+                              <tr key={idx}>
+                                <td className="fw-semibold" style={{ color: '#0f172a' }}>{item.month}</td>
+                                <td style={{ color: '#475569' }}>{item.invoices}</td>
+                                <td className="fw-semibold text-success" style={{ color: '#10b981' }}>${item.revenue.toFixed(2)}</td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Grid Row: Low Stock Alerts (Left), Recent Activity (Middle), Quick Navigation (Right) */}
+              <div className="row g-3 mb-3">
+                
+                {/* Low Stock Alerts */}
+                <div className="col-lg-4">
+                  <div className="p-3 rounded-3 shadow-sm border h-100" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc' }}>
+                    <div className="d-flex justify-content-between align-items-center mb-2.5">
+                      <h3 className="fw-bold mb-0" style={{ fontSize: '0.92rem', color: '#0f172a' }}>Low Stock Alerts</h3>
+                      <button className="btn btn-link text-info text-decoration-none p-0 fw-semibold" style={{ color: '#0ea5e9', fontSize: '0.75rem' }} onClick={() => triggerAlert('Alerts', 'Viewing all stock level warnings...')}>View All</button>
+                    </div>
+                    
+                    {lowStockAlerts.length === 0 ? (
+                      <div className="text-center py-4 text-success" style={{ color: '#10b981' }}>
+                        <i className="fa-solid fa-circle-check fa-2x mb-2"></i>
+                        <p className="small mb-0 fw-semibold" style={{ fontSize: '0.75rem' }}>No low stock alerts</p>
+                      </div>
+                    ) : (
+                      <div className="d-flex flex-column gap-2">
+                        {lowStockAlerts.map(alertItem => (
+                          <div key={alertItem._id} className="p-2 rounded-3 d-flex justify-content-between align-items-center" style={{ backgroundColor: '#f8fafc', border: '1px solid #bae6fd' }}>
+                            <div>
+                              <div className="fw-bold" style={{ fontSize: '0.78rem', color: '#0f172a' }}>{alertItem.name}</div>
+                              <div className="font-monospace" style={{ fontSize: '0.65rem', color: '#64748b' }}>SKU: {alertItem.sku}</div>
+                            </div>
+                            <div className="text-end">
+                              <span className="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-20 px-2 py-0.5" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.2)', fontSize: '0.7rem' }}>
+                                {alertItem.quantity} / {alertItem.reorder_level} {alertItem.unit}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Recent Activity */}
+                <div className="col-lg-4">
+                  <div className="p-3 rounded-3 shadow-sm border h-100" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc' }}>
+                    <div className="d-flex justify-content-between align-items-center mb-2.5">
+                      <h3 className="fw-bold mb-0" style={{ fontSize: '0.92rem', color: '#0f172a' }}>Recent Activity</h3>
+                      <div className="d-flex gap-1.5">
+                        <button 
+                          className={`btn btn-sm ${recentActivityTab === 'sales' ? 'btn-premium-primary text-white fw-bold' : 'border-0'}`}
+                          style={recentActivityTab === 'sales' ? { borderRadius: '6px', fontSize: '0.72rem', padding: '0.2rem 0.55rem' } : { backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.72rem', padding: '0.2rem 0.55rem' }}
+                          onClick={() => { setRecentActivityTab('sales'); }}
+                        >
+                          Sales
+                        </button>
+                        <button 
+                          className={`btn btn-sm ${recentActivityTab === 'purchases' ? 'btn-premium-primary text-white fw-bold' : 'border-0'}`}
+                          style={recentActivityTab === 'purchases' ? { borderRadius: '6px', fontSize: '0.72rem', padding: '0.2rem 0.55rem' } : { backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.72rem', padding: '0.2rem 0.55rem' }}
+                          onClick={() => { setRecentActivityTab('purchases'); }}
+                        >
+                          Purchases
+                        </button>
+                      </div>
+                    </div>
+
+                    {recentActivityTab === 'sales' ? (
+                      recentSales.length === 0 ? (
+                        <div className="text-center py-4 text-secondary" style={{ color: '#64748b' }}>
+                          <i className="fa-solid fa-receipt fa-2x mb-1.5 opacity-30"></i>
+                          <p className="small mb-0" style={{ fontSize: '0.75rem' }}>No recent sales activity</p>
+                        </div>
+                      ) : (
+                        <div className="d-flex flex-column gap-1.5">
+                          {recentSales.map(sale => (
+                            <div key={sale._id} className="d-flex justify-content-between align-items-center py-1.5" style={{ borderBottom: '1px solid #bae6fd' }}>
+                              <div>
+                                <div className="fw-bold" style={{ fontSize: '0.78rem', color: '#0f172a' }}>{sale.invoice_number}</div>
+                                <div style={{ fontSize: '0.7rem', color: '#475569' }}>{sale.customer_name}</div>
+                              </div>
+                              <div className="text-end">
+                                <div className="fw-semibold text-success" style={{ color: '#10b981', fontSize: '0.78rem' }}>${sale.grand_total.toFixed(2)}</div>
+                                <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{new Date(sale.sale_date).toLocaleDateString()}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )
+                    ) : (
+                      recentPurchases.length === 0 ? (
+                        <div className="text-center py-4 text-secondary" style={{ color: '#64748b' }}>
+                          <i className="fa-solid fa-cart-shopping fa-2x mb-1.5 opacity-30"></i>
+                          <p className="small mb-0" style={{ fontSize: '0.75rem' }}>No recent purchases activity</p>
+                        </div>
+                      ) : (
+                        <div className="d-flex flex-column gap-1.5">
+                          {recentPurchases.map(purchase => (
+                            <div key={purchase._id} className="d-flex justify-content-between align-items-center py-1.5" style={{ borderBottom: '1px solid #bae6fd' }}>
+                              <div>
+                                <div className="fw-bold" style={{ fontSize: '0.78rem', color: '#0f172a' }}>{purchase.purchase_number}</div>
+                                <div style={{ fontSize: '0.7rem', color: '#475569' }}>{purchase.supplier_name}</div>
+                              </div>
+                              <div className="text-end">
+                                <div className="fw-semibold text-info" style={{ color: '#0284c7', fontSize: '0.78rem' }}>${purchase.grand_total.toFixed(2)}</div>
+                                <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{new Date(purchase.purchase_date).toLocaleDateString()}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
+
+                {/* Quick Navigation */}
+                <div className="col-lg-4">
+                  <div className="p-3 rounded-3 shadow-sm border h-100" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc' }}>
+                    <h3 className="fw-bold mb-2.5" style={{ fontSize: '0.92rem', color: '#0f172a' }}>Quick Navigation</h3>
+                    <div className="quick-action-grid" style={{ gap: '8px' }}>
+                      <button className="quick-action-item border-0" onClick={() => triggerAlert('Navigation', 'Redirecting to add new product catalog page...')}>
+                        <i className="fa-solid fa-square-plus" style={{ color: '#a855f7' }}></i>
+                        Add Product
+                      </button>
+                      <button className="quick-action-item border-0" onClick={() => { playSynthSound('click'); window.location.hash = '#billing'; }}>
+                        <i className="fa-solid fa-cart-shopping" style={{ color: '#3b82f6' }}></i>
+                        New Sale
+                      </button>
+                      <button className="quick-action-item border-0" onClick={() => triggerAlert('Navigation', 'Redirecting to record purchase inventory list...')}>
+                        <i className="fa-solid fa-file-circle-check" style={{ color: '#10b981' }}></i>
+                        New Purchase
+                      </button>
+                      <button className="quick-action-item border-0" onClick={() => triggerAlert('Navigation', 'Redirecting to add customer profiling record...')}>
+                        <i className="fa-solid fa-user-plus" style={{ color: '#64748b' }}></i>
+                        Add Customer
+                      </button>
+                      <button className="quick-action-item border-0" onClick={() => triggerAlert('Navigation', 'Redirecting to register supplier profile form...')}>
+                        <i className="fa-solid fa-truck-field" style={{ color: '#f59e0b' }}></i>
+                        Add Supplier
+                      </button>
+                      <button className="quick-action-item border-0" onClick={() => triggerAlert('Navigation', 'Redirecting to view overall ledger reports...')}>
+                        <i className="fa-solid fa-file-invoice-dollar" style={{ color: '#ef4444' }}></i>
+                        View Reports
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Post Shop Feedback (Bottom Card) */}
+              <div className="row">
+                <div className="col-12">
+                  <div className="p-3 rounded-3 shadow-sm border" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc' }}>
+                    <h3 className="fw-bold mb-1" style={{ fontSize: '1.05rem', color: '#0f172a' }}><i className="fa-solid fa-star text-warning me-1.5"></i>Post Shop Feedback</h3>
+                    <p className="small mb-3" style={{ color: '#64748b', fontSize: '0.75rem' }}>Share your review about Zero Inventory Management. Your review will publish directly to the landing page "Purchased Shops" feedback list.</p>
+                    
+                    <form onSubmit={handleFeedbackSubmit}>
+                      <div className="row g-2 mb-2">
+                        <div className="col-md-6">
+                          <div className="form-group mb-0">
+                            <label className="form-label mb-1" style={{ fontSize: '0.72rem', color: '#475569' }}>Your Shop Name</label>
+                            <input 
+                              type="text" 
+                              className="form-control-premium-dark" 
+                              placeholder="e.g. Apex Apparel Ltd" 
+                              value={shopName}
+                              onChange={(e) => setShopName(e.target.value)}
+                              required
+                            />
+                          </div>
+                        </div>
+                        <div className="col-md-6">
+                          <div className="form-group mb-0">
+                            <label className="form-label mb-1" style={{ fontSize: '0.72rem', color: '#475569' }}>Rating (1 to 5 Stars)</label>
+                            <select 
+                              className="form-control-premium-dark" 
+                              value={rating}
+                              onChange={(e) => setRating(e.target.value)}
+                            >
+                              <option value="5">5 Stars (Excellent)</option>
+                              <option value="4">4 Stars (Good)</option>
+                              <option value="3">3 Stars (Average)</option>
+                              <option value="2">2 Stars (Poor)</option>
+                              <option value="1">1 Star (Very Bad)</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="form-group mb-3">
+                        <label className="form-label mb-1" style={{ fontSize: '0.72rem', color: '#475569' }}>Comment / Review</label>
+                        <textarea 
+                          className="form-control-premium-dark" 
+                          style={{ minHeight: '65px' }}
+                          placeholder="Share your success story using this software..."
+                          value={commentText}
+                          onChange={(e) => setCommentText(e.target.value)}
+                          required
+                        ></textarea>
+                      </div>
+
+                      <div className="text-end">
+                        <button type="submit" className="btn btn-premium-primary px-3 py-1.5" style={{ fontSize: '0.78rem' }}>
+                          <i className="fa-solid fa-paper-plane me-1.5"></i>Publish Review
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Render Generate Bill Tab */}
+          {activeTab === 'billing' && (
+            <div className="generate-bill-view animate-fade-in" style={{ animation: 'fadeIn 0.25s ease-out' }}>
+              
+              {/* Main Title Banner */}
+              <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+                <div>
+                  <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Generate Bill</h1>
+                  <p className="small mb-0" style={{ color: '#64748b', fontSize: '0.75rem' }}>Create invoices and record customer retail sales transactions.</p>
+                </div>
+              </div>
+
+              {/* 3-Column Grid Design */}
+              <div className="row g-3">
+                {/* Column 1: Invoice Details */}
+                <div className="col-lg-3 col-md-12">
+                  <div className="p-3 h-100 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#7dd3fc', minHeight: '520px', display: 'flex', flexDirection: 'column' }}>
+                    <h3 className="fw-bold mb-2.5 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '0.92rem', color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem', marginBottom: '1.15rem' }}>
+                      <i className="fa-solid fa-receipt text-primary me-2" style={{ color: '#0ea5e9' }}></i> Invoice Details
+                    </h3>
+
+                    <form onSubmit={handleGenerateInvoice} style={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+                      <div className="form-group mb-3">
+                        <label className="form-label mb-1 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Invoice ID</label>
+                        <input 
+                          type="text" 
+                          className="form-control" 
+                          style={{ backgroundColor: '#f1f5f9', border: '1px solid #cbd5e1', color: '#64748b', fontSize: '0.82rem', padding: '0.5rem 0.75rem', borderRadius: '6px', width: '100%', cursor: 'not-allowed', fontWeight: 'bold' }} 
+                          value={invoiceId} 
+                          readOnly 
+                          disabled 
+                        />
+                      </div>
+
+                      <div className="form-group mb-3">
+                        <label className="form-label mb-1 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Billing Date</label>
+                        <input 
+                          type="text" 
+                          className="form-control" 
+                          style={{ backgroundColor: '#f1f5f9', border: '1px solid #cbd5e1', color: '#64748b', fontSize: '0.82rem', padding: '0.5rem 0.75rem', borderRadius: '6px', width: '100%', cursor: 'not-allowed' }} 
+                          value={billingDate} 
+                          readOnly 
+                          disabled 
+                        />
+                      </div>
+
+                      <div className="form-group mb-3">
+                        <label className="form-label mb-1 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Customer Name <span className="text-danger">*</span></label>
+                        <input 
+                          type="text" 
+                          className="form-control-premium-dark" 
+                          placeholder="Enter customer name" 
+                          value={customerName} 
+                          onChange={(e) => setCustomerName(e.target.value)} 
+                          required 
+                        />
+                      </div>
+
+                      <div className="form-group mb-3">
+                        <label className="form-label mb-1 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Payment Method</label>
+                        <select 
+                          className="form-control-premium-dark" 
+                          value={paymentMethod} 
+                          onChange={(e) => setPaymentMethod(e.target.value)}
+                        >
+                          <option value="Cash">Cash</option>
+                          <option value="Card">Card</option>
+                          <option value="UPI">UPI</option>
+                          <option value="Net Banking">Net Banking</option>
+                        </select>
+                      </div>
+
+                      {/* Summary Section at the Bottom */}
+                      <div style={{ marginTop: 'auto', borderTop: '1px dashed #cbd5e1', paddingTop: '1rem' }}>
+                        <div className="d-flex justify-content-between align-items-center mb-1.5" style={{ fontSize: '0.78rem' }}>
+                          <span className="text-secondary">Subtotal:</span>
+                          <span className="fw-bold text-dark">${billingSubtotal.toFixed(2)}</span>
+                        </div>
+                        <div className="d-flex justify-content-between align-items-center mb-2" style={{ fontSize: '0.78rem' }}>
+                          <span className="text-secondary">Tax Amount:</span>
+                          <span className="fw-bold text-dark">${billingTaxAmount.toFixed(2)}</span>
+                        </div>
+                        <div className="d-flex justify-content-between align-items-center pt-2 mb-3" style={{ borderTop: '1px solid #e2e8f0' }}>
+                          <span className="fw-bold text-dark" style={{ fontSize: '0.85rem' }}>Grand Total:</span>
+                          <span className="fw-extrabold text-success" style={{ fontSize: '1.2rem', color: '#16a34a' }}>${billingGrandTotal.toFixed(2)}</span>
+                        </div>
+
+                        <button 
+                          type="submit" 
+                          className="btn btn-premium-primary w-100 py-2 fw-bold d-flex align-items-center justify-content-center gap-1.5" 
+                          style={{ borderRadius: '6px', fontSize: '0.82rem' }}
+                        >
+                          <i className="fa-solid fa-file-circle-check"></i> Generate Invoice
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+
+                {/* Column 2: Invoice Items */}
+                <div className="col-lg-6 col-md-12">
+                  <div className="p-3 h-100 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#7dd3fc', minHeight: '520px', display: 'flex', flexDirection: 'column' }}>
+                    <h3 className="fw-bold mb-2.5 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '0.92rem', color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem', marginBottom: '1.15rem' }}>
+                      <i className="fa-solid fa-cart-shopping text-success me-2" style={{ color: '#10b981' }}></i> Invoice Items
+                    </h3>
+
+                    {/* Search and Add Products input */}
+                    <div className="form-group mb-3 position-relative">
+                      <label className="form-label mb-1 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Search and Add Products</label>
+                      <div className="position-relative">
+                        <i className="fa-solid fa-magnifying-glass text-secondary position-absolute" style={{ left: '0.75rem', top: '50%', transform: 'translateY(-50%)', fontSize: '0.8rem', color: '#64748b' }}></i>
+                        <input 
+                          type="text" 
+                          className="form-control-premium-dark" 
+                          style={{ paddingLeft: '2.1rem' }} 
+                          placeholder="Type items name or SKU code here..." 
+                          value={itemSearch} 
+                          onChange={(e) => setItemSearch(e.target.value)} 
+                        />
+                      </div>
+
+                      {/* Autocomplete Dropdown Search Results */}
+                      {itemSearch && (
+                        <div className="position-absolute w-100 bg-white border rounded-3 shadow-lg mt-1" style={{ zIndex: 10, maxHeight: '200px', overflowY: 'auto', borderColor: '#cbd5e1' }}>
+                          {inventoryProducts.filter(p => 
+                            p.name.toLowerCase().includes(itemSearch.toLowerCase()) || 
+                            p.sku.toLowerCase().includes(itemSearch.toLowerCase())
+                          ).length === 0 ? (
+                            <div className="p-2 text-center text-muted small">No items match your search.</div>
+                          ) : (
+                            inventoryProducts.filter(p => 
+                              p.name.toLowerCase().includes(itemSearch.toLowerCase()) || 
+                              p.sku.toLowerCase().includes(itemSearch.toLowerCase())
+                            ).map(prod => (
+                              <div 
+                                key={prod.id} 
+                                className="p-2 border-bottom hover-light-bg d-flex justify-content-between align-items-center cursor-pointer" 
+                                style={{ cursor: 'pointer', fontSize: '0.78rem' }}
+                                onClick={() => {
+                                  addProductToInvoice(prod);
+                                  setItemSearch('');
+                                }}
+                              >
+                                <div>
+                                  <div className="fw-bold text-dark">{prod.name}</div>
+                                  <div className="text-secondary font-monospace" style={{ fontSize: '0.65rem' }}>SKU: {prod.sku}</div>
+                                </div>
+                                <div className="text-end">
+                                  <div className="fw-semibold text-primary">${prod.price}</div>
+                                  <div className="small text-muted" style={{ fontSize: '0.65rem' }}>Stock: {prod.quantity}</div>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Invoice Items Data Table */}
+                    <div className="table-responsive" style={{ flexGrow: 1 }}>
+                      {selectedProducts.length === 0 ? (
+                        /* Empty state placeholder */
+                        <div className="d-flex flex-column align-items-center justify-content-center h-100 py-5 text-center">
+                          <i className="fa-solid fa-bag-shopping text-muted mb-2.5" style={{ fontSize: '2.8rem', color: '#cbd5e1', opacity: '0.6' }}></i>
+                          <p className="mb-0 text-secondary" style={{ fontSize: '0.78rem', maxWidth: '320px', lineHeight: '1.4' }}>
+                            No products added to invoice. Search and select products above or click from the catalog.
+                          </p>
+                        </div>
+                      ) : (
+                        <table className="table align-middle table-hover-light">
+                          <thead>
+                            <tr className="small text-secondary" style={{ fontSize: '0.72rem', borderBottom: '2px solid #e2e8f0' }}>
+                              <th style={{ minWidth: '130px' }}>Product Name & SKU</th>
+                              <th>Stock</th>
+                              <th>Unit Price</th>
+                              <th style={{ width: '80px' }}>Qty to Sell</th>
+                              <th style={{ width: '90px' }}>Tax Rate</th>
+                              <th>Total (Ex. Tax)</th>
+                              <th className="text-center">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {selectedProducts.map(item => (
+                              <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                <td>
+                                  <div className="fw-semibold text-dark" style={{ fontSize: '0.78rem' }}>{item.name}</div>
+                                  <div className="text-muted font-monospace" style={{ fontSize: '0.65rem' }}>{item.sku}</div>
+                                </td>
+                                <td style={{ fontSize: '0.75rem', color: '#475569' }}>
+                                  <span className={`badge ${item.quantity <= 10 ? 'bg-danger' : 'bg-success'} bg-opacity-10 text-${item.quantity <= 10 ? 'danger' : 'success'} border border-${item.quantity <= 10 ? 'danger' : 'success'} border-opacity-20`} style={{ fontSize: '0.68rem' }}>
+                                    {item.quantity} pcs
+                                  </span>
+                                </td>
+                                <td className="fw-semibold text-dark" style={{ fontSize: '0.78rem' }}>${item.price.toFixed(2)}</td>
+                                <td>
+                                  <input 
+                                    type="number" 
+                                    min="1" 
+                                    max={item.quantity} 
+                                    className="form-control form-control-sm text-center py-0.5 px-1" 
+                                    style={{ fontSize: '0.75rem', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                                    value={item.qtyToSell} 
+                                    onChange={(e) => handleQtyChange(item.id, e.target.value)} 
+                                  />
+                                </td>
+                                <td>
+                                  <select 
+                                    className="form-select form-select-sm py-0.5 px-1" 
+                                    style={{ fontSize: '0.72rem', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                                    value={item.taxRate} 
+                                    onChange={(e) => handleTaxChange(item.id, e.target.value)}
+                                  >
+                                    <option value="0">0%</option>
+                                    <option value="5">5%</option>
+                                    <option value="12">12%</option>
+                                    <option value="18">18%</option>
+                                  </select>
+                                </td>
+                                <td className="fw-semibold text-dark" style={{ fontSize: '0.78rem' }}>
+                                  ${(item.price * item.qtyToSell).toFixed(2)}
+                                </td>
+                                <td className="text-center">
+                                  <button 
+                                    type="button" 
+                                    className="btn btn-link text-danger p-0 border-0" 
+                                    onClick={() => removeProductFromInvoice(item.id)}
+                                    title="Delete product"
+                                  >
+                                    <i className="fa-solid fa-trash-can" style={{ fontSize: '0.85rem' }}></i>
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Column 3: Product Catalog */}
+                <div className="col-lg-3 col-md-12">
+                  <div className="p-3 h-100 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#7dd3fc', minHeight: '520px', display: 'flex', flexDirection: 'column' }}>
+                    <h3 className="fw-bold mb-2.5 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '0.92rem', color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem', marginBottom: '1.15rem' }}>
+                      <i className="fa-solid fa-boxes-stacked text-primary me-2" style={{ color: '#0ea5e9' }}></i> Product Catalog
+                    </h3>
+
+                    {/* Catalog Search input */}
+                    <div className="form-group mb-3 position-relative">
+                      <div className="position-relative">
+                        <i className="fa-solid fa-magnifying-glass text-secondary position-absolute" style={{ left: '0.75rem', top: '50%', transform: 'translateY(-50%)', fontSize: '0.8rem', color: '#64748b' }}></i>
+                        <input 
+                          type="text" 
+                          className="form-control-premium-dark" 
+                          style={{ paddingLeft: '2.1rem' }} 
+                          placeholder="Search catalog by name or SKU..." 
+                          value={catalogSearch} 
+                          onChange={(e) => setCatalogSearch(e.target.value)} 
+                        />
+                      </div>
+                    </div>
+
+                    {/* Catalog list */}
+                    <div style={{ flexGrow: 1, overflowY: 'auto', maxHeight: '380px' }}>
+                      {inventoryProducts.filter(p => 
+                        p.name.toLowerCase().includes(catalogSearch.toLowerCase()) || 
+                        p.sku.toLowerCase().includes(catalogSearch.toLowerCase())
+                      ).length === 0 ? (
+                        /* Empty state placeholder */
+                        <div className="d-flex flex-column align-items-center justify-content-center h-100 py-5 text-center">
+                          <i className="fa-solid fa-box-open text-muted mb-2.5" style={{ fontSize: '2.5rem', color: '#cbd5e1', opacity: '0.6' }}></i>
+                          <p className="mb-0 text-secondary" style={{ fontSize: '0.76rem', maxWidth: '180px', lineHeight: '1.4' }}>
+                            No products found in your inventory.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="d-flex flex-column gap-2">
+                          {inventoryProducts.filter(p => 
+                            p.name.toLowerCase().includes(catalogSearch.toLowerCase()) || 
+                            p.sku.toLowerCase().includes(catalogSearch.toLowerCase())
+                          ).map(product => (
+                            <div 
+                              key={product.id} 
+                              className="p-2 border rounded-3 d-flex justify-content-between align-items-center hover-light-bg cursor-pointer transition-all" 
+                              style={{ 
+                                cursor: 'pointer', 
+                                border: '1px solid #bae6fd', 
+                                backgroundColor: '#f8fafc',
+                                transition: 'all 0.2s ease'
+                              }}
+                              onClick={() => addProductToInvoice(product)}
+                            >
+                              <div style={{ minWidth: 0, paddingRight: '4px' }}>
+                                <div className="fw-bold text-dark text-truncate" style={{ fontSize: '0.76rem' }}>{product.name}</div>
+                                <div className="text-secondary font-monospace" style={{ fontSize: '0.62rem' }}>SKU: {product.sku}</div>
+                                <div className="d-flex align-items-center gap-1.5 mt-0.5">
+                                  <span className="fw-semibold text-primary" style={{ fontSize: '0.74rem', color: '#0ea5e9' }}>${product.price}</span>
+                                  <span className="text-muted" style={{ fontSize: '0.62rem' }}>• Stock: {product.quantity}</span>
+                                </div>
+                              </div>
+                              <button 
+                                type="button" 
+                                className="btn btn-sm btn-outline-info d-flex align-items-center justify-content-center p-1" 
+                                style={{ borderRadius: '6px', width: '28px', height: '28px', flexShrink: 0, fontSize: '0.72rem', borderColor: '#0ea5e9', color: '#0ea5e9' }}
+                                title="Add product to bill"
+                              >
+                                <i className="fa-solid fa-plus"></i>
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Main Title Banner */}
-          <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
-            <div>
-              <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Dashboard</h1>
-              <p className="small mb-0" style={{ color: '#64748b', fontSize: '0.75rem' }}>Welcome back, Merchant! Here's what's happening with your store today.</p>
+          {/* Render Fallback for other tabs */}
+          {activeTab !== 'dashboard' && activeTab !== 'billing' && (
+            <div className="p-5 text-center rounded-4 border bg-white" style={{ borderColor: '#7dd3fc', margin: '3rem auto', maxWidth: '500px', boxShadow: '0 4px 6px -1px rgba(14, 165, 233, 0.05)' }}>
+              <i className="fa-solid fa-screwdriver-wrench text-secondary mb-3" style={{ fontSize: '3rem', color: '#94a3b8' }}></i>
+              <h4 className="fw-bold text-dark text-capitalize" style={{ fontFamily: 'Outfit', fontSize: '1.1rem' }}>{activeTab.replace('-', ' ')} Page</h4>
+              <p className="text-secondary small mb-4" style={{ fontSize: '0.78rem' }}>This module is currently under database migration or client synchronization node.</p>
+              <a href="#dashboard" className="btn btn-premium-primary btn-sm px-3.5 py-1.5 fw-semibold" style={{ fontSize: '0.75rem', borderRadius: '6px' }}>Go back to Dashboard</a>
             </div>
-            <div className="d-flex align-items-center gap-2">
-              <div className="px-2.5 py-1 border rounded-3 shadow-sm small fw-medium" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc', color: '#475569', fontSize: '0.75rem' }}>
-                <i className="fa-regular fa-calendar me-1.5"></i>Jun 20, 2026 - Jun 20, 2026
-              </div>
-              <button className="btn btn-premium-primary fw-semibold d-flex align-items-center gap-1.5 shadow-sm" style={{ padding: '0.3rem 0.8rem', borderRadius: '6px', fontSize: '0.75rem' }} onClick={() => triggerAlert('Audit Logs', 'Opening audit logs database records...')}>
-                <i className="fa-solid fa-clock-rotate-left"></i> View Audit Reports
-              </button>
-            </div>
-          </div>
-
-          {/* 4 Stat Summary Cards */}
-          <div className="row g-3 mb-3">
-            <div className="col-sm-6 col-xl-3">
-              <div className="metric-card p-3 rounded-3 shadow-sm border d-flex justify-content-between align-items-center" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc' }}>
-                <div className="metric-info">
-                  <h3 className="text-uppercase fw-semibold mb-0.5" style={{ fontSize: '0.7rem', letterSpacing: '0.5px', color: '#64748b' }}>Total Products</h3>
-                  <div className="metric-number fw-extrabold" style={{ color: '#0f172a', fontSize: '1.3rem' }}>{stats.totalProducts}</div>
-                </div>
-                <div className="metric-icon-box rounded-3 d-flex align-items-center justify-content-center bg-info bg-opacity-10 text-info" style={{ width: '36px', height: '36px', fontSize: '1.1rem', backgroundColor: 'rgba(14, 165, 233, 0.1)', color: '#0ea5e9' }}>
-                  <i className="fa-solid fa-box"></i>
-                </div>
-              </div>
-            </div>
-            <div className="col-sm-6 col-xl-3">
-              <div className="metric-card p-3 rounded-3 shadow-sm border d-flex justify-content-between align-items-center" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc' }}>
-                <div className="metric-info">
-                  <h3 className="text-uppercase fw-semibold mb-0.5" style={{ fontSize: '0.7rem', letterSpacing: '0.5px', color: '#64748b' }}>Total Stock Value</h3>
-                  <div className="metric-number fw-extrabold" style={{ color: '#0f172a', fontSize: '1.3rem' }}>${stats.totalStockValue.toFixed(2)}</div>
-                </div>
-                <div className="metric-icon-box rounded-3 d-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success" style={{ width: '36px', height: '36px', fontSize: '1.1rem', backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
-                  <i className="fa-solid fa-coins"></i>
-                </div>
-              </div>
-            </div>
-            <div className="col-sm-6 col-xl-3">
-              <div className="metric-card p-3 rounded-3 shadow-sm border d-flex justify-content-between align-items-center" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc' }}>
-                <div className="metric-info">
-                  <h3 className="text-uppercase fw-semibold mb-0.5" style={{ fontSize: '0.7rem', letterSpacing: '0.5px', color: '#64748b' }}>Total Item Units</h3>
-                  <div className="metric-number fw-extrabold" style={{ color: '#0f172a', fontSize: '1.3rem' }}>{stats.totalItemUnits}</div>
-                </div>
-                <div className="metric-icon-box rounded-3 d-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary" style={{ width: '36px', height: '36px', fontSize: '1.1rem', backgroundColor: 'rgba(79, 70, 229, 0.1)', color: '#4f46e5' }}>
-                  <i className="fa-solid fa-boxes-stacked"></i>
-                </div>
-              </div>
-            </div>
-            <div className="col-sm-6 col-xl-3">
-              <div className="metric-card p-3 rounded-3 shadow-sm border d-flex justify-content-between align-items-center" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc' }}>
-                <div className="metric-info">
-                  <h3 className="text-uppercase fw-semibold mb-0.5" style={{ fontSize: '0.7rem', letterSpacing: '0.5px', color: '#64748b' }}>Low Stock Warns</h3>
-                  <div className="metric-number fw-extrabold" style={{ color: '#ef4444', fontSize: '1.3rem' }}>{stats.lowStockWarns}</div>
-                </div>
-                <div className="metric-icon-box rounded-3 d-flex align-items-center justify-content-center bg-danger bg-opacity-10 text-danger" style={{ width: '36px', height: '36px', fontSize: '1.1rem', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
-                  <i className="fa-solid fa-triangle-exclamation"></i>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Grid Row: Category Distribution & Valuation (Left) vs Monthly Revenue (Right) */}
-          <div className="row g-3 mb-3">
-            <div className="col-lg-8">
-              <div className="p-3 rounded-3 shadow-sm border h-100" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc' }}>
-                <div className="d-flex justify-content-between align-items-center mb-2.5">
-                  <div>
-                    <h3 className="fw-bold mb-0.5" style={{ fontSize: '0.92rem', color: '#0f172a' }}>Category Distribution & Valuation</h3>
-                    <p className="small mb-0" style={{ color: '#64748b', fontSize: '0.72rem' }}>Real-time asset valuation across your active segments</p>
-                  </div>
-                  <button className="btn btn-link text-info text-decoration-none p-0 fw-semibold" style={{ color: '#0ea5e9', fontSize: '0.75rem' }} onClick={() => triggerAlert('Categories', 'Manage category catalog details...')}>Manage Categories</button>
-                </div>
-
-                <div className="table-responsive">
-                  <table className="table align-middle table-hover-light">
-                    <thead>
-                      <tr className="small" style={{ color: '#475569' }}>
-                        <th>Category Name</th>
-                        <th>Products Count</th>
-                        <th>Total Units</th>
-                        <th>Asset Valuation</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {categoryValuation.length === 0 ? (
-                        <tr>
-                          <td colSpan="4" className="text-center py-4 text-secondary" style={{ color: '#64748b' }}>
-                            <i className="fa-regular fa-folder-open fa-2x mb-2 text-secondary opacity-30"></i>
-                            <p className="small mb-0" style={{ fontSize: '0.75rem' }}>No category details registered.</p>
-                          </td>
-                        </tr>
-                      ) : (
-                        categoryValuation.map((cat, idx) => (
-                          <tr key={idx}>
-                            <td className="fw-semibold" style={{ color: '#0f172a' }}>{cat.categoryName}</td>
-                            <td style={{ color: '#475569' }}>{cat.productsCount}</td>
-                            <td style={{ color: '#475569' }}>{cat.totalUnits}</td>
-                            <td className="fw-semibold text-info" style={{ color: '#0ea5e9' }}>${cat.assetValuation.toFixed(2)}</td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-
-            <div className="col-lg-4">
-              <div className="p-3 rounded-3 shadow-sm border h-100" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc' }}>
-                <div className="d-flex justify-content-between align-items-center mb-2.5">
-                  <div>
-                    <h3 className="fw-bold mb-0.5" style={{ fontSize: '0.92rem', color: '#0f172a' }}>Monthly Revenue</h3>
-                    <p className="small mb-0" style={{ color: '#64748b', fontSize: '0.72rem' }}>Historical monthly sales run-rate</p>
-                  </div>
-                  <button className="btn btn-link text-info text-decoration-none p-0 fw-semibold" style={{ color: '#0ea5e9', fontSize: '0.75rem' }} onClick={() => triggerAlert('Invoices', 'Viewing historical invoices records...')}>View Invoices</button>
-                </div>
-
-                <div className="table-responsive">
-                  <table className="table align-middle table-hover-light">
-                    <thead>
-                      <tr className="small" style={{ color: '#475569' }}>
-                        <th>Month</th>
-                        <th>Invoices</th>
-                        <th>Revenue</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {monthlyRevenue.length === 0 ? (
-                        <tr>
-                          <td colSpan="3" className="text-center py-4 text-secondary" style={{ color: '#64748b' }}>
-                            <i className="fa-regular fa-file-lines fa-2x mb-2 text-secondary opacity-30"></i>
-                            <p className="small mb-0" style={{ fontSize: '0.75rem' }}>No invoices recorded yet.</p>
-                          </td>
-                        </tr>
-                      ) : (
-                        monthlyRevenue.map((item, idx) => (
-                          <tr key={idx}>
-                            <td className="fw-semibold" style={{ color: '#0f172a' }}>{item.month}</td>
-                            <td style={{ color: '#475569' }}>{item.invoices}</td>
-                            <td className="fw-semibold text-success" style={{ color: '#10b981' }}>${item.revenue.toFixed(2)}</td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Grid Row: Low Stock Alerts (Left), Recent Activity (Middle), Quick Navigation (Right) */}
-          <div className="row g-3 mb-3">
-            
-            {/* Low Stock Alerts */}
-            <div className="col-lg-4">
-              <div className="p-3 rounded-3 shadow-sm border h-100" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc' }}>
-                <div className="d-flex justify-content-between align-items-center mb-2.5">
-                  <h3 className="fw-bold mb-0" style={{ fontSize: '0.92rem', color: '#0f172a' }}>Low Stock Alerts</h3>
-                  <button className="btn btn-link text-info text-decoration-none p-0 fw-semibold" style={{ color: '#0ea5e9', fontSize: '0.75rem' }} onClick={() => triggerAlert('Alerts', 'Viewing all stock level warnings...')}>View All</button>
-                </div>
-                
-                {lowStockAlerts.length === 0 ? (
-                  <div className="text-center py-4 text-success" style={{ color: '#10b981' }}>
-                    <i className="fa-solid fa-circle-check fa-2x mb-2"></i>
-                    <p className="small mb-0 fw-semibold" style={{ fontSize: '0.75rem' }}>No low stock alerts</p>
-                  </div>
-                ) : (
-                  <div className="d-flex flex-column gap-2">
-                    {lowStockAlerts.map(alertItem => (
-                      <div key={alertItem._id} className="p-2 rounded-3 d-flex justify-content-between align-items-center" style={{ backgroundColor: '#f8fafc', border: '1px solid #bae6fd' }}>
-                        <div>
-                          <div className="fw-bold" style={{ fontSize: '0.78rem', color: '#0f172a' }}>{alertItem.name}</div>
-                          <div className="font-monospace" style={{ fontSize: '0.65rem', color: '#64748b' }}>SKU: {alertItem.sku}</div>
-                        </div>
-                        <div className="text-end">
-                          <span className="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-20 px-2 py-0.5" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.2)', fontSize: '0.7rem' }}>
-                            {alertItem.quantity} / {alertItem.reorder_level} {alertItem.unit}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Recent Activity */}
-            <div className="col-lg-4">
-              <div className="p-3 rounded-3 shadow-sm border h-100" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc' }}>
-                <div className="d-flex justify-content-between align-items-center mb-2.5">
-                  <h3 className="fw-bold mb-0" style={{ fontSize: '0.92rem', color: '#0f172a' }}>Recent Activity</h3>
-                  <div className="d-flex gap-1.5">
-                    <button 
-                      className={`btn btn-sm ${recentActivityTab === 'sales' ? 'btn-premium-primary text-white fw-bold' : 'border-0'}`}
-                      style={recentActivityTab === 'sales' ? { borderRadius: '6px', fontSize: '0.72rem', padding: '0.2rem 0.55rem' } : { backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.72rem', padding: '0.2rem 0.55rem' }}
-                      onClick={() => { setRecentActivityTab('sales'); }}
-                    >
-                      Sales
-                    </button>
-                    <button 
-                      className={`btn btn-sm ${recentActivityTab === 'purchases' ? 'btn-premium-primary text-white fw-bold' : 'border-0'}`}
-                      style={recentActivityTab === 'purchases' ? { borderRadius: '6px', fontSize: '0.72rem', padding: '0.2rem 0.55rem' } : { backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.72rem', padding: '0.2rem 0.55rem' }}
-                      onClick={() => { setRecentActivityTab('purchases'); }}
-                    >
-                      Purchases
-                    </button>
-                  </div>
-                </div>
-
-                {recentActivityTab === 'sales' ? (
-                  recentSales.length === 0 ? (
-                    <div className="text-center py-4 text-secondary" style={{ color: '#64748b' }}>
-                      <i className="fa-solid fa-receipt fa-2x mb-1.5 opacity-30"></i>
-                      <p className="small mb-0" style={{ fontSize: '0.75rem' }}>No recent sales activity</p>
-                    </div>
-                  ) : (
-                    <div className="d-flex flex-column gap-1.5">
-                      {recentSales.map(sale => (
-                        <div key={sale._id} className="d-flex justify-content-between align-items-center py-1.5" style={{ borderBottom: '1px solid #bae6fd' }}>
-                          <div>
-                            <div className="fw-bold" style={{ fontSize: '0.78rem', color: '#0f172a' }}>{sale.invoice_number}</div>
-                            <div style={{ fontSize: '0.7rem', color: '#475569' }}>{sale.customer_name}</div>
-                          </div>
-                          <div className="text-end">
-                            <div className="fw-semibold text-success" style={{ color: '#10b981', fontSize: '0.78rem' }}>${sale.grand_total.toFixed(2)}</div>
-                            <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{new Date(sale.sale_date).toLocaleDateString()}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )
-                ) : (
-                  recentPurchases.length === 0 ? (
-                    <div className="text-center py-4 text-secondary" style={{ color: '#64748b' }}>
-                      <i className="fa-solid fa-cart-shopping fa-2x mb-1.5 opacity-30"></i>
-                      <p className="small mb-0" style={{ fontSize: '0.75rem' }}>No recent purchases activity</p>
-                    </div>
-                  ) : (
-                    <div className="d-flex flex-column gap-1.5">
-                      {recentPurchases.map(purchase => (
-                        <div key={purchase._id} className="d-flex justify-content-between align-items-center py-1.5" style={{ borderBottom: '1px solid #bae6fd' }}>
-                          <div>
-                            <div className="fw-bold" style={{ fontSize: '0.78rem', color: '#0f172a' }}>{purchase.purchase_number}</div>
-                            <div style={{ fontSize: '0.7rem', color: '#475569' }}>{purchase.supplier_name}</div>
-                          </div>
-                          <div className="text-end">
-                            <div className="fw-semibold text-info" style={{ color: '#0284c7', fontSize: '0.78rem' }}>${purchase.grand_total.toFixed(2)}</div>
-                            <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{new Date(purchase.purchase_date).toLocaleDateString()}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )
-                )}
-              </div>
-            </div>
-
-            {/* Quick Navigation */}
-            <div className="col-lg-4">
-              <div className="p-3 rounded-3 shadow-sm border h-100" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc' }}>
-                <h3 className="fw-bold mb-2.5" style={{ fontSize: '0.92rem', color: '#0f172a' }}>Quick Navigation</h3>
-                <div className="quick-action-grid" style={{ gap: '8px' }}>
-                  <button className="quick-action-item border-0" onClick={() => triggerAlert('Navigation', 'Redirecting to add new product catalog page...')}>
-                    <i className="fa-solid fa-square-plus" style={{ color: '#a855f7' }}></i>
-                    Add Product
-                  </button>
-                  <button className="quick-action-item border-0" onClick={() => triggerAlert('Navigation', 'Redirecting to POS checkout sale billing page...')}>
-                    <i className="fa-solid fa-cart-shopping" style={{ color: '#3b82f6' }}></i>
-                    New Sale
-                  </button>
-                  <button className="quick-action-item border-0" onClick={() => triggerAlert('Navigation', 'Redirecting to record purchase inventory list...')}>
-                    <i className="fa-solid fa-file-circle-check" style={{ color: '#10b981' }}></i>
-                    New Purchase
-                  </button>
-                  <button className="quick-action-item border-0" onClick={() => triggerAlert('Navigation', 'Redirecting to add customer profiling record...')}>
-                    <i className="fa-solid fa-user-plus" style={{ color: '#64748b' }}></i>
-                    Add Customer
-                  </button>
-                  <button className="quick-action-item border-0" onClick={() => triggerAlert('Navigation', 'Redirecting to register supplier profile form...')}>
-                    <i className="fa-solid fa-truck-field" style={{ color: '#f59e0b' }}></i>
-                    Add Supplier
-                  </button>
-                  <button className="quick-action-item border-0" onClick={() => triggerAlert('Navigation', 'Redirecting to view overall ledger reports...')}>
-                    <i className="fa-solid fa-file-invoice-dollar" style={{ color: '#ef4444' }}></i>
-                    View Reports
-                  </button>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-          {/* Post Shop Feedback (Bottom Card) */}
-          <div className="row">
-            <div className="col-12">
-              <div className="p-3 rounded-3 shadow-sm border" style={{ backgroundColor: '#ffffff', borderColor: '#7dd3fc' }}>
-                <h3 className="fw-bold mb-1" style={{ fontSize: '1.05rem', color: '#0f172a' }}><i className="fa-solid fa-star text-warning me-1.5"></i>Post Shop Feedback</h3>
-                <p className="small mb-3" style={{ color: '#64748b', fontSize: '0.75rem' }}>Share your review about Zero Inventory Management. Your review will publish directly to the landing page "Purchased Shops" feedback list.</p>
-                
-                <form onSubmit={handleFeedbackSubmit}>
-                  <div className="row g-2 mb-2">
-                    <div className="col-md-6">
-                      <div className="form-group mb-0">
-                        <label className="form-label mb-1" style={{ fontSize: '0.72rem', color: '#475569' }}>Your Shop Name</label>
-                        <input 
-                          type="text" 
-                          className="form-control-premium-dark" 
-                          placeholder="e.g. Apex Apparel Ltd" 
-                          value={shopName}
-                          onChange={(e) => setShopName(e.target.value)}
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div className="col-md-6">
-                      <div className="form-group mb-0">
-                        <label className="form-label mb-1" style={{ fontSize: '0.72rem', color: '#475569' }}>Rating (1 to 5 Stars)</label>
-                        <select 
-                          className="form-control-premium-dark" 
-                          value={rating}
-                          onChange={(e) => setRating(e.target.value)}
-                        >
-                          <option value="5">5 Stars (Excellent)</option>
-                          <option value="4">4 Stars (Good)</option>
-                          <option value="3">3 Stars (Average)</option>
-                          <option value="2">2 Stars (Poor)</option>
-                          <option value="1">1 Star (Very Bad)</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="form-group mb-3">
-                    <label className="form-label mb-1" style={{ fontSize: '0.72rem', color: '#475569' }}>Comment / Review</label>
-                    <textarea 
-                      className="form-control-premium-dark" 
-                      style={{ minHeight: '65px' }}
-                      placeholder="Share your success story using this software..."
-                      value={commentText}
-                      onChange={(e) => setCommentText(e.target.value)}
-                      required
-                    ></textarea>
-                  </div>
-
-                  <div className="text-end">
-                    <button type="submit" className="btn btn-premium-primary px-3 py-1.5" style={{ fontSize: '0.78rem' }}>
-                      <i className="fa-solid fa-paper-plane me-1.5"></i>Publish Review
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-
+          )}
         </div>
 
       </main>
