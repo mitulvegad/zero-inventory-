@@ -254,62 +254,62 @@ const DashboardPage = () => {
         <div className="sidebar-nav-container" style={{ flexGrow: 1, overflowY: 'auto', padding: '0.85rem 0.85rem 0 0.85rem' }}>
           <ul className="sidebar-nav-list" style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.55rem', margin: 0 }}>
             <li className="sidebar-nav-item active" style={{ display: 'block' }}>
-              <a href="#dashboard" onClick={() => playSynthSound('click')} className="text-info d-flex align-items-center gap-2.5 rounded text-decoration-none" style={{ backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9' }}>
+              <a href="#dashboard" onClick={() => playSynthSound('click')} className="text-info d-flex align-items-center gap-2 rounded text-decoration-none" style={{ backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' }}>
                 <i className="fa-solid fa-house text-info" style={{ color: '#0ea5e9', width: '18px', fontSize: '0.95rem' }}></i> Dashboard
               </a>
             </li>
             <li className="sidebar-nav-item">
-              <a href="#billing" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
+              <a href="#billing" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
                 <i className="fa-solid fa-file-invoice" style={{ width: '18px', fontSize: '0.95rem' }}></i> Generate Bill
               </a>
             </li>
             <li className="sidebar-nav-item">
-              <a href="#products" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
+              <a href="#products" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
                 <i className="fa-solid fa-box-open" style={{ width: '18px', fontSize: '0.95rem' }}></i> Products
               </a>
             </li>
             <li className="sidebar-nav-item">
-              <a href="#sales" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
+              <a href="#sales" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
                 <i className="fa-solid fa-chart-line" style={{ width: '18px', fontSize: '0.95rem' }}></i> Sales
               </a>
             </li>
             <li className="sidebar-nav-item">
-              <a href="#purchases" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
+              <a href="#purchases" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
                 <i className="fa-solid fa-cart-shopping" style={{ width: '18px', fontSize: '0.95rem' }}></i> Purchases
               </a>
             </li>
             <li className="sidebar-nav-item">
-              <a href="#inventory" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
+              <a href="#inventory" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
                 <i className="fa-solid fa-warehouse" style={{ width: '18px', fontSize: '0.95rem' }}></i> Inventory
               </a>
             </li>
             <li className="sidebar-nav-item">
-              <a href="#categories" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
+              <a href="#categories" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
                 <i className="fa-solid fa-tags" style={{ width: '18px', fontSize: '0.95rem' }}></i> Categories
               </a>
             </li>
             <li className="sidebar-nav-item">
-              <a href="#suppliers" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
+              <a href="#suppliers" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
                 <i className="fa-solid fa-truck-field" style={{ width: '18px', fontSize: '0.95rem' }}></i> Suppliers
               </a>
             </li>
             <li className="sidebar-nav-item">
-              <a href="#customers" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
+              <a href="#customers" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
                 <i className="fa-solid fa-users" style={{ width: '18px', fontSize: '0.95rem' }}></i> Customers
               </a>
             </li>
             <li className="sidebar-nav-item">
-              <a href="#reports" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
+              <a href="#reports" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
                 <i className="fa-solid fa-chart-pie" style={{ width: '18px', fontSize: '0.95rem' }}></i> Reports
               </a>
             </li>
             <li className="sidebar-nav-item">
-              <a href="#billing-subscription" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
+              <a href="#billing-subscription" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
                 <i className="fa-solid fa-credit-card" style={{ width: '18px', fontSize: '0.95rem' }}></i> Billing & Subscription
               </a>
             </li>
             <li className="sidebar-nav-item">
-              <a href="#settings" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
+              <a href="#settings" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
                 <i className="fa-solid fa-gear" style={{ width: '18px', fontSize: '0.95rem' }}></i> Settings
               </a>
             </li>
