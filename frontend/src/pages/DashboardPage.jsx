@@ -81,12 +81,227 @@ const DashboardPage = () => {
   const [itemSearch, setItemSearch] = useState('');
 
   const [inventoryProducts, setInventoryProducts] = useState([
-    { id: '1', sku: 'PROD-TSHIRT-01', name: 'Cotton Premium T-Shirt', quantity: 45, price: 19.99, taxRate: 5 },
-    { id: '2', sku: 'PROD-MOUSE-02', name: 'Wireless Ergonomic Mouse', quantity: 28, price: 29.99, taxRate: 12 },
-    { id: '3', sku: 'PROD-HEAD-03', name: 'Noise Cancelling Headphones', quantity: 12, price: 99.99, taxRate: 18 },
-    { id: '4', sku: 'PROD-KEYB-04', name: 'Mechanical RGB Keyboard', quantity: 18, price: 59.99, taxRate: 18 },
-    { id: '5', sku: 'PROD-BACK-05', name: 'Waterproof Laptop Backpack', quantity: 30, price: 39.99, taxRate: 12 }
+    { id: '1', sku: 'PROD-TSHIRT-01', name: 'Cotton Premium T-Shirt', category: 'Clothing', brand: 'Apex', purchasePrice: 10.00, price: 19.99, quantity: 45, reorderLevel: 10, unit: 'Piece', taxRate: 5, imageUrl: '', description: 'Premium quality cotton t-shirt.' },
+    { id: '2', sku: 'PROD-MOUSE-02', name: 'Wireless Ergonomic Mouse', category: 'Electronics', brand: 'Logitech', purchasePrice: 15.00, price: 29.99, quantity: 28, reorderLevel: 10, unit: 'Piece', taxRate: 12, imageUrl: '', description: 'Ergonomic wireless office mouse.' },
+    { id: '3', sku: 'PROD-HEAD-03', name: 'Noise Cancelling Headphones', category: 'Electronics', brand: 'Sony', purchasePrice: 50.00, price: 99.99, quantity: 12, reorderLevel: 10, unit: 'Piece', taxRate: 18, imageUrl: '', description: 'Wireless active noise cancellation headphones.' },
+    { id: '4', sku: 'PROD-KEYB-04', name: 'Mechanical RGB Keyboard', category: 'Electronics', brand: 'Keychron', purchasePrice: 30.00, price: 59.99, quantity: 18, reorderLevel: 10, unit: 'Piece', taxRate: 18, imageUrl: '', description: 'Mechanical RGB gaming keyboard.' },
+    { id: '5', sku: 'PROD-BACK-05', name: 'Waterproof Laptop Backpack', category: 'Clothing', brand: 'Targus', purchasePrice: 20.00, price: 39.99, quantity: 30, reorderLevel: 10, unit: 'Piece', taxRate: 12, imageUrl: '', description: 'Waterproof multi-compartment backpack.' }
   ]);
+
+  // Inventory Filtering & Add Product Page States
+  const [headerSearch, setHeaderSearch] = useState('');
+  const [productsSubView, setProductsSubView] = useState('list'); // 'list' or 'add'
+  const [editingProductId, setEditingProductId] = useState(null);
+  
+  const [inventorySearch, setInventorySearch] = useState('');
+  const [inventoryCategoryFilter, setInventoryCategoryFilter] = useState('All');
+  const [inventoryStockFilter, setInventoryStockFilter] = useState('All');
+  const [appliedFilters, setAppliedFilters] = useState({ search: '', category: 'All', stock: 'All' });
+
+  // Add Product Form States
+  const [newProdName, setNewProdName] = useState('');
+  const [newProdSku, setNewProdSku] = useState('');
+  const [newProdCategory, setNewProdCategory] = useState('');
+  const [newProdBrand, setNewProdBrand] = useState('');
+  const [newProdPurchasePrice, setNewProdPurchasePrice] = useState('');
+  const [newProdSellingPrice, setNewProdSellingPrice] = useState('');
+  const [newProdStockQuantity, setNewProdStockQuantity] = useState('');
+  const [newProdReorderLevel, setNewProdReorderLevel] = useState('10');
+  const [newProdUnit, setNewProdUnit] = useState('Piece');
+  const [newProdTax, setNewProdTax] = useState('0');
+  const [newProdDescription, setNewProdDescription] = useState('');
+  const [newProdImage, setNewProdImage] = useState(null);
+  const [newProdDragOver, setNewProdDragOver] = useState(false);
+
+  const handleApplyFilters = () => {
+    playSynthSound('click');
+    setAppliedFilters({
+      search: inventorySearch,
+      category: inventoryCategoryFilter,
+      stock: inventoryStockFilter
+    });
+  };
+
+  const handleRefreshFilters = () => {
+    playSynthSound('click');
+    setInventorySearch('');
+    setInventoryCategoryFilter('All');
+    setInventoryStockFilter('All');
+    setAppliedFilters({ search: '', category: 'All', stock: 'All' });
+    setHeaderSearch('');
+  };
+
+  // Drag and Drop File Handlers
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setNewProdDragOver(true);
+  };
+
+  const handleDragLeave = () => {
+    setNewProdDragOver(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setNewProdDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      handleFileLoad(file);
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      handleFileLoad(file);
+    }
+  };
+
+  const handleFileLoad = (file) => {
+    if (file.size > 2 * 1024 * 1024) {
+      triggerAlert('File Too Large', 'Maximum image size allowed is 2MB.', 'error');
+      return;
+    }
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      triggerAlert('Invalid File Type', 'Please upload a JPG, PNG, or WEBP image file.', 'error');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setNewProdImage(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveImage = () => {
+    playSynthSound('click');
+    setNewProdImage(null);
+  };
+
+  const handleResetForm = () => {
+    setNewProdName('');
+    setNewProdSku('');
+    setNewProdCategory('');
+    setNewProdBrand('');
+    setNewProdPurchasePrice('');
+    setNewProdSellingPrice('');
+    setNewProdStockQuantity('');
+    setNewProdReorderLevel('10');
+    setNewProdUnit('Piece');
+    setNewProdTax('0');
+    setNewProdDescription('');
+    setNewProdImage(null);
+  };
+
+  const handleCancel = () => {
+    playSynthSound('click');
+    setProductsSubView('list');
+    setEditingProductId(null);
+    handleResetForm();
+  };
+
+  const handleEditProduct = (product) => {
+    playSynthSound('click');
+    setEditingProductId(product.id);
+    setNewProdName(product.name);
+    setNewProdSku(product.sku);
+    setNewProdCategory(product.category || '');
+    setNewProdBrand(product.brand || '');
+    setNewProdPurchasePrice(product.purchasePrice?.toString() || '');
+    setNewProdSellingPrice(product.price?.toString() || '');
+    setNewProdStockQuantity(product.quantity?.toString() || '');
+    setNewProdReorderLevel(product.reorderLevel?.toString() || '10');
+    setNewProdUnit(product.unit || 'Piece');
+    setNewProdTax(product.taxRate?.toString() || '0');
+    setNewProdDescription(product.description || '');
+    setNewProdImage(product.imageUrl || null);
+    setProductsSubView('add');
+  };
+
+  const handleDeleteProduct = (productId) => {
+    playSynthSound('click');
+    setInventoryProducts(inventoryProducts.filter(p => p.id !== productId));
+    triggerAlert('Product Deleted', 'Product has been deleted successfully from your inventory!', 'success');
+  };
+
+  const handleSaveProduct = (e) => {
+    e.preventDefault();
+
+    if (!newProdName || !newProdSku || !newProdCategory || !newProdPurchasePrice || !newProdSellingPrice || !newProdStockQuantity) {
+      triggerAlert('Required Info', 'Please fill in all required fields marked with a red asterisk.', 'error');
+      return;
+    }
+
+    const purchase = parseFloat(newProdPurchasePrice) || 0;
+    const selling = parseFloat(newProdSellingPrice) || 0;
+    const qty = parseInt(newProdStockQuantity) || 0;
+    const reorder = parseInt(newProdReorderLevel) || 10;
+    const tax = parseFloat(newProdTax) || 0;
+
+    if (editingProductId) {
+      setInventoryProducts(inventoryProducts.map(p => 
+        p.id === editingProductId ? {
+          ...p,
+          name: newProdName,
+          sku: newProdSku,
+          category: newProdCategory,
+          brand: newProdBrand,
+          purchasePrice: purchase,
+          price: selling,
+          quantity: qty,
+          reorderLevel: reorder,
+          unit: newProdUnit,
+          taxRate: tax,
+          description: newProdDescription,
+          imageUrl: newProdImage || ''
+        } : p
+      ));
+      triggerAlert('Product Updated', 'Product has been updated successfully in your inventory!', 'success');
+    } else {
+      const newProd = {
+        id: (inventoryProducts.length + 1).toString(),
+        name: newProdName,
+        sku: newProdSku,
+        category: newProdCategory,
+        brand: newProdBrand,
+        purchasePrice: purchase,
+        price: selling,
+        quantity: qty,
+        reorderLevel: reorder,
+        unit: newProdUnit,
+        taxRate: tax,
+        description: newProdDescription,
+        imageUrl: newProdImage || ''
+      };
+      setInventoryProducts([newProd, ...inventoryProducts]);
+      triggerAlert('Product Added', 'New product has been added successfully to your inventory!', 'success');
+    }
+
+    setProductsSubView('list');
+    setEditingProductId(null);
+    handleResetForm();
+  };
+
+  const filteredProducts = inventoryProducts.filter(p => {
+    const searchMatch = !appliedFilters.search || 
+      p.name.toLowerCase().includes(appliedFilters.search.toLowerCase()) ||
+      p.sku.toLowerCase().includes(appliedFilters.search.toLowerCase()) ||
+      (p.brand && p.brand.toLowerCase().includes(appliedFilters.search.toLowerCase()));
+
+    const categoryMatch = appliedFilters.category === 'All' || p.category === appliedFilters.category;
+
+    let stockMatch = true;
+    if (appliedFilters.stock === 'In Stock') {
+      stockMatch = p.quantity >= 10;
+    } else if (appliedFilters.stock === 'Low Stock') {
+      stockMatch = p.quantity > 0 && p.quantity < 10;
+    } else if (appliedFilters.stock === 'Out of Stock') {
+      stockMatch = p.quantity <= 0;
+    }
+
+    return searchMatch && categoryMatch && stockMatch;
+  });
 
   const billingSubtotal = selectedProducts.reduce((sum, p) => sum + (p.price * p.qtyToSell), 0);
   const billingTaxAmount = selectedProducts.reduce((sum, p) => sum + (p.price * p.qtyToSell * (p.taxRate / 100)), 0);
@@ -477,7 +692,20 @@ const DashboardPage = () => {
             <button className="btn p-0 text-secondary border-0 d-lg-none" id="sidebarToggle"><i className="fa-solid fa-bars fs-5"></i></button>
             <div className="header-search-box d-none d-lg-flex align-items-center px-2.5 py-0.5 rounded-pill" style={{ backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0', width: '250px' }}>
               <i className="fa-solid fa-magnifying-glass text-secondary me-1.5" style={{ color: '#64748b', fontSize: '0.8rem' }}></i>
-              <input type="text" className="bg-transparent border-0 outline-none" style={{ fontSize: '0.78rem', width: '100%', color: '#0f172a' }} placeholder="Search for products, customers..." />
+              <input 
+                type="text" 
+                className="bg-transparent border-0 outline-none" 
+                style={{ fontSize: '0.78rem', width: '100%', color: '#0f172a' }} 
+                placeholder="Search SKU, name, brand, category..." 
+                value={headerSearch}
+                onChange={(e) => {
+                  setHeaderSearch(e.target.value);
+                  if (activeTab === 'products') {
+                    setInventorySearch(e.target.value);
+                    setAppliedFilters(prev => ({ ...prev, search: e.target.value }));
+                  }
+                }}
+              />
             </div>
           </div>
 
@@ -1221,8 +1449,495 @@ const DashboardPage = () => {
             </div>
           )}
 
+          {/* Render Products Tab */}
+          {activeTab === 'products' && (
+            <div className="products-view animate-fade-in" style={{ animation: 'fadeIn 0.25s ease-out' }}>
+              {productsSubView === 'list' ? (
+                /* PAGE 1: Products Inventory List View */
+                <>
+                  {/* Title Banner */}
+                  <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+                    <div>
+                      <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Products Inventory</h1>
+                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
+                        <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setActiveTab('dashboard')}>Dashboard</span>
+                        <span className="text-secondary">/</span>
+                        <span className="fw-semibold">Products</span>
+                      </div>
+                    </div>
+                    <button 
+                      className="btn text-white fw-semibold d-flex align-items-center gap-1.5 shadow-sm border-0" 
+                      style={{ backgroundColor: '#007BFF', padding: '0.45rem 1.15rem', borderRadius: '6px', fontSize: '0.75rem' }} 
+                      onClick={() => {
+                        playSynthSound('click');
+                        setEditingProductId(null);
+                        handleResetForm();
+                        setProductsSubView('add');
+                      }}
+                    >
+                      <i className="fa-solid fa-plus"></i> Add New Product
+                    </button>
+                  </div>
+
+                  {/* Filter Panel */}
+                  <div className="p-3 rounded-3 shadow-sm border bg-white mb-3" style={{ borderColor: '#cbd5e1' }}>
+                    <div className="row g-3 align-items-end">
+                      <div className="col-md-4 col-sm-12">
+                        <label className="form-label mb-1.5 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Search Product</label>
+                        <div className="position-relative">
+                          <i className="fa-solid fa-magnifying-glass text-secondary position-absolute" style={{ left: '0.75rem', top: '50%', transform: 'translateY(-50%)', fontSize: '0.8rem', color: '#64748b' }}></i>
+                          <input 
+                            type="text" 
+                            className="form-control-premium-dark" 
+                            style={{ paddingLeft: '2.1rem' }} 
+                            placeholder="Search SKU, name, brand..." 
+                            value={inventorySearch}
+                            onChange={(e) => setInventorySearch(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <div className="col-md-3 col-sm-6">
+                        <label className="form-label mb-1.5 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Category Filter</label>
+                        <select 
+                          className="form-control-premium-dark" 
+                          value={inventoryCategoryFilter}
+                          onChange={(e) => setInventoryCategoryFilter(e.target.value)}
+                        >
+                          <option value="All">All Categories</option>
+                          <option value="Electronics">Electronics</option>
+                          <option value="Clothing">Clothing</option>
+                          <option value="Accessories">Accessories</option>
+                        </select>
+                      </div>
+                      <div className="col-md-3 col-sm-6">
+                        <label className="form-label mb-1.5 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Stock Status</label>
+                        <select 
+                          className="form-control-premium-dark" 
+                          value={inventoryStockFilter}
+                          onChange={(e) => setInventoryStockFilter(e.target.value)}
+                        >
+                          <option value="All">All stock levels</option>
+                          <option value="In Stock">In Stock</option>
+                          <option value="Low Stock">Low Stock</option>
+                          <option value="Out of Stock">Out of Stock</option>
+                        </select>
+                      </div>
+                      <div className="col-md-2 col-sm-12 d-flex gap-2">
+                        <button 
+                          className="btn text-white fw-semibold w-100 border-0" 
+                          style={{ backgroundColor: '#007BFF', fontSize: '0.75rem', borderRadius: '6px', height: '35px' }}
+                          onClick={handleApplyFilters}
+                        >
+                          Filter
+                        </button>
+                        <button 
+                          className="btn btn-outline-secondary d-flex align-items-center justify-content-center" 
+                          style={{ width: '35px', height: '35px', borderRadius: '6px', backgroundColor: '#ffffff', borderColor: '#cbd5e1' }}
+                          onClick={handleRefreshFilters}
+                          title="Refresh Filters"
+                        >
+                          <i className="fa-solid fa-rotate"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Data Table */}
+                  <div className="p-3 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#cbd5e1' }}>
+                    <div className="table-responsive">
+                      {filteredProducts.length === 0 ? (
+                        <div className="d-flex flex-column align-items-center justify-content-center py-5 text-center">
+                          <i className="fa-regular fa-folder-open text-muted mb-2.5" style={{ fontSize: '3rem', color: '#cbd5e1', opacity: '0.6' }}></i>
+                          <p className="mb-0 text-secondary" style={{ fontSize: '0.78rem', maxWidth: '320px', lineHeight: '1.4' }}>
+                            No products found matching filters.
+                          </p>
+                        </div>
+                      ) : (
+                        <table className="table align-middle table-hover-light">
+                          <thead>
+                            <tr className="small text-secondary" style={{ fontSize: '0.72rem', borderBottom: '2px solid #e2e8f0' }}>
+                              <th>Product Info</th>
+                              <th>SKU Code</th>
+                              <th>Category</th>
+                              <th>Brand</th>
+                              <th>Purchase Price</th>
+                              <th>Selling Price</th>
+                              <th>Quantity</th>
+                              <th>Status</th>
+                              <th className="text-center">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {filteredProducts.map(product => (
+                              <tr key={product.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                <td>
+                                  <div className="d-flex align-items-center gap-2">
+                                    {product.imageUrl ? (
+                                      <img src={product.imageUrl} alt={product.name} style={{ width: '32px', height: '32px', borderRadius: '4px', objectFit: 'cover' }} />
+                                    ) : (
+                                      <div className="d-flex align-items-center justify-content-center rounded text-secondary" style={{ width: '32px', height: '32px', fontSize: '0.85rem', backgroundColor: '#f1f5f9', color: '#64748b' }}>
+                                        <i className="fa-solid fa-box"></i>
+                                      </div>
+                                    )}
+                                    <span className="fw-semibold text-dark" style={{ fontSize: '0.78rem' }}>{product.name}</span>
+                                  </div>
+                                </td>
+                                <td className="font-monospace text-secondary" style={{ fontSize: '0.75rem' }}>{product.sku}</td>
+                                <td style={{ fontSize: '0.75rem', color: '#475569' }}>{product.category || 'N/A'}</td>
+                                <td style={{ fontSize: '0.75rem', color: '#475569' }}>{product.brand || 'N/A'}</td>
+                                <td className="fw-semibold text-dark" style={{ fontSize: '0.78rem' }}>${(product.purchasePrice || 0).toFixed(2)}</td>
+                                <td className="fw-semibold text-dark" style={{ fontSize: '0.78rem' }}>${(product.price || 0).toFixed(2)}</td>
+                                <td style={{ fontSize: '0.75rem', color: '#475569' }}>{product.quantity} pcs</td>
+                                <td>
+                                  <span className={`badge ${product.quantity <= 0 ? 'bg-danger text-danger' : product.quantity < (product.reorderLevel || 10) ? 'bg-warning text-warning' : 'bg-success text-success'} bg-opacity-10 border border-opacity-20`} style={{ fontSize: '0.68rem', borderColor: 'currentColor' }}>
+                                    {product.quantity <= 0 ? 'Out of Stock' : product.quantity < (product.reorderLevel || 10) ? 'Low Stock' : 'In Stock'}
+                                  </span>
+                                </td>
+                                <td className="text-center">
+                                  <div className="d-flex align-items-center justify-content-center gap-2">
+                                    <button 
+                                      type="button" 
+                                      className="btn btn-link text-primary p-0 border-0" 
+                                      onClick={() => handleEditProduct(product)}
+                                      title="Edit Product"
+                                    >
+                                      <i className="fa-regular fa-pen-to-square" style={{ fontSize: '0.85rem' }}></i>
+                                    </button>
+                                    <button 
+                                      type="button" 
+                                      className="btn btn-link text-danger p-0 border-0" 
+                                      onClick={() => handleDeleteProduct(product.id)}
+                                      title="Delete Product"
+                                    >
+                                      <i className="fa-solid fa-trash-can" style={{ fontSize: '0.85rem' }}></i>
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                /* PAGE 2: Add / Edit Product View */
+                <>
+                  {/* Title Banner */}
+                  <div className="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                      <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>{editingProductId ? 'Edit Product' : 'Add New Product'}</h1>
+                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
+                        <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setActiveTab('dashboard')}>Dashboard</span>
+                        <span className="text-secondary">/</span>
+                        <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setProductsSubView('list')}>Products</span>
+                        <span className="text-secondary">/</span>
+                        <span className="fw-semibold">{editingProductId ? 'Edit Product' : 'Add New Product'}</span>
+                      </div>
+                    </div>
+                    <button 
+                      className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1.5 px-3 py-1.5 fw-semibold" 
+                      style={{ fontSize: '0.75rem', borderRadius: '6px', backgroundColor: '#ffffff', borderColor: '#cbd5e1', color: '#475569' }} 
+                      onClick={handleCancel}
+                    >
+                      <i className="fa-solid fa-arrow-left"></i> Back to Products
+                    </button>
+                  </div>
+
+                  {/* Main Grid */}
+                  <div className="row g-3">
+                    {/* Left Form Column */}
+                    <div className="col-lg-8 col-md-12">
+                      <div className="p-3 rounded-3 shadow-sm border bg-white h-100" style={{ borderColor: '#cbd5e1' }}>
+                        <h3 className="fw-bold mb-2 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '0.92rem', color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem', marginBottom: '1.15rem' }}>
+                          <i className="fa-solid fa-box text-primary me-2" style={{ color: '#007BFF' }}></i> Product Information
+                        </h3>
+
+                        <form onSubmit={handleSaveProduct}>
+                          <div className="row g-3 mb-3">
+                            <div className="col-md-6">
+                              <label className="form-label mb-1 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Product Name <span className="text-danger">*</span></label>
+                              <input 
+                                type="text" 
+                                className="form-control-premium-dark" 
+                                placeholder="Enter product name" 
+                                value={newProdName}
+                                onChange={(e) => setNewProdName(e.target.value)}
+                                required 
+                              />
+                            </div>
+                            <div className="col-md-6">
+                              <label className="form-label mb-1 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>SKU / Product Code <span className="text-danger">*</span></label>
+                              <input 
+                                type="text" 
+                                className="form-control-premium-dark" 
+                                placeholder="Enter SKU or product code" 
+                                value={newProdSku}
+                                onChange={(e) => setNewProdSku(e.target.value)}
+                                required 
+                              />
+                            </div>
+                          </div>
+
+                          <div className="row g-3 mb-3">
+                            <div className="col-md-6">
+                              <label className="form-label mb-1 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Category <span className="text-danger">*</span></label>
+                              <select 
+                                className="form-control-premium-dark" 
+                                value={newProdCategory}
+                                onChange={(e) => setNewProdCategory(e.target.value)}
+                                required
+                              >
+                                <option value="">Select category</option>
+                                <option value="Electronics">Electronics</option>
+                                <option value="Clothing">Clothing</option>
+                                <option value="Accessories">Accessories</option>
+                              </select>
+                            </div>
+                            <div className="col-md-6">
+                              <label className="form-label mb-1 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Brand</label>
+                              <input 
+                                type="text" 
+                                className="form-control-premium-dark" 
+                                placeholder="Enter brand name" 
+                                value={newProdBrand}
+                                onChange={(e) => setNewProdBrand(e.target.value)}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="row g-3 mb-3">
+                            <div className="col-md-6">
+                              <label className="form-label mb-1 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Purchase Price ($) <span className="text-danger">*</span></label>
+                              <input 
+                                type="number" 
+                                step="0.01"
+                                className="form-control-premium-dark" 
+                                placeholder="Enter purchase price" 
+                                value={newProdPurchasePrice}
+                                onChange={(e) => setNewProdPurchasePrice(e.target.value)}
+                                required 
+                              />
+                            </div>
+                            <div className="col-md-6">
+                              <label className="form-label mb-1 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Selling Price ($) <span className="text-danger">*</span></label>
+                              <input 
+                                type="number" 
+                                step="0.01"
+                                className="form-control-premium-dark" 
+                                placeholder="Enter selling price" 
+                                value={newProdSellingPrice}
+                                onChange={(e) => setNewProdSellingPrice(e.target.value)}
+                                required 
+                              />
+                            </div>
+                          </div>
+
+                          <div className="row g-3 mb-3">
+                            <div className="col-md-6">
+                              <label className="form-label mb-1 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Stock Quantity <span className="text-danger">*</span></label>
+                              <input 
+                                type="number" 
+                                className="form-control-premium-dark" 
+                                placeholder="Enter stock quantity" 
+                                value={newProdStockQuantity}
+                                onChange={(e) => setNewProdStockQuantity(e.target.value)}
+                                required 
+                              />
+                            </div>
+                            <div className="col-md-6">
+                              <label className="form-label mb-1 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Reorder Level</label>
+                              <input 
+                                type="number" 
+                                className="form-control-premium-dark" 
+                                placeholder="10" 
+                                value={newProdReorderLevel}
+                                onChange={(e) => setNewProdReorderLevel(e.target.value)}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="row g-3 mb-3">
+                            <div className="col-md-6">
+                              <label className="form-label mb-1 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Unit</label>
+                              <select 
+                                className="form-control-premium-dark" 
+                                value={newProdUnit}
+                                onChange={(e) => setNewProdUnit(e.target.value)}
+                              >
+                                <option value="Piece">Piece</option>
+                                <option value="Box">Box</option>
+                                <option value="Pack">Pack</option>
+                                <option value="kg">kg</option>
+                                <option value="Litre">Litre</option>
+                              </select>
+                            </div>
+                            <div className="col-md-6">
+                              <label className="form-label mb-1 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Tax (%)</label>
+                              <input 
+                                type="number" 
+                                className="form-control-premium-dark" 
+                                placeholder="0" 
+                                value={newProdTax}
+                                onChange={(e) => setNewProdTax(e.target.value)}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="mb-4">
+                            <label className="form-label mb-1 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Description</label>
+                            <textarea 
+                              className="form-control-premium-dark" 
+                              style={{ minHeight: '100px' }}
+                              placeholder="Enter product description (optional)" 
+                              value={newProdDescription}
+                              onChange={(e) => setNewProdDescription(e.target.value)}
+                            />
+                          </div>
+
+                          <div className="pt-3 d-flex justify-content-end gap-2" style={{ borderTop: '1px solid #e2e8f0' }}>
+                            <button 
+                              type="button" 
+                              className="btn btn-outline-secondary px-3.5 py-1.5 fw-semibold" 
+                              style={{ fontSize: '0.75rem', borderRadius: '6px', borderColor: '#cbd5e1', backgroundColor: '#ffffff', color: '#475569' }} 
+                              onClick={handleResetForm}
+                            >
+                              Reset
+                            </button>
+                            <button 
+                              type="button" 
+                              className="btn btn-outline-secondary px-3.5 py-1.5 fw-semibold" 
+                              style={{ fontSize: '0.75rem', borderRadius: '6px', borderColor: '#cbd5e1', backgroundColor: '#ffffff', color: '#475569' }} 
+                              onClick={handleCancel}
+                            >
+                              Cancel
+                            </button>
+                            <button 
+                              type="submit" 
+                              className="btn text-white fw-bold px-4 py-1.5 border-0" 
+                              style={{ backgroundColor: '#007BFF', borderRadius: '6px', fontSize: '0.75rem' }}
+                            >
+                              <i className="fa-solid fa-save me-1.5"></i> Save Product
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+
+                    {/* Right Column: Upload & Summary */}
+                    <div className="col-lg-4 col-md-12 d-flex flex-column gap-3">
+                      {/* Image Upload Zone */}
+                      <div className="p-3 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#cbd5e1' }}>
+                        <h3 className="fw-bold mb-2 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '0.92rem', color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem', marginBottom: '1.15rem' }}>
+                          <i className="fa-regular fa-image text-primary me-2" style={{ color: '#007BFF' }}></i> Product Image
+                        </h3>
+
+                        <div 
+                          className="d-flex flex-column align-items-center justify-content-center border border-dashed rounded-3 p-4 text-center position-relative"
+                          style={{
+                            minHeight: '180px',
+                            borderColor: newProdDragOver ? '#007BFF' : '#cbd5e1',
+                            backgroundColor: newProdDragOver ? 'rgba(0, 123, 255, 0.05)' : '#f8fafc',
+                            transition: 'all 0.2s ease',
+                            cursor: 'pointer'
+                          }}
+                          onDragOver={handleDragOver}
+                          onDragLeave={handleDragLeave}
+                          onDrop={handleDrop}
+                          onClick={() => document.getElementById('prod-file-input').click()}
+                        >
+                          <input 
+                            type="file" 
+                            id="prod-file-input" 
+                            className="d-none" 
+                            accept="image/jpeg,image/png,image/webp" 
+                            onChange={handleFileChange}
+                          />
+
+                          {newProdImage ? (
+                            <div className="w-100 h-100 d-flex align-items-center justify-content-center position-relative">
+                              <img src={newProdImage} alt="Product preview" style={{ maxWidth: '100%', maxHeight: '150px', borderRadius: '4px', objectFit: 'contain' }} />
+                            </div>
+                          ) : (
+                            <>
+                              <i className="fa-solid fa-cloud-arrow-up text-primary mb-2" style={{ fontSize: '2rem', color: '#007BFF' }}></i>
+                              <div className="fw-bold text-dark mb-1" style={{ fontSize: '0.8rem' }}>Drag & drop an image here</div>
+                              <div className="text-secondary small" style={{ fontSize: '0.7rem' }}>or click to browse</div>
+                              <div className="text-muted mt-2" style={{ fontSize: '0.62rem' }}>JPG, PNG or WEBP (Max. 2MB)</div>
+                            </>
+                          )}
+                        </div>
+
+                        {newProdImage && (
+                          <div className="mt-3 text-center">
+                            <button 
+                              type="button" 
+                              className="btn btn-outline-danger w-100 fw-semibold d-flex align-items-center justify-content-center gap-1.5" 
+                              style={{ fontSize: '0.72rem', borderRadius: '6px', padding: '0.45rem' }} 
+                              onClick={handleRemoveImage}
+                            >
+                              <i className="fa-solid fa-trash-can"></i> Remove Image
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Summary Card */}
+                      <div className="p-3 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#cbd5e1' }}>
+                        <h3 className="fw-bold mb-2 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '0.92rem', color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem', marginBottom: '1.15rem' }}>
+                          <i className="fa-solid fa-list-check text-primary me-2" style={{ color: '#007BFF' }}></i> Summary
+                        </h3>
+
+                        <div className="d-flex flex-column gap-2.5">
+                          <div className="d-flex justify-content-between align-items-center" style={{ fontSize: '0.78rem' }}>
+                            <span className="text-secondary">Selling Price</span>
+                            <span className="fw-bold text-dark">${(parseFloat(newProdSellingPrice) || 0).toFixed(2)}</span>
+                          </div>
+                          <div className="d-flex justify-content-between align-items-center" style={{ fontSize: '0.78rem' }}>
+                            <span className="text-secondary">Purchase Price</span>
+                            <span className="fw-bold text-dark">${(parseFloat(newProdPurchasePrice) || 0).toFixed(2)}</span>
+                          </div>
+                          <div className="d-flex justify-content-between align-items-center pt-2 border-top" style={{ fontSize: '0.78rem' }}>
+                            <span className="text-secondary fw-semibold">Profit (Per Unit)</span>
+                            <span className={`fw-bold ${((parseFloat(newProdSellingPrice) || 0) - (parseFloat(newProdPurchasePrice) || 0)) >= 0 ? 'text-success' : 'text-danger'}`}>
+                              ${((parseFloat(newProdSellingPrice) || 0) - (parseFloat(newProdPurchasePrice) || 0)).toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="d-flex justify-content-between align-items-center pt-2 border-top" style={{ fontSize: '0.78rem' }}>
+                            <span className="text-secondary">Stock Quantity</span>
+                            <span className="fw-bold text-dark">{newProdStockQuantity || 0}</span>
+                          </div>
+                          <div className="d-flex justify-content-between align-items-center pt-2" style={{ fontSize: '0.78rem' }}>
+                            <span className="text-secondary">Status</span>
+                            <span>
+                              {parseInt(newProdStockQuantity) <= 0 || !newProdStockQuantity ? (
+                                <span className="badge text-white rounded px-2 py-0.5" style={{ fontSize: '0.68rem', backgroundColor: '#ef4444' }}>Out of Stock</span>
+                              ) : parseInt(newProdStockQuantity) < (parseInt(newProdReorderLevel) || 10) ? (
+                                <span className="badge text-dark rounded px-2 py-0.5" style={{ fontSize: '0.68rem', backgroundColor: '#f59e0b' }}>Low Stock</span>
+                              ) : (
+                                <span className="badge text-white rounded px-2 py-0.5" style={{ fontSize: '0.68rem', backgroundColor: '#10b981' }}>In Stock</span>
+                              )}
+                            </span>
+                          </div>
+
+                          <div className="mt-3 p-2.5 rounded-3 d-flex gap-2" style={{ backgroundColor: '#e0f2fe', color: '#0369a1', fontSize: '0.72rem' }}>
+                            <i className="fa-solid fa-circle-info mt-0.5" style={{ fontSize: '0.85rem' }}></i>
+                            <div style={{ lineHeight: '1.4' }}>
+                              Product will be available for sale once added to inventory.
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
           {/* Render Fallback for other tabs */}
-          {activeTab !== 'dashboard' && activeTab !== 'billing' && (
+          {activeTab !== 'dashboard' && activeTab !== 'billing' && activeTab !== 'products' && (
             <div className="p-5 text-center rounded-4 border bg-white" style={{ borderColor: '#cbd5e1', margin: '3rem auto', maxWidth: '500px', boxShadow: '0 4px 6px -1px rgba(14, 165, 233, 0.05)' }}>
               <i className="fa-solid fa-screwdriver-wrench text-secondary mb-3" style={{ fontSize: '3rem', color: '#94a3b8' }}></i>
               <h4 className="fw-bold text-dark text-capitalize" style={{ fontFamily: 'Outfit', fontSize: '1.1rem' }}>{activeTab.replace('-', ' ')} Page</h4>
