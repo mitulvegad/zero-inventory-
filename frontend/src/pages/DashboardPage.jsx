@@ -233,6 +233,19 @@ const DashboardPage = () => {
     triggerAlert('Invoice Saved', `Invoice ${saleInvoiceNumber} has been recorded successfully!`, 'success');
   };
 
+  const handleDeleteInvoice = (saleId) => {
+    playSynthSound('click');
+    const invoiceToDelete = salesList.find(s => s.id === saleId);
+    if (!invoiceToDelete) return;
+    
+    // Remove from salesList
+    setSalesList(prevList => prevList.filter(s => s.id !== saleId));
+    // Remove from recentSales
+    setRecentSales(prevSales => prevSales.filter(s => s._id !== saleId && s.id !== saleId));
+    
+    triggerAlert('Invoice Deleted', `Invoice ${invoiceToDelete.invoice_number} has been deleted successfully!`, 'success');
+  };
+
   const handleApplySalesFilters = () => {
     playSynthSound('click');
     setAppliedSalesFilters({
@@ -2306,7 +2319,7 @@ const DashboardPage = () => {
                         <th>Grand Total</th>
                         <th>Payment Method</th>
                         <th>Status</th>
-                        <th className="text-center">Details</th>
+                        <th className="text-center">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2335,14 +2348,25 @@ const DashboardPage = () => {
                               </span>
                             </td>
                             <td className="text-center">
-                              <button 
-                                type="button" 
-                                className="btn btn-link text-primary p-0 border-0" 
-                                onClick={() => { playSynthSound('click'); setSelectedInvoiceDetails(sale); }}
-                                style={{ fontSize: '0.78rem', color: '#007BFF', textDecoration: 'none', fontWeight: '600' }}
-                              >
-                                Details
-                              </button>
+                              <div className="d-flex align-items-center justify-content-center gap-3">
+                                <button 
+                                  type="button" 
+                                  className="btn btn-link text-primary p-0 border-0" 
+                                  onClick={() => { playSynthSound('click'); setSelectedInvoiceDetails(sale); }}
+                                  style={{ fontSize: '0.78rem', color: '#007BFF', textDecoration: 'none', fontWeight: '600' }}
+                                >
+                                  Details
+                                </button>
+                                <button 
+                                  type="button" 
+                                  className="btn btn-link text-danger p-0 border-0" 
+                                  onClick={() => handleDeleteInvoice(sale.id)}
+                                  title="Delete Invoice"
+                                  style={{ display: 'flex', alignItems: 'center' }}
+                                >
+                                  <i className="fa-solid fa-trash-can" style={{ fontSize: '0.85rem' }}></i>
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))
