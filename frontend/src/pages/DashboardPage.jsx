@@ -135,6 +135,21 @@ const DashboardPage = () => {
           color: #0f172a !important;
         }
 
+        /* Webkit scrollbars for sidebar navigation */
+        .sidebar-nav-container::-webkit-scrollbar {
+          width: 4px;
+        }
+        .sidebar-nav-container::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .sidebar-nav-container::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 2px;
+        }
+        .sidebar-nav-container::-webkit-scrollbar-thumb:hover {
+          background: #94a3b8;
+        }
+
         /* Quick Navigation item overrides */
         .quick-action-item {
           background-color: #f8fafc !important;
@@ -235,67 +250,112 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        <ul className="sidebar-nav-list" style={{ listStyle: 'none', padding: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.55rem', flexGrow: 1, margin: 0 }}>
-          <li className="sidebar-nav-item active" style={{ display: 'block' }}>
-            <a href="#dashboard" onClick={() => playSynthSound('click')} className="text-info d-flex align-items-center gap-2.5 rounded text-decoration-none" style={{ backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9' }}>
-              <i className="fa-solid fa-house text-info" style={{ color: '#0ea5e9', width: '18px', fontSize: '0.95rem' }}></i> Dashboard
-            </a>
-          </li>
-          <li className="sidebar-nav-item">
-            <a href="#billing" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
-              <i className="fa-solid fa-file-invoice" style={{ width: '18px', fontSize: '0.95rem' }}></i> Generate Bill
-            </a>
-          </li>
-          <li className="sidebar-nav-item">
-            <a href="#products" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
-              <i className="fa-solid fa-box-open" style={{ width: '18px', fontSize: '0.95rem' }}></i> Products
-            </a>
-          </li>
-          <li className="sidebar-nav-item">
-            <a href="#sales" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
-              <i className="fa-solid fa-chart-line" style={{ width: '18px', fontSize: '0.95rem' }}></i> Sales
-            </a>
-          </li>
-          <li className="sidebar-nav-item">
-            <a href="#purchases" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
-              <i className="fa-solid fa-cart-shopping" style={{ width: '18px', fontSize: '0.95rem' }}></i> Purchases
-            </a>
-          </li>
-          <li className="sidebar-nav-item">
-            <a href="#inventory" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
-              <i className="fa-solid fa-warehouse" style={{ width: '18px', fontSize: '0.95rem' }}></i> Inventory
-            </a>
-          </li>
-          <li className="sidebar-nav-item">
-            <a href="#categories" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
-              <i className="fa-solid fa-tags" style={{ width: '18px', fontSize: '0.95rem' }}></i> Categories
-            </a>
-          </li>
-        </ul>
-
-        {/* Upgrade Card */}
-        <div className="upgrade-pro-card m-2.5 p-2.5 rounded-3 text-center" style={{ background: 'linear-gradient(135deg, #0ea5e9, #0284c7)', color: '#ffffff', border: '1px solid rgba(14, 165, 233, 0.2)' }}>
-          <h5 className="fw-bold mb-1" style={{ fontSize: '0.85rem' }}>Upgrade to Pro</h5>
-          <p className="small mb-2" style={{ fontSize: '0.7rem', opacity: '0.9', lineHeight: '1.2' }}>Unlock advanced features and grow your business.</p>
-          <button className="btn btn-light btn-sm w-100 fw-bold" style={{ color: '#0284c7', borderRadius: '6px', fontSize: '0.72rem', padding: '0.25rem' }} onClick={() => triggerAlert('Upgrade System', 'Simulated gateway dashboard update is active.')}>
-            Upgrade Now
-          </button>
+        {/* Scrollable Navigation Area */}
+        <div className="sidebar-nav-container" style={{ flexGrow: 1, overflowY: 'auto', padding: '0.85rem 0.85rem 0 0.85rem' }}>
+          <ul className="sidebar-nav-list" style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.55rem', margin: 0 }}>
+            <li className="sidebar-nav-item active" style={{ display: 'block' }}>
+              <a href="#dashboard" onClick={() => playSynthSound('click')} className="text-info d-flex align-items-center gap-2.5 rounded text-decoration-none" style={{ backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9' }}>
+                <i className="fa-solid fa-house text-info" style={{ color: '#0ea5e9', width: '18px', fontSize: '0.95rem' }}></i> Dashboard
+              </a>
+            </li>
+            <li className="sidebar-nav-item">
+              <a href="#billing" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
+                <i className="fa-solid fa-file-invoice" style={{ width: '18px', fontSize: '0.95rem' }}></i> Generate Bill
+              </a>
+            </li>
+            <li className="sidebar-nav-item">
+              <a href="#products" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
+                <i className="fa-solid fa-box-open" style={{ width: '18px', fontSize: '0.95rem' }}></i> Products
+              </a>
+            </li>
+            <li className="sidebar-nav-item">
+              <a href="#sales" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
+                <i className="fa-solid fa-chart-line" style={{ width: '18px', fontSize: '0.95rem' }}></i> Sales
+              </a>
+            </li>
+            <li className="sidebar-nav-item">
+              <a href="#purchases" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
+                <i className="fa-solid fa-cart-shopping" style={{ width: '18px', fontSize: '0.95rem' }}></i> Purchases
+              </a>
+            </li>
+            <li className="sidebar-nav-item">
+              <a href="#inventory" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
+                <i className="fa-solid fa-warehouse" style={{ width: '18px', fontSize: '0.95rem' }}></i> Inventory
+              </a>
+            </li>
+            <li className="sidebar-nav-item">
+              <a href="#categories" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
+                <i className="fa-solid fa-tags" style={{ width: '18px', fontSize: '0.95rem' }}></i> Categories
+              </a>
+            </li>
+            <li className="sidebar-nav-item">
+              <a href="#suppliers" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
+                <i className="fa-solid fa-truck-field" style={{ width: '18px', fontSize: '0.95rem' }}></i> Suppliers
+              </a>
+            </li>
+            <li className="sidebar-nav-item">
+              <a href="#customers" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
+                <i className="fa-solid fa-users" style={{ width: '18px', fontSize: '0.95rem' }}></i> Customers
+              </a>
+            </li>
+            <li className="sidebar-nav-item">
+              <a href="#reports" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
+                <i className="fa-solid fa-chart-pie" style={{ width: '18px', fontSize: '0.95rem' }}></i> Reports
+              </a>
+            </li>
+            <li className="sidebar-nav-item">
+              <a href="#billing-subscription" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
+                <i className="fa-solid fa-credit-card" style={{ width: '18px', fontSize: '0.95rem' }}></i> Billing & Subscription
+              </a>
+            </li>
+            <li className="sidebar-nav-item">
+              <a href="#settings" onClick={() => playSynthSound('click')} className="text-secondary d-flex align-items-center gap-2.5 rounded text-decoration-none hover-light-bg" style={{ color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem' }}>
+                <i className="fa-solid fa-gear" style={{ width: '18px', fontSize: '0.95rem' }}></i> Settings
+              </a>
+            </li>
+          </ul>
         </div>
 
-        {/* Sidebar Footer User Info */}
-        <div className="sidebar-bottom-user p-2 border-top border-secondary border-opacity-15 d-flex align-items-center justify-content-between text-dark" style={{ borderColor: '#e2e8f0' }}>
-          <div className="d-flex align-items-center gap-1.5">
-            <div className="avatar-circle rounded-circle bg-info text-dark d-flex align-items-center justify-content-center fw-bold" style={{ width: '28px', height: '28px', fontSize: '0.8rem', backgroundColor: 'rgba(14, 165, 233, 0.1)', color: '#0ea5e9' }}>
-              {userInitial()}
-            </div>
-            <div style={{ maxWidth: '120px', overflow: 'hidden' }}>
-              <div className="fw-bold" style={{ fontSize: '0.72rem', lineHeight: '1.2', color: '#0f172a' }}>Merchant Account</div>
-              <div className="text-secondary text-truncate" style={{ fontSize: '0.62rem', color: '#64748b' }}>{user?.email || 'merchant@gmail.com'}</div>
-            </div>
+        {/* Upgrade Card and Profile Section container */}
+        <div className="sidebar-bottom-section" style={{ marginTop: 'auto', borderTop: '1px solid #e2e8f0', backgroundColor: '#ffffff' }}>
+          {/* Upgrade to Pro Card */}
+          <div className="upgrade-pro-card" style={{ 
+            background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', 
+            padding: '0.85rem', 
+            borderRadius: '10px', 
+            margin: '0.85rem', 
+            textAlign: 'center', 
+            color: '#ffffff',
+            boxShadow: '0 4px 6px -1px rgba(59, 130, 246, 0.2)'
+          }}>
+            <h5 className="fw-bold mb-1" style={{ fontSize: '0.85rem', color: '#ffffff' }}>Upgrade to Pro</h5>
+            <p className="small mb-2" style={{ fontSize: '0.7rem', opacity: '0.9', lineHeight: '1.2', color: '#ffffff' }}>Unlock advanced features and grow your business.</p>
+            <button 
+              className="btn w-100 fw-bold border-0" 
+              style={{ backgroundColor: '#ffffff', color: '#1d4ed8', borderRadius: '6px', fontSize: '0.72rem', padding: '0.3rem 0.5rem' }} 
+              onClick={() => triggerAlert('Upgrade System', 'Simulated gateway dashboard update is active.')}
+            >
+              Upgrade Now
+            </button>
           </div>
-          <button className="btn btn-link text-danger p-0" title="Logout" onClick={handleLogout} style={{ fontSize: '0.9rem' }}>
-            <i className="fa-solid fa-right-from-bracket"></i>
-          </button>
+
+          {/* Merchant Logout Profile Card */}
+          <div className="sidebar-bottom-user p-2.5 border-top d-flex align-items-center justify-content-between text-dark" style={{ borderColor: '#e2e8f0', backgroundColor: '#f8fafc' }}>
+            <div className="d-flex align-items-center gap-2" style={{ minWidth: 0 }}>
+              <div className="avatar-circle rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style={{ width: '30px', height: '30px', fontSize: '0.85rem', backgroundColor: '#3b82f6', flexShrink: 0 }}>
+                A
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div className="fw-bold text-dark text-truncate" style={{ fontSize: '0.76rem', lineHeight: '1.2' }}>Merchant Account</div>
+                <div className="text-secondary text-truncate" style={{ fontSize: '0.66rem', color: '#64748b' }} title={user?.email || 'merchant@gmail.com'}>
+                  {user?.email || 'merchant@gmail.com'}
+                </div>
+              </div>
+            </div>
+            <button className="btn btn-link text-danger p-1 border-0" title="Logout" onClick={handleLogout} style={{ fontSize: '0.95rem', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+              <i className="fa-solid fa-right-from-bracket"></i>
+            </button>
+          </div>
         </div>
       </aside>
 
