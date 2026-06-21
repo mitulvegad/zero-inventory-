@@ -5,12 +5,15 @@ const connectDB = require('./config/db');
 
 const app = express();
 
+const path = require('path');
+
 // Connect Database
 connectDB();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Mount Routes
 app.use('/api/auth', require('./routes/auth'));
@@ -20,6 +23,11 @@ app.use('/api/categories', require('./routes/categories'));
 app.use('/api/suppliers', require('./routes/suppliers'));
 app.use('/api/customers', require('./routes/customers'));
 app.use('/api/reports', require('./routes/reports'));
+app.use('/api/subscriptions', require('./routes/subscriptions'));
+app.use('/api/user', require('./routes/user'));
+app.use('/api/billing', require('./routes/billing'));
+app.use('/api/security', require('./routes/security'));
+app.use('/api/activity', require('./routes/activity'));
 
 // Basic Health Check Route
 app.get('/api/health', (req, res) => {

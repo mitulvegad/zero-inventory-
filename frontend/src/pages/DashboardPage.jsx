@@ -2,16 +2,403 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext, api } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import Cropper from 'react-easy-crop';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout } = useContext(AuthContext);
+  const { user, logout, setUser } = useContext(AuthContext);
   const { showToast } = useToast();
 
   const { justRegistered, generatedCode } = location.state || {};
   const [showSaasKeyAlert, setShowSaasKeyAlert] = useState(true);
   const saasCode = user?.saas_code || generatedCode || 'ZIM-XXXX-XXXX';
+
+  // Subscription & Billing States
+  const [plans, setPlans] = useState([]);
+  const [currentSub, setCurrentSub] = useState(null);
+  const [loadingSub, setLoadingSub] = useState(true);
+  const [selectedPlanToChange, setSelectedPlanToChange] = useState(null);
+  const [showPlanChangeModal, setShowPlanChangeModal] = useState(false);
+  const [planChanging, setPlanChanging] = useState(false);
+  const [billingHistory, setBillingHistory] = useState([]);
+  const [loadingBilling, setLoadingBilling] = useState(false);
+  const [invoiceSearch, setInvoiceSearch] = useState('');
+  const [invoiceStatusFilter, setInvoiceStatusFilter] = useState('All');
+
+  // Expiry Countdown States
+  const [countdownText, setCountdownText] = useState('');
+  const [countdownColor, setCountdownColor] = useState('text-success');
+
+  // Account Settings Profile States
+  const [profileName, setProfileName] = useState(user?.name || '');
+  const [profileEmail, setProfileEmail] = useState(user?.email || '');
+  const [profileAvatar, setProfileAvatar] = useState(user?.avatar || '');
+  const [isSettingsUploading, setIsSettingsUploading] = useState(false);
+  const [settingsUploadProgress, setSettingsUploadProgress] = useState(0);
+
+  // Profile Image Cropping States
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+
+  // Access Code Visibility State
+  const [showSettingsSaasCode, setShowSettingsSaasCode] = useState(false);
+
+  // Security Audit & Activity Timeline States
+  const [securityAuditLogs, setSecurityAuditLogs] = useState([]);
+  const [loadingAuditLogs, setLoadingAuditLogs] = useState(false);
+  const [activityTimeline, setActivityTimeline] = useState([]);
+  const [loadingTimeline, setLoadingTimeline] = useState(false);
+
+  // Change Password Form States
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordUpdating, setPasswordUpdating] = useState(false);
+
+  // Helper functions
+  const getAvatarUrl = (avatarPath) => {
+    if (!avatarPath) return '';
+    if (avatarPath.startsWith('http')) return avatarPath;
+    const baseUrl = api.defaults.baseURL || 'http://localhost:5000/api';
+    const serverUrl = baseUrl.replace('/api', '');
+    return `${serverUrl}${avatarPath}`;
+  };
+
+  const refreshUserProfile = async () => {
+    try {
+      const res = await api.get('/auth/me');
+      if (res.data) {
+        setUser(res.data);
+        setProfileName(res.data.name || '');
+        setProfileEmail(res.data.email || '');
+        setProfileAvatar(res.data.avatar || '');
+      }
+    } catch (err) {
+      console.error('Error refreshing user profile:', err);
+    }
+  };
+
+  const fetchSubscriptionDetails = async () => {
+    try {
+      setLoadingSub(true);
+      const res = await api.get('/subscriptions/current');
+      setCurrentSub(res.data);
+      
+      // Calculate Expiry Countdown Display
+      if (res.data && res.data.expiryDate) {
+        const expiry = new Date(res.data.expiryDate);
+        const now = new Date();
+        const diff = expiry - now;
+        if (diff <= 0) {
+          setCountdownText('Expired');
+          setCountdownColor('text-danger bg-danger bg-opacity-10 border border-danger border-opacity-20 px-3 py-1 rounded-3');
+        } else {
+          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+          let text = `Renewal Due In: ${days} Days`;
+          if (days > 30) {
+            text = `Subscription Expires In: ${days} Days`;
+            setCountdownColor('text-success bg-success bg-opacity-10 border border-success border-opacity-20 px-3 py-1 rounded-3');
+          } else if (days <= 30 && days > 7) {
+            setCountdownColor('text-warning bg-warning bg-opacity-10 border border-warning border-opacity-20 px-3 py-1 rounded-3');
+          } else {
+            setCountdownColor('text-danger bg-danger bg-opacity-10 border border-danger border-opacity-20 px-3 py-1 rounded-3');
+          }
+          setCountdownText(text);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching subscription:', err);
+    } finally {
+      setLoadingSub(false);
+    }
+  };
+
+  const fetchPlans = async () => {
+    try {
+      const res = await api.get('/subscriptions/plans');
+      setPlans(res.data);
+    } catch (err) {
+      console.error('Error fetching subscription plans:', err);
+    }
+  };
+
+  const fetchBillingHistory = async () => {
+    try {
+      setLoadingBilling(true);
+      const res = await api.get('/billing/history', {
+        params: {
+          search: invoiceSearch,
+          status: invoiceStatusFilter
+        }
+      });
+      setBillingHistory(res.data);
+    } catch (err) {
+      console.error('Error fetching billing history:', err);
+    } finally {
+      setLoadingBilling(false);
+    }
+  };
+
+  const fetchAuditLogs = async () => {
+    try {
+      setLoadingAuditLogs(true);
+      const res = await api.get('/security/audit-logs');
+      setSecurityAuditLogs(res.data);
+    } catch (err) {
+      console.error('Error fetching security audit logs:', err);
+    } finally {
+      setLoadingAuditLogs(false);
+    }
+  };
+
+  const fetchActivityTimeline = async () => {
+    try {
+      setLoadingTimeline(true);
+      const res = await api.get('/activity/timeline');
+      setActivityTimeline(res.data);
+    } catch (err) {
+      console.error('Error fetching activity timeline:', err);
+    } finally {
+      setLoadingTimeline(false);
+    }
+  };
+
+  // Sync profile details with context user on mount
+  useEffect(() => {
+    if (user) {
+      setProfileName(user.name || '');
+      setProfileEmail(user.email || '');
+      setProfileAvatar(user.avatar || '');
+    }
+  }, [user]);
+
+  // Tab Load Synchronization
+  useEffect(() => {
+    if (activeTab === 'billing-subscription') {
+      fetchSubscriptionDetails();
+      fetchPlans();
+      fetchBillingHistory();
+    } else if (activeTab === 'settings') {
+      fetchAuditLogs();
+      fetchActivityTimeline();
+    }
+  }, [activeTab]);
+
+  // Handle invoice live query filters
+  useEffect(() => {
+    if (activeTab === 'billing-subscription') {
+      fetchBillingHistory();
+    }
+  }, [invoiceSearch, invoiceStatusFilter]);
+
+  const handlePlanSelection = (plan) => {
+    playSynthSound('click');
+    if (plan.planName === currentSub?.planName) {
+      return;
+    }
+    setSelectedPlanToChange(plan);
+    setShowPlanChangeModal(true);
+  };
+
+  const handleConfirmPlanChange = async () => {
+    if (!selectedPlanToChange) return;
+    try {
+      setPlanChanging(true);
+      const currentPrice = plans.find(p => p.planName === currentSub?.planName)?.yearlyPrice || 0;
+      const targetPrice = selectedPlanToChange.yearlyPrice;
+      const isUpgrade = targetPrice > currentPrice;
+      
+      const endpoint = isUpgrade ? '/subscriptions/upgrade' : '/subscriptions/downgrade';
+      
+      const res = await api.post(endpoint, { planName: selectedPlanToChange.planName });
+      if (res.data.success) {
+        triggerAlert('Subscription Updated', res.data.message, 'success');
+        await fetchSubscriptionDetails();
+        await fetchBillingHistory();
+        await refreshUserProfile();
+        setShowPlanChangeModal(false);
+      }
+    } catch (err) {
+      const errMsg = err.response?.data?.message || 'Failed to update subscription';
+      triggerAlert('Subscription Error', errMsg, 'error');
+    } finally {
+      setPlanChanging(false);
+    }
+  };
+
+  const getCroppedImg = (imageSrc, pixelCrop) => {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.src = imageSrc;
+      image.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = pixelCrop.width;
+        canvas.height = pixelCrop.height;
+        const ctx = canvas.getContext('2d');
+        
+        ctx.drawImage(
+          image,
+          pixelCrop.x,
+          pixelCrop.y,
+          pixelCrop.width,
+          pixelCrop.height,
+          0,
+          0,
+          pixelCrop.width,
+          pixelCrop.height
+        );
+        
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            reject(new Error('Canvas is empty'));
+            return;
+          }
+          blob.name = 'avatar.jpeg';
+          resolve(blob);
+        }, 'image/jpeg');
+      };
+      image.onerror = (err) => reject(err);
+    });
+  };
+
+  const onFileChange = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      if (file.size > 5 * 1024 * 1024) {
+        triggerAlert('File Too Large', 'Maximum image size is 5MB', 'error');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.addEventListener('load', () => {
+        setCropImageSrc(reader.result);
+        setCropModalOpen(true);
+      });
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCropAndUpload = async () => {
+    try {
+      const croppedBlob = await getCroppedImg(cropImageSrc, croppedAreaPixels);
+      
+      const formData = new FormData();
+      formData.append('avatar', croppedBlob, 'avatar.jpg');
+      
+      setIsSettingsUploading(true);
+      setSettingsUploadProgress(0);
+      
+      const res = await api.post('/user/upload-avatar', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        },
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          setSettingsUploadProgress(percentCompleted);
+        }
+      });
+      
+      if (res.data.success) {
+        triggerAlert('Profile Photo', 'Successfully uploaded profile photo!', 'success');
+        setProfileAvatar(res.data.avatar);
+        await refreshUserProfile();
+        await fetchActivityTimeline();
+        setCropModalOpen(false);
+      }
+    } catch (err) {
+      console.error(err);
+      triggerAlert('Upload Failed', err.response?.data?.message || 'Error processing crop/upload', 'error');
+    } finally {
+      setIsSettingsUploading(false);
+      setSettingsUploadProgress(0);
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    if (!window.confirm('Are you sure you want to remove your profile picture?')) return;
+    try {
+      const res = await api.delete('/user/remove-avatar');
+      if (res.data.success) {
+        triggerAlert('Profile Photo', 'Successfully cleared profile photo!', 'success');
+        setProfileAvatar('');
+        await refreshUserProfile();
+        await fetchActivityTimeline();
+      }
+    } catch (err) {
+      triggerAlert('Error', 'Failed to remove profile photo', 'error');
+    }
+  };
+
+  const handleToggleSettingsSaasCode = async () => {
+    playSynthSound('click');
+    const newState = !showSettingsSaasCode;
+    setShowSettingsSaasCode(newState);
+    if (newState) {
+      try {
+        await api.post('/user/log-access-code');
+        await fetchActivityTimeline();
+      } catch (err) {
+        console.error('Failed to log access code view activity:', err);
+      }
+    }
+  };
+
+  const handleChangePasswordSubmit = async (e) => {
+    e.preventDefault();
+    playSynthSound('click');
+    
+    if (!currentPassword) {
+      triggerAlert('Validation Error', 'Current password is required.', 'error');
+      return;
+    }
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      triggerAlert('Validation Error', 'New password must be at least 8 characters, with 1 uppercase, 1 lowercase, 1 number, and 1 special character.', 'error');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      triggerAlert('Validation Error', 'Confirm password does not match the new password.', 'error');
+      return;
+    }
+
+    try {
+      setPasswordUpdating(true);
+      const res = await api.post('/user/change-password', {
+        currentPassword,
+        newPassword
+      });
+      
+      if (res.data.success) {
+        triggerAlert('Security Updated', res.data.message, 'success');
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+        await fetchAuditLogs();
+        await fetchActivityTimeline();
+      }
+    } catch (err) {
+      const errMsg = err.response?.data?.message || 'Failed to update password. Verify current password.';
+      triggerAlert('Security Error', errMsg, 'error');
+    } finally {
+      setPasswordUpdating(false);
+    }
+  };
+
+  const handleResetPasswordForm = () => {
+    playSynthSound('click');
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
+  };
 
   const handleCopyCode = () => {
     playSynthSound('click');
@@ -1762,8 +2149,8 @@ const DashboardPage = () => {
           padding-right: 1.75rem;
         }
         .btn-blue-primary {
-          background-color: #007BFF !important;
-          border-color: #007BFF !important;
+          background-color: #0EA5E9 !important;
+          border-color: #0EA5E9 !important;
           color: #ffffff !important;
           font-weight: 600 !important;
           transition: all 0.2s ease !important;
@@ -1812,11 +2199,7 @@ const DashboardPage = () => {
                 <i className="fa-solid fa-file-invoice" style={{ color: activeTab === 'billing' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Generate Bill
               </a>
             </li>
-            <li className={`sidebar-nav-item ${activeTab === 'products' ? 'active' : ''}`}>
-              <a href="#products" onClick={() => { playSynthSound('click'); setActiveTab('products'); }} className={activeTab === 'products' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'products' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
-                <i className="fa-solid fa-box-open" style={{ color: activeTab === 'products' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Products
-              </a>
-            </li>
+
             <li className={`sidebar-nav-item ${activeTab === 'sales' ? 'active' : ''}`}>
               <a href="#sales" onClick={() => { playSynthSound('click'); setActiveTab('sales'); }} className={activeTab === 'sales' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'sales' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
                 <i className="fa-solid fa-chart-line" style={{ color: activeTab === 'sales' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Sales
@@ -1827,11 +2210,7 @@ const DashboardPage = () => {
                 <i className="fa-solid fa-cart-shopping" style={{ color: activeTab === 'purchases' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Purchases
               </a>
             </li>
-            <li className={`sidebar-nav-item ${activeTab === 'inventory' ? 'active' : ''}`}>
-              <a href="#inventory" onClick={() => { playSynthSound('click'); setActiveTab('inventory'); }} className={activeTab === 'inventory' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'inventory' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
-                <i className="fa-solid fa-warehouse" style={{ color: activeTab === 'inventory' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Inventory
-              </a>
-            </li>
+
             <li className={`sidebar-nav-item ${activeTab === 'categories' ? 'active' : ''}`}>
               <a href="#categories" onClick={() => { playSynthSound('click'); setActiveTab('categories'); }} className={activeTab === 'categories' ? "text-info d-flex align-items-center gap-2 rounded text-decoration-none" : "text-secondary d-flex align-items-center gap-2 rounded text-decoration-none hover-light-bg"} style={activeTab === 'categories' ? { backgroundColor: 'rgba(14, 165, 233, 0.1)', borderLeft: '3px solid #0ea5e9', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, padding: '0.55rem 0.8rem', fontSize: '0.92rem', color: '#0ea5e9', gap: '0.65rem' } : { color: '#475569', padding: '0.55rem 0.8rem', fontSize: '0.92rem', gap: '0.65rem' }}>
                 <i className="fa-solid fa-tags" style={{ color: activeTab === 'categories' ? '#0ea5e9' : '#475569', width: '18px', fontSize: '0.95rem' }}></i> Categories
@@ -1882,7 +2261,7 @@ const DashboardPage = () => {
             <button 
               className="btn w-100 fw-bold border-0" 
               style={{ backgroundColor: '#ffffff', color: '#1d4ed8', borderRadius: '6px', fontSize: '0.72rem', padding: '0.4rem 0.5rem', margin: 0 }} 
-              onClick={() => triggerAlert('Upgrade System', 'Simulated gateway dashboard update is active.')}
+              onClick={() => { playSynthSound('click'); setActiveTab('billing-subscription'); window.location.hash = '#billing-subscription'; }}
             >
               Upgrade Now
             </button>
@@ -1890,12 +2269,16 @@ const DashboardPage = () => {
 
           {/* Merchant Logout Profile Card */}
           <div className="sidebar-bottom-user d-flex align-items-center justify-content-between text-dark" style={{ padding: '0.95rem 1.1rem', backgroundColor: '#f8fafc' }}>
-            <div className="d-flex align-items-center gap-2" style={{ minWidth: 0 }}>
-              <div className="avatar-circle rounded-circle d-flex align-items-center justify-content-center fw-bold" style={{ width: '30px', height: '30px', fontSize: '0.85rem', backgroundColor: '#e2e8f0', color: '#1e293b', flexShrink: 0 }}>
-                A
-              </div>
+            <div className="d-flex align-items-center gap-2" style={{ minWidth: 0, cursor: 'pointer' }} onClick={() => { playSynthSound('click'); setActiveTab('settings'); window.location.hash = '#settings'; }} title="Go to Account Settings">
+              {user?.avatar ? (
+                <img src={getAvatarUrl(user.avatar)} alt="Avatar" className="rounded-circle" style={{ width: '30px', height: '30px', objectFit: 'cover', flexShrink: 0 }} />
+              ) : (
+                <div className="avatar-circle rounded-circle d-flex align-items-center justify-content-center fw-bold" style={{ width: '30px', height: '30px', fontSize: '0.85rem', backgroundColor: '#e2e8f0', color: '#1e293b', flexShrink: 0 }}>
+                  {userInitial()}
+                </div>
+              )}
               <div style={{ minWidth: 0 }}>
-                <div className="fw-bold text-dark text-truncate" style={{ fontSize: '0.76rem', lineHeight: '1.2' }}>Merchant Account</div>
+                <div className="fw-bold text-dark text-truncate" style={{ fontSize: '0.76rem', lineHeight: '1.2' }}>{user?.name || 'Merchant Account'}</div>
                 <div className="text-secondary text-truncate" style={{ fontSize: '0.66rem', color: '#64748b' }} title={user?.email || 'merchant@gmail.com'}>
                   {user?.email || 'merchant@gmail.com'}
                 </div>
@@ -1935,10 +2318,7 @@ const DashboardPage = () => {
                 value={headerSearch}
                 onChange={(e) => {
                   setHeaderSearch(e.target.value);
-                  if (activeTab === 'products') {
-                    setInventorySearch(e.target.value);
-                    setAppliedFilters(prev => ({ ...prev, search: e.target.value }));
-                  } else if (activeTab === 'sales') {
+                  if (activeTab === 'sales') {
                     setSalesSearch(e.target.value);
                     setAppliedSalesFilters(prev => ({ ...prev, search: e.target.value }));
                   } else if (activeTab === 'purchases') {
@@ -1963,7 +2343,7 @@ const DashboardPage = () => {
               </button>
             </div>
 
-            <button className="btn p-1 text-secondary" onClick={() => playSynthSound('click')} style={{ color: '#64748b' }}><i className="fa-solid fa-gear" style={{ fontSize: '1rem' }}></i></button>
+            <button className="btn p-1 text-secondary" onClick={() => { playSynthSound('click'); setActiveTab('settings'); window.location.hash = '#settings'; }} style={{ color: '#64748b' }} title="Account Settings"><i className="fa-solid fa-gear" style={{ fontSize: '1rem' }}></i></button>
             <div className="position-relative">
               <button className="btn p-1 text-secondary" onClick={() => playSynthSound('click')} style={{ color: '#64748b' }}>
                 <i className="fa-regular fa-bell" style={{ fontSize: '1rem' }}></i>
@@ -1971,8 +2351,12 @@ const DashboardPage = () => {
               </button>
             </div>
             
-            <div className="user-avatar-circle rounded-circle d-flex align-items-center justify-content-center fw-semibold text-info" style={{ width: '26px', height: '26px', fontSize: '0.75rem', backgroundColor: 'rgba(14, 165, 233, 0.1)', color: '#0ea5e9' }}>
-              {userInitial()}
+            <div className="user-avatar-circle rounded-circle d-flex align-items-center justify-content-center fw-semibold text-info" style={{ width: '26px', height: '26px', fontSize: '0.75rem', backgroundColor: 'rgba(14, 165, 233, 0.1)', color: '#0ea5e9', overflow: 'hidden' }}>
+              {user?.avatar ? (
+                <img src={getAvatarUrl(user.avatar)} alt="Avatar" className="w-100 h-100" style={{ objectFit: 'cover' }} />
+              ) : (
+                userInitial()
+              )}
             </div>
           </div>
         </header>
@@ -2693,505 +3077,7 @@ const DashboardPage = () => {
             </div>
           )}
 
-          {/* Render Products Tab */}
-          {activeTab === 'products' && (
-            <div className="products-view animate-fade-in" style={{ animation: 'fadeIn 0.25s ease-out' }}>
-              {productsSubView === 'list' ? (
-                /* PAGE 1: Products Inventory List View */
-                <>
-                  {/* Title Banner */}
-                  <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
-                    <div>
-                      <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Products Inventory</h1>
-                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
-                        <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setActiveTab('dashboard')}>Dashboard</span>
-                        <span className="text-secondary">/</span>
-                        <span className="fw-semibold">Products</span>
-                      </div>
-                    </div>
-                    <button 
-                      className="btn text-white fw-semibold d-flex align-items-center gap-1.5 shadow-sm border-0" 
-                      style={{ backgroundColor: '#007BFF', padding: '0.45rem 1.15rem', borderRadius: '6px', fontSize: '0.75rem' }} 
-                      onClick={() => {
-                        playSynthSound('click');
-                        setEditingProductId(null);
-                        handleResetForm();
-                        setProductsSubView('add');
-                      }}
-                    >
-                      <i className="fa-solid fa-plus"></i> Add New Product
-                    </button>
-                  </div>
 
-                  {/* Filter Panel */}
-                  <div className="p-3 rounded-3 shadow-sm border bg-white mb-3" style={{ borderColor: '#cbd5e1' }}>
-                    <div className="row g-3 align-items-end">
-                      <div className="col-md-4 col-sm-12">
-                        <label className="form-label mb-1.5 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Search Product</label>
-                        <div className="position-relative">
-                          <i className="fa-solid fa-magnifying-glass text-secondary position-absolute" style={{ left: '0.75rem', top: '50%', transform: 'translateY(-50%)', fontSize: '0.8rem', color: '#64748b' }}></i>
-                          <input 
-                            type="text" 
-                            className="form-control-premium-dark" 
-                            style={{ paddingLeft: '2.1rem' }} 
-                            placeholder="Search SKU, name, brand..." 
-                            value={inventorySearch}
-                            onChange={(e) => setInventorySearch(e.target.value)}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-md-3 col-sm-6">
-                        <label className="form-label mb-1.5 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Category Filter</label>
-                        <select 
-                          className="form-control-premium-dark" 
-                          value={inventoryCategoryFilter}
-                          onChange={(e) => setInventoryCategoryFilter(e.target.value)}
-                        >
-                          <option value="All">All Categories</option>
-                          <option value="Electronics">Electronics</option>
-                          <option value="Clothing">Clothing</option>
-                          <option value="Accessories">Accessories</option>
-                        </select>
-                      </div>
-                      <div className="col-md-3 col-sm-6">
-                        <label className="form-label mb-1.5 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Stock Status</label>
-                        <select 
-                          className="form-control-premium-dark" 
-                          value={inventoryStockFilter}
-                          onChange={(e) => setInventoryStockFilter(e.target.value)}
-                        >
-                          <option value="All">All stock levels</option>
-                          <option value="In Stock">In Stock</option>
-                          <option value="Low Stock">Low Stock</option>
-                          <option value="Out of Stock">Out of Stock</option>
-                        </select>
-                      </div>
-                      <div className="col-md-2 col-sm-12 d-flex gap-2">
-                        <button 
-                          className="btn text-white fw-semibold w-100 border-0" 
-                          style={{ backgroundColor: '#007BFF', fontSize: '0.75rem', borderRadius: '6px', height: '35px' }}
-                          onClick={handleApplyFilters}
-                        >
-                          Filter
-                        </button>
-                        <button 
-                          className="btn btn-outline-secondary d-flex align-items-center justify-content-center" 
-                          style={{ width: '35px', height: '35px', borderRadius: '6px', backgroundColor: '#ffffff', borderColor: '#cbd5e1' }}
-                          onClick={handleRefreshFilters}
-                          title="Refresh Filters"
-                        >
-                          <i className="fa-solid fa-rotate"></i>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Data Table */}
-                  <div className="p-3 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#cbd5e1' }}>
-                    <div className="table-responsive">
-                      {filteredProducts.length === 0 ? (
-                        <div className="d-flex flex-column align-items-center justify-content-center py-5 text-center">
-                          <i className="fa-regular fa-folder-open text-muted mb-2.5" style={{ fontSize: '3rem', color: '#cbd5e1', opacity: '0.6' }}></i>
-                          <p className="mb-0 text-secondary" style={{ fontSize: '0.78rem', maxWidth: '320px', lineHeight: '1.4' }}>
-                            No products found matching filters.
-                          </p>
-                        </div>
-                      ) : (
-                        <table className="table align-middle table-hover-light">
-                          <thead>
-                            <tr className="small text-secondary" style={{ fontSize: '0.72rem', borderBottom: '2px solid #e2e8f0' }}>
-                              <th>Product Info</th>
-                              <th>SKU Code</th>
-                              <th>Category</th>
-                              <th>Brand</th>
-                              <th>Purchase Price</th>
-                              <th>Selling Price</th>
-                              <th>Quantity</th>
-                              <th>Status</th>
-                              <th className="text-center">Sale</th>
-                              <th className="text-center">Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {filteredProducts.map(product => (
-                              <tr key={product.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                <td>
-                                  <div className="d-flex align-items-center gap-2">
-                                    {product.imageUrl ? (
-                                      <img src={product.imageUrl} alt={product.name} style={{ width: '32px', height: '32px', borderRadius: '4px', objectFit: 'cover' }} />
-                                    ) : (
-                                      <div className="d-flex align-items-center justify-content-center rounded text-secondary" style={{ width: '32px', height: '32px', fontSize: '0.85rem', backgroundColor: '#f1f5f9', color: '#64748b' }}>
-                                        <i className="fa-solid fa-box"></i>
-                                      </div>
-                                    )}
-                                    <span className="fw-semibold text-dark" style={{ fontSize: '0.78rem' }}>{product.name}</span>
-                                  </div>
-                                </td>
-                                <td className="font-monospace text-secondary" style={{ fontSize: '0.75rem' }}>{product.sku}</td>
-                                <td style={{ fontSize: '0.75rem', color: '#475569' }}>{product.category || 'N/A'}</td>
-                                <td style={{ fontSize: '0.75rem', color: '#475569' }}>{product.brand || 'N/A'}</td>
-                                <td className="fw-semibold text-dark" style={{ fontSize: '0.78rem' }}>${(product.purchasePrice || 0).toFixed(2)}</td>
-                                <td className="fw-semibold text-dark" style={{ fontSize: '0.78rem' }}>${(product.price || 0).toFixed(2)}</td>
-                                <td style={{ fontSize: '0.75rem', color: '#475569' }}>{product.quantity} pcs</td>
-                                <td>
-                                  <span className={`badge ${product.quantity <= 0 ? 'bg-danger text-danger' : product.quantity < (product.reorderLevel || 10) ? 'bg-warning text-warning' : 'bg-success text-success'} bg-opacity-10 border border-opacity-20`} style={{ fontSize: '0.68rem', borderColor: 'currentColor' }}>
-                                    {product.quantity <= 0 ? 'Out of Stock' : product.quantity < (product.reorderLevel || 10) ? 'Low Stock' : 'In Stock'}
-                                  </span>
-                                </td>
-                                <td className="text-center">
-                                  <button
-                                    type="button"
-                                    className="btn btn-blue-primary btn-sm px-2.5 py-0.5 fw-semibold d-inline-flex align-items-center gap-1"
-                                    style={{ fontSize: '0.68rem', borderRadius: '4px' }}
-                                    onClick={() => handleDirectSaleProduct(product)}
-                                    disabled={product.quantity <= 0}
-                                    title={product.quantity <= 0 ? "Out of Stock" : "Sale product"}
-                                  >
-                                    <i className="fa-solid fa-cart-shopping" style={{ fontSize: '0.65rem' }}></i> Sale
-                                  </button>
-                                </td>
-                                <td className="text-center">
-                                  <div className="d-flex align-items-center justify-content-center gap-2">
-                                    <button 
-                                      type="button" 
-                                      className="btn btn-link text-primary p-0 border-0" 
-                                      onClick={() => handleEditProduct(product)}
-                                      title="Edit Product"
-                                    >
-                                      <i className="fa-regular fa-pen-to-square" style={{ fontSize: '0.85rem' }}></i>
-                                    </button>
-                                    <button 
-                                      type="button" 
-                                      className="btn btn-link text-danger p-0 border-0" 
-                                      onClick={() => handleDeleteProduct(product.id)}
-                                      title="Delete Product"
-                                    >
-                                      <i className="fa-solid fa-trash-can" style={{ fontSize: '0.85rem' }}></i>
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      )}
-                    </div>
-                  </div>
-                </>
-              ) : (
-                /* PAGE 2: Add / Edit Product View */
-                <>
-                  {/* Title Banner */}
-                  <div className="d-flex justify-content-between align-items-center mb-3">
-                    <div>
-                      <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>{editingProductId ? 'Edit Product' : 'Add New Product'}</h1>
-                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
-                        <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setActiveTab('dashboard')}>Dashboard</span>
-                        <span className="text-secondary">/</span>
-                        <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setProductsSubView('list')}>Products</span>
-                        <span className="text-secondary">/</span>
-                        <span className="fw-semibold">{editingProductId ? 'Edit Product' : 'Add New Product'}</span>
-                      </div>
-                    </div>
-                    <button 
-                      className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1.5 px-3 py-1.5 fw-semibold" 
-                      style={{ fontSize: '0.75rem', borderRadius: '6px', backgroundColor: '#ffffff', borderColor: '#cbd5e1', color: '#475569' }} 
-                      onClick={handleCancel}
-                    >
-                      <i className="fa-solid fa-arrow-left"></i> Back to Products
-                    </button>
-                  </div>
-
-                  {/* Main Grid */}
-                  <div className="row g-3">
-                    {/* Left Form Column */}
-                    <div className="col-lg-8 col-md-12">
-                      <div className="p-3 rounded-3 shadow-sm border bg-white h-100" style={{ borderColor: '#cbd5e1' }}>
-                        <h3 className="fw-bold mb-2 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '0.92rem', color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem', marginBottom: '1.15rem' }}>
-                          <i className="fa-solid fa-box text-primary me-2" style={{ color: '#007BFF' }}></i> Product Information
-                        </h3>
-
-                        <form onSubmit={handleSaveProduct}>
-                          <div className="row g-3 mb-3">
-                            <div className="col-md-6">
-                              <label className="form-label mb-1 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Product Name <span className="text-danger">*</span></label>
-                              <input 
-                                type="text" 
-                                className="form-control-premium-dark" 
-                                placeholder="Enter product name" 
-                                value={newProdName}
-                                onChange={(e) => setNewProdName(e.target.value)}
-                                required 
-                              />
-                            </div>
-                            <div className="col-md-6">
-                              <label className="form-label mb-1 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>SKU / Product Code <span className="text-danger">*</span></label>
-                              <input 
-                                type="text" 
-                                className="form-control-premium-dark" 
-                                placeholder="Enter SKU or product code" 
-                                value={newProdSku}
-                                onChange={(e) => setNewProdSku(e.target.value)}
-                                required 
-                              />
-                            </div>
-                          </div>
-
-                          <div className="row g-3 mb-3">
-                            <div className="col-md-6">
-                              <label className="form-label mb-1 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Category <span className="text-danger">*</span></label>
-                              <select 
-                                className="form-control-premium-dark" 
-                                value={newProdCategory}
-                                onChange={(e) => setNewProdCategory(e.target.value)}
-                                required
-                              >
-                                <option value="">Select category</option>
-                                <option value="Electronics">Electronics</option>
-                                <option value="Clothing">Clothing</option>
-                                <option value="Accessories">Accessories</option>
-                              </select>
-                            </div>
-                            <div className="col-md-6">
-                              <label className="form-label mb-1 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Brand</label>
-                              <input 
-                                type="text" 
-                                className="form-control-premium-dark" 
-                                placeholder="Enter brand name" 
-                                value={newProdBrand}
-                                onChange={(e) => setNewProdBrand(e.target.value)}
-                              />
-                            </div>
-                          </div>
-
-                          <div className="row g-3 mb-3">
-                            <div className="col-md-6">
-                              <label className="form-label mb-1 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Purchase Price ($) <span className="text-danger">*</span></label>
-                              <input 
-                                type="number" 
-                                step="0.01"
-                                className="form-control-premium-dark" 
-                                placeholder="Enter purchase price" 
-                                value={newProdPurchasePrice}
-                                onChange={(e) => setNewProdPurchasePrice(e.target.value)}
-                                required 
-                              />
-                            </div>
-                            <div className="col-md-6">
-                              <label className="form-label mb-1 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Selling Price ($) <span className="text-danger">*</span></label>
-                              <input 
-                                type="number" 
-                                step="0.01"
-                                className="form-control-premium-dark" 
-                                placeholder="Enter selling price" 
-                                value={newProdSellingPrice}
-                                onChange={(e) => setNewProdSellingPrice(e.target.value)}
-                                required 
-                              />
-                            </div>
-                          </div>
-
-                          <div className="row g-3 mb-3">
-                            <div className="col-md-6">
-                              <label className="form-label mb-1 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Stock Quantity <span className="text-danger">*</span></label>
-                              <input 
-                                type="number" 
-                                className="form-control-premium-dark" 
-                                placeholder="Enter stock quantity" 
-                                value={newProdStockQuantity}
-                                onChange={(e) => setNewProdStockQuantity(e.target.value)}
-                                required 
-                              />
-                            </div>
-                            <div className="col-md-6">
-                              <label className="form-label mb-1 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Reorder Level</label>
-                              <input 
-                                type="number" 
-                                className="form-control-premium-dark" 
-                                placeholder="10" 
-                                value={newProdReorderLevel}
-                                onChange={(e) => setNewProdReorderLevel(e.target.value)}
-                              />
-                            </div>
-                          </div>
-
-                          <div className="row g-3 mb-3">
-                            <div className="col-md-6">
-                              <label className="form-label mb-1 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Unit</label>
-                              <select 
-                                className="form-control-premium-dark" 
-                                value={newProdUnit}
-                                onChange={(e) => setNewProdUnit(e.target.value)}
-                              >
-                                <option value="Piece">Piece</option>
-                                <option value="Box">Box</option>
-                                <option value="Pack">Pack</option>
-                                <option value="kg">kg</option>
-                                <option value="Litre">Litre</option>
-                              </select>
-                            </div>
-                            <div className="col-md-6">
-                              <label className="form-label mb-1 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Tax (%)</label>
-                              <input 
-                                type="number" 
-                                className="form-control-premium-dark" 
-                                placeholder="0" 
-                                value={newProdTax}
-                                onChange={(e) => setNewProdTax(e.target.value)}
-                              />
-                            </div>
-                          </div>
-
-                          <div className="mb-4">
-                            <label className="form-label mb-1 fw-semibold" style={{ fontSize: '0.72rem', color: '#475569' }}>Description</label>
-                            <textarea 
-                              className="form-control-premium-dark" 
-                              style={{ minHeight: '100px' }}
-                              placeholder="Enter product description (optional)" 
-                              value={newProdDescription}
-                              onChange={(e) => setNewProdDescription(e.target.value)}
-                            />
-                          </div>
-
-                          <div className="pt-3 d-flex justify-content-end gap-2" style={{ borderTop: '1px solid #e2e8f0' }}>
-                            <button 
-                              type="button" 
-                              className="btn btn-outline-secondary px-3.5 py-1.5 fw-semibold" 
-                              style={{ fontSize: '0.75rem', borderRadius: '6px', borderColor: '#cbd5e1', backgroundColor: '#ffffff', color: '#475569' }} 
-                              onClick={handleResetForm}
-                            >
-                              Reset
-                            </button>
-                            <button 
-                              type="button" 
-                              className="btn btn-outline-secondary px-3.5 py-1.5 fw-semibold" 
-                              style={{ fontSize: '0.75rem', borderRadius: '6px', borderColor: '#cbd5e1', backgroundColor: '#ffffff', color: '#475569' }} 
-                              onClick={handleCancel}
-                            >
-                              Cancel
-                            </button>
-                            <button 
-                              type="submit" 
-                              className="btn text-white fw-bold px-4 py-1.5 border-0" 
-                              style={{ backgroundColor: '#007BFF', borderRadius: '6px', fontSize: '0.75rem' }}
-                            >
-                              <i className="fa-solid fa-save me-1.5"></i> Save Product
-                            </button>
-                          </div>
-                        </form>
-                      </div>
-                    </div>
-
-                    {/* Right Column: Upload & Summary */}
-                    <div className="col-lg-4 col-md-12 d-flex flex-column gap-3">
-                      {/* Image Upload Zone */}
-                      <div className="p-3 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#cbd5e1' }}>
-                        <h3 className="fw-bold mb-2 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '0.92rem', color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem', marginBottom: '1.15rem' }}>
-                          <i className="fa-regular fa-image text-primary me-2" style={{ color: '#007BFF' }}></i> Product Image
-                        </h3>
-
-                        <div 
-                          className="d-flex flex-column align-items-center justify-content-center border border-dashed rounded-3 p-4 text-center position-relative"
-                          style={{
-                            minHeight: '180px',
-                            borderColor: newProdDragOver ? '#007BFF' : '#cbd5e1',
-                            backgroundColor: newProdDragOver ? 'rgba(0, 123, 255, 0.05)' : '#f8fafc',
-                            transition: 'all 0.2s ease',
-                            cursor: 'pointer'
-                          }}
-                          onDragOver={handleDragOver}
-                          onDragLeave={handleDragLeave}
-                          onDrop={handleDrop}
-                          onClick={() => document.getElementById('prod-file-input').click()}
-                        >
-                          <input 
-                            type="file" 
-                            id="prod-file-input" 
-                            className="d-none" 
-                            accept="image/jpeg,image/png,image/webp" 
-                            onChange={handleFileChange}
-                          />
-
-                          {newProdImage ? (
-                            <div className="w-100 h-100 d-flex align-items-center justify-content-center position-relative">
-                              <img src={newProdImage} alt="Product preview" style={{ maxWidth: '100%', maxHeight: '150px', borderRadius: '4px', objectFit: 'contain' }} />
-                            </div>
-                          ) : (
-                            <>
-                              <i className="fa-solid fa-cloud-arrow-up text-primary mb-2" style={{ fontSize: '2rem', color: '#007BFF' }}></i>
-                              <div className="fw-bold text-dark mb-1" style={{ fontSize: '0.8rem' }}>Drag & drop an image here</div>
-                              <div className="text-secondary small" style={{ fontSize: '0.7rem' }}>or click to browse</div>
-                              <div className="text-muted mt-2" style={{ fontSize: '0.62rem' }}>JPG, PNG or WEBP (Max. 2MB)</div>
-                            </>
-                          )}
-                        </div>
-
-                        {newProdImage && (
-                          <div className="mt-3 text-center">
-                            <button 
-                              type="button" 
-                              className="btn btn-outline-danger w-100 fw-semibold d-flex align-items-center justify-content-center gap-1.5" 
-                              style={{ fontSize: '0.72rem', borderRadius: '6px', padding: '0.45rem' }} 
-                              onClick={handleRemoveImage}
-                            >
-                              <i className="fa-solid fa-trash-can"></i> Remove Image
-                            </button>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Summary Card */}
-                      <div className="p-3 rounded-3 shadow-sm border bg-white" style={{ borderColor: '#cbd5e1' }}>
-                        <h3 className="fw-bold mb-2 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '0.92rem', color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem', marginBottom: '1.15rem' }}>
-                          <i className="fa-solid fa-list-check text-primary me-2" style={{ color: '#007BFF' }}></i> Summary
-                        </h3>
-
-                        <div className="d-flex flex-column gap-2.5">
-                          <div className="d-flex justify-content-between align-items-center" style={{ fontSize: '0.78rem' }}>
-                            <span className="text-secondary">Selling Price</span>
-                            <span className="fw-bold text-dark">${(parseFloat(newProdSellingPrice) || 0).toFixed(2)}</span>
-                          </div>
-                          <div className="d-flex justify-content-between align-items-center" style={{ fontSize: '0.78rem' }}>
-                            <span className="text-secondary">Purchase Price</span>
-                            <span className="fw-bold text-dark">${(parseFloat(newProdPurchasePrice) || 0).toFixed(2)}</span>
-                          </div>
-                          <div className="d-flex justify-content-between align-items-center pt-2 border-top" style={{ fontSize: '0.78rem' }}>
-                            <span className="text-secondary fw-semibold">Profit (Per Unit)</span>
-                            <span className={`fw-bold ${((parseFloat(newProdSellingPrice) || 0) - (parseFloat(newProdPurchasePrice) || 0)) >= 0 ? 'text-success' : 'text-danger'}`}>
-                              ${((parseFloat(newProdSellingPrice) || 0) - (parseFloat(newProdPurchasePrice) || 0)).toFixed(2)}
-                            </span>
-                          </div>
-                          <div className="d-flex justify-content-between align-items-center pt-2 border-top" style={{ fontSize: '0.78rem' }}>
-                            <span className="text-secondary">Stock Quantity</span>
-                            <span className="fw-bold text-dark">{newProdStockQuantity || 0}</span>
-                          </div>
-                          <div className="d-flex justify-content-between align-items-center pt-2" style={{ fontSize: '0.78rem' }}>
-                            <span className="text-secondary">Status</span>
-                            <span>
-                              {parseInt(newProdStockQuantity) <= 0 || !newProdStockQuantity ? (
-                                <span className="badge text-white rounded px-2 py-0.5" style={{ fontSize: '0.68rem', backgroundColor: '#ef4444' }}>Out of Stock</span>
-                              ) : parseInt(newProdStockQuantity) < (parseInt(newProdReorderLevel) || 10) ? (
-                                <span className="badge text-dark rounded px-2 py-0.5" style={{ fontSize: '0.68rem', backgroundColor: '#f59e0b' }}>Low Stock</span>
-                              ) : (
-                                <span className="badge text-white rounded px-2 py-0.5" style={{ fontSize: '0.68rem', backgroundColor: '#10b981' }}>In Stock</span>
-                              )}
-                            </span>
-                          </div>
-
-                          <div className="mt-3 p-2.5 rounded-3 d-flex gap-2" style={{ backgroundColor: '#e0f2fe', color: '#0369a1', fontSize: '0.72rem' }}>
-                            <i className="fa-solid fa-circle-info mt-0.5" style={{ fontSize: '0.85rem' }}></i>
-                            <div style={{ lineHeight: '1.4' }}>
-                              Product will be available for sale once added to inventory.
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
 
           {/* Render Sales Tab */}
           {activeTab === 'sales' && (
@@ -3201,7 +3087,7 @@ const DashboardPage = () => {
               <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
                 <div>
                   <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Sales Registry</h1>
-                  <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
+                  <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
                     <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => { playSynthSound('click'); setActiveTab('dashboard'); window.location.hash = '#dashboard'; }}>Dashboard</span>
                     <span className="text-secondary">/</span>
                     <span className="fw-semibold">Sales</span>
@@ -3322,7 +3208,7 @@ const DashboardPage = () => {
                                   type="button" 
                                   className="btn btn-link text-primary p-0 border-0" 
                                   onClick={() => { playSynthSound('click'); setSelectedInvoiceDetails(sale); }}
-                                  style={{ fontSize: '0.78rem', color: '#007BFF', textDecoration: 'none', fontWeight: '600' }}
+                                  style={{ fontSize: '0.78rem', color: '#0EA5E9', textDecoration: 'none', fontWeight: '600' }}
                                 >
                                   Details
                                 </button>
@@ -3355,7 +3241,7 @@ const DashboardPage = () => {
               <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
                 <div>
                   <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Purchases Registry</h1>
-                  <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
+                  <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
                     <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => { playSynthSound('click'); setActiveTab('dashboard'); window.location.hash = '#dashboard'; }}>Dashboard</span>
                     <span className="text-secondary">/</span>
                     <span className="fw-semibold">Purchases</span>
@@ -3477,7 +3363,7 @@ const DashboardPage = () => {
                                   type="button" 
                                   className="btn btn-link text-primary p-0 border-0" 
                                   onClick={() => { playSynthSound('click'); setSelectedPurchaseDetails(purchase); }}
-                                  style={{ fontSize: '0.78rem', color: '#007BFF', textDecoration: 'none', fontWeight: '600' }}
+                                  style={{ fontSize: '0.78rem', color: '#0EA5E9', textDecoration: 'none', fontWeight: '600' }}
                                 >
                                   Details
                                 </button>
@@ -3512,7 +3398,7 @@ const DashboardPage = () => {
                   <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
                     <div>
                       <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Categories Inventory</h1>
-                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
+                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
                         <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => { playSynthSound('click'); setActiveTab('dashboard'); window.location.hash = '#dashboard'; }}>Dashboard</span>
                         <span className="text-secondary">/</span>
                         <span className="fw-semibold">Categories</span>
@@ -3675,7 +3561,7 @@ const DashboardPage = () => {
                                         setCatImagePreview(cat.image || null);
                                         setCategoriesSubView('add');
                                       }}
-                                      style={{ fontSize: '0.78rem', color: '#007BFF', textDecoration: 'none', fontWeight: '600' }}
+                                      style={{ fontSize: '0.78rem', color: '#0EA5E9', textDecoration: 'none', fontWeight: '600' }}
                                     >
                                       Edit
                                     </button>
@@ -3696,7 +3582,7 @@ const DashboardPage = () => {
                   <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
                     <div>
                       <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>{editingCategoryId ? 'Edit Category' : 'Add Category'}</h1>
-                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
+                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
                         <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => { playSynthSound('click'); setActiveTab('dashboard'); }}>Dashboard</span>
                         <span className="text-secondary">/</span>
                         <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => { playSynthSound('click'); setCategoriesSubView('list'); }}>Categories</span>
@@ -3729,7 +3615,7 @@ const DashboardPage = () => {
                     <div className="col-lg-8 col-md-12">
                       <div className="p-3 rounded-3 shadow-sm border bg-white h-100" style={{ borderColor: '#cbd5e1' }}>
                         <h3 className="fw-bold mb-2 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '0.92rem', color: '#0f172a', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem', marginBottom: '1.15rem' }}>
-                          <i className="fa-solid fa-tags text-primary me-2" style={{ color: '#007BFF' }}></i> Category Information
+                          <i className="fa-solid fa-tags text-primary me-2" style={{ color: '#0EA5E9' }}></i> Category Information
                         </h3>
 
                         <form onSubmit={handleSaveCategory}>
@@ -3855,7 +3741,7 @@ const DashboardPage = () => {
                                 </div>
                               ) : (
                                 <>
-                                  <i className="fa-solid fa-cloud-arrow-up text-primary mb-1.5" style={{ fontSize: '1.6rem', color: '#007BFF' }}></i>
+                                  <i className="fa-solid fa-cloud-arrow-up text-primary mb-1.5" style={{ fontSize: '1.6rem', color: '#0EA5E9' }}></i>
                                   <div className="fw-bold text-dark mb-0.5" style={{ fontSize: '0.78rem' }}>Drag & drop image here</div>
                                   <div className="text-secondary small" style={{ fontSize: '0.65rem' }}>or click to browse</div>
                                 </>
@@ -3907,7 +3793,7 @@ const DashboardPage = () => {
                             <button 
                               type="submit" 
                               className="btn text-white fw-bold px-4 py-1.5 border-0" 
-                              style={{ backgroundColor: '#007BFF', borderRadius: '6px', fontSize: '0.75rem' }}
+                              style={{ backgroundColor: '#0EA5E9', borderRadius: '6px', fontSize: '0.75rem' }}
                               disabled={catSaving}
                             >
                               {catSaving ? 'Saving...' : (editingCategoryId ? 'Update Category' : 'Save Category')}
@@ -3922,7 +3808,7 @@ const DashboardPage = () => {
                       {/* Live Category Preview Card */}
                       <div className="p-3 rounded-3 border bg-white shadow-sm" style={{ borderColor: '#cbd5e1' }}>
                         <h4 className="fw-bold mb-2.5 d-flex align-items-center text-dark" style={{ fontFamily: 'Outfit', fontSize: '0.85rem' }}>
-                          <i className="fa-regular fa-eye text-primary me-2" style={{ color: '#007BFF' }}></i> Category Preview
+                          <i className="fa-regular fa-eye text-primary me-2" style={{ color: '#0EA5E9' }}></i> Category Preview
                         </h4>
 
                         <div className="d-flex flex-column align-items-center justify-content-center p-3 text-center rounded-3 bg-light border border-dashed mb-3" style={{ minHeight: '180px', borderColor: '#e2e8f0' }}>
@@ -3945,7 +3831,7 @@ const DashboardPage = () => {
                             </div>
                             <div className="d-flex justify-content-between mb-1.5">
                               <span className="text-secondary"><i className="fa-solid fa-link me-1.5"></i>Slug URL:</span>
-                              <span className="fw-semibold text-primary font-monospace" style={{ color: '#007BFF' }}>category/{catSlug || 'slug'}</span>
+                              <span className="fw-semibold text-primary font-monospace" style={{ color: '#0EA5E9' }}>category/{catSlug || 'slug'}</span>
                             </div>
                             <div className="d-flex justify-content-between">
                               <span className="text-secondary"><i className="fa-regular fa-file-lines me-1.5"></i>Description:</span>
@@ -3993,7 +3879,7 @@ const DashboardPage = () => {
                   <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
                     <div>
                       <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Suppliers Directory</h1>
-                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
+                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
                         <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setActiveTab('dashboard')}>Dashboard</span>
                         <span className="text-secondary">/</span>
                         <span className="fw-semibold">Suppliers</span>
@@ -4001,7 +3887,7 @@ const DashboardPage = () => {
                     </div>
                     <button 
                       className="btn text-white fw-semibold d-flex align-items-center gap-1.5 shadow-sm border-0" 
-                      style={{ backgroundColor: '#007BFF', padding: '0.45rem 1.15rem', borderRadius: '6px', fontSize: '0.75rem' }} 
+                      style={{ backgroundColor: '#0EA5E9', padding: '0.45rem 1.15rem', borderRadius: '6px', fontSize: '0.75rem' }} 
                       onClick={() => {
                         playSynthSound('click');
                         setEditingSupplierId(null);
@@ -4033,7 +3919,7 @@ const DashboardPage = () => {
                       <div className="col-md-3 d-flex gap-2">
                         <button 
                           className="btn text-white fw-semibold w-100 border-0" 
-                          style={{ backgroundColor: '#007BFF', fontSize: '0.75rem', borderRadius: '6px', height: '35px' }}
+                          style={{ backgroundColor: '#0EA5E9', fontSize: '0.75rem', borderRadius: '6px', height: '35px' }}
                           onClick={() => setAppliedSupplierFilters({ search: supplierSearchQuery })}
                         >
                           Search
@@ -4171,7 +4057,7 @@ const DashboardPage = () => {
                       <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>
                         {editingSupplierId ? 'Edit Supplier' : 'Add New Supplier'}
                       </h1>
-                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
+                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
                         <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setActiveTab('dashboard')}>Dashboard</span>
                         <span className="text-secondary">/</span>
                         <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setSuppliersSubView('list')}>Suppliers</span>
@@ -4436,7 +4322,7 @@ const DashboardPage = () => {
                         <button 
                           type="submit" 
                           className="btn text-white fw-bold px-4 py-1.5 border-0" 
-                          style={{ backgroundColor: '#007BFF', borderRadius: '6px', fontSize: '0.75rem' }}
+                          style={{ backgroundColor: '#0EA5E9', borderRadius: '6px', fontSize: '0.75rem' }}
                           disabled={supSaving}
                         >
                           {supSaving ? 'Saving...' : (editingSupplierId ? 'Update Supplier' : 'Save Supplier')}
@@ -4458,7 +4344,7 @@ const DashboardPage = () => {
                   <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
                     <div>
                       <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Customers List</h1>
-                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
+                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
                         <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setActiveTab('dashboard')}>Dashboard</span>
                         <span className="text-secondary">/</span>
                         <span className="fw-semibold">Customers</span>
@@ -4466,7 +4352,7 @@ const DashboardPage = () => {
                     </div>
                     <button 
                       className="btn text-white fw-semibold d-flex align-items-center gap-1.5 shadow-sm border-0" 
-                      style={{ backgroundColor: '#007BFF', padding: '0.45rem 1.15rem', borderRadius: '6px', fontSize: '0.75rem' }} 
+                      style={{ backgroundColor: '#0EA5E9', padding: '0.45rem 1.15rem', borderRadius: '6px', fontSize: '0.75rem' }} 
                       onClick={() => {
                         playSynthSound('click');
                         setEditingCustomerId(null);
@@ -4498,7 +4384,7 @@ const DashboardPage = () => {
                       <div className="col-md-3 d-flex gap-2">
                         <button 
                           className="btn text-white fw-semibold w-100 border-0" 
-                          style={{ backgroundColor: '#007BFF', fontSize: '0.75rem', borderRadius: '6px', height: '35px' }}
+                          style={{ backgroundColor: '#0EA5E9', fontSize: '0.75rem', borderRadius: '6px', height: '35px' }}
                           onClick={() => setAppliedCustomerFilters({ search: customerSearchQuery })}
                         >
                           Search
@@ -4617,7 +4503,7 @@ const DashboardPage = () => {
                       <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>
                         {editingCustomerId ? 'Edit Customer' : 'Add New Customer'}
                       </h1>
-                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
+                      <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
                         <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setActiveTab('dashboard')}>Dashboard</span>
                         <span className="text-secondary">/</span>
                         <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setCustomersSubView('list')}>Customers</span>
@@ -4788,7 +4674,7 @@ const DashboardPage = () => {
                         <button 
                           type="submit" 
                           className="btn text-white fw-bold px-4 py-1.5 border-0" 
-                          style={{ backgroundColor: '#007BFF', borderRadius: '6px', fontSize: '0.75rem' }}
+                          style={{ backgroundColor: '#0EA5E9', borderRadius: '6px', fontSize: '0.75rem' }}
                           disabled={custSaving}
                         >
                           {custSaving ? 'Saving...' : (editingCustomerId ? 'Update Customer' : 'Save Customer')}
@@ -4808,7 +4694,7 @@ const DashboardPage = () => {
               <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
                 <div>
                   <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Audit & Reports</h1>
-                  <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#007BFF' }}>
+                  <div className="d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', color: '#0EA5E9' }}>
                     <span className="text-secondary" style={{ cursor: 'pointer' }} onClick={() => setActiveTab('dashboard')}>Dashboard</span>
                     <span className="text-secondary">/</span>
                     <span className="fw-semibold">Reports</span>
@@ -5095,8 +4981,800 @@ const DashboardPage = () => {
             </div>
           )}
 
+          {/* PAGE: Billing & Subscription */}
+          {activeTab === 'billing-subscription' && (
+            <div className="billing-subscription-view animate-fade-in" style={{ animation: 'fadeIn 0.25s ease-out' }}>
+              
+              {/* Header Breadcrumbs */}
+              <div className="d-flex align-items-center justify-content-between mb-4">
+                <div>
+                  <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Billing & Subscription</h1>
+                  <nav aria-label="breadcrumb">
+                    <ol className="breadcrumb mb-0" style={{ fontSize: '0.72rem' }}>
+                      <li className="breadcrumb-item"><a href="#dashboard" className="text-decoration-none" style={{ color: '#0ea5e9' }} onClick={() => setActiveTab('dashboard')}>Dashboard</a></li>
+                      <li className="breadcrumb-item active" aria-current="page" style={{ color: '#64748b' }}>Subscription Plans</li>
+                    </ol>
+                  </nav>
+                </div>
+              </div>
+
+              {/* Account Billing Details Card */}
+              <div className="card border bg-white rounded-3 p-3.5 mb-4 shadow-sm" style={{ borderColor: '#cbd5e1' }}>
+                <h5 className="fw-bold mb-3.5 d-flex align-items-center gap-2" style={{ fontFamily: 'Outfit', fontSize: '0.92rem', color: '#0f172a' }}>
+                  <i className="fa-solid fa-file-invoice-dollar text-info" style={{ color: '#0ea5e9', fontSize: '1.05rem' }}></i>
+                  Account Billing Details
+                </h5>
+                <div className="row g-3">
+                  <div className="col-md-3 col-sm-6">
+                    <div className="text-secondary small mb-1" style={{ fontSize: '0.72rem' }}>Currently Active Plan</div>
+                    <div className="fw-bold text-dark d-flex align-items-center gap-1.5" style={{ fontSize: '0.85rem' }}>
+                      <i className="fa-solid fa-shield-halved text-success" style={{ color: '#22c55e', fontSize: '0.85rem' }}></i>
+                      {currentSub?.planName || user?.plan_name || 'Starter Shop'}
+                    </div>
+                  </div>
+                  <div className="col-md-3 col-sm-6">
+                    <div className="text-secondary small mb-1" style={{ fontSize: '0.72rem' }}>Billing Interval</div>
+                    <div className="fw-bold text-dark" style={{ fontSize: '0.85rem' }}>
+                      {currentSub?.billingCycle || 'Yearly Renewal'}
+                    </div>
+                  </div>
+                  <div className="col-md-3 col-sm-6">
+                    <div className="text-secondary small mb-1" style={{ fontSize: '0.72rem' }}>Merchant Email</div>
+                    <div className="fw-bold text-dark text-truncate" style={{ fontSize: '0.85rem' }} title={currentSub?.merchantEmail || user?.email}>
+                      {currentSub?.merchantEmail || user?.email || 'N/A'}
+                    </div>
+                  </div>
+                  <div className="col-md-3 col-sm-6">
+                    <div className="text-secondary small mb-1" style={{ fontSize: '0.72rem' }}>SaaS Access Code</div>
+                    <div className="fw-bold text-info d-flex align-items-center gap-1.5" style={{ fontSize: '0.85rem', color: '#0ea5e9' }}>
+                      <span className="font-monospace">{saasCode}</span>
+                      <button className="btn p-0 border-0" style={{ color: '#0ea5e9' }} onClick={handleCopyCode} title="Copy Code">
+                        <i className="fa-regular fa-copy" style={{ fontSize: '0.85rem' }}></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Expiry Countdown Banner */}
+                {countdownText && (
+                  <div className={`mt-3.5 p-2 rounded-3 border d-flex align-items-center justify-content-between ${countdownColor}`} style={{ fontSize: '0.78rem' }}>
+                    <div className="d-flex align-items-center gap-2 fw-semibold">
+                      <i className="fa-solid fa-hourglass-half"></i>
+                      <span>{countdownText}</span>
+                    </div>
+                    {currentSub?.expiryDate && (
+                      <span className="small text-secondary font-monospace" style={{ fontSize: '0.7rem' }}>
+                        Expires: {new Date(currentSub.expiryDate).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Compare Subscription Section */}
+              <div className="text-center my-4.5">
+                <h3 className="fw-bold text-dark mb-1.5" style={{ fontFamily: 'Outfit', fontSize: '1.15rem' }}>Compare Subscriptions & Features</h3>
+                <p className="text-secondary mx-auto" style={{ fontSize: '0.78rem', maxWidth: '600px' }}>Scale your inventory resources dynamically. Upgrade instantly to accommodate more store connections and items.</p>
+              </div>
+
+              {/* Pricing Cards Grid */}
+              <div className="row g-4 mb-5">
+                {plans.map((plan) => {
+                  const isActive = (currentSub?.planName || user?.plan_name) === plan.planName;
+                  const isEnterprise = plan.planName === 'Enterprise Shop';
+                  const isGrowth = plan.planName === 'Growth Shop';
+                  const isStarter = plan.planName === 'Starter Shop';
+                  
+                  // Curated colors
+                  let iconBg = 'rgba(14, 165, 233, 0.1)';
+                  let iconColor = '#0ea5e9';
+                  let cardBorder = isActive ? '2px solid #22c55e' : '1px solid #e2e8f0';
+                  
+                  if (isGrowth) {
+                    iconBg = 'rgba(139, 92, 246, 0.1)';
+                    iconColor = '#8b5cf6';
+                  } else if (isEnterprise) {
+                    iconBg = 'rgba(236, 72, 153, 0.1)';
+                    iconColor = '#ec4899';
+                  }
+
+                  return (
+                    <div className="col-lg-4 col-md-6" key={plan._id}>
+                      <div className="card h-100 bg-white rounded-3 shadow-sm p-4 d-flex flex-column position-relative" style={{ border: cardBorder }}>
+                        
+                        {/* Active Badge */}
+                        {isActive && (
+                          <span className="badge bg-success text-white position-absolute px-2.5 py-1 fw-bold" style={{ top: '15px', right: '15px', fontSize: '0.65rem', borderRadius: '4px', backgroundColor: '#22c55e' }}>
+                            ACTIVE
+                          </span>
+                        )}
+
+                        {/* Plan Header */}
+                        <div className="d-flex align-items-center gap-3 mb-3">
+                          <div className="rounded-3 d-flex align-items-center justify-content-center" style={{ width: '42px', height: '42px', backgroundColor: iconBg }}>
+                            <i className={`fa-solid fa-store`} style={{ color: iconColor, fontSize: '1.2rem' }}></i>
+                          </div>
+                          <div>
+                            <h4 className="fw-bold text-dark mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '0.98rem' }}>{plan.planName}</h4>
+                            <p className="text-secondary small mb-0" style={{ fontSize: '0.68rem', lineHeight: '1.2' }}>
+                              {isStarter && "Essential inventory tracking for single shops or boutique storefronts."}
+                              {isGrowth && "Advanced stock manager with notifications, supporting small retail chains."}
+                              {isEnterprise && "Full warehouse automation and custom integrations for high-volume stores."}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Price */}
+                        <div className="my-3">
+                          <span className="fw-extrabold text-dark" style={{ fontSize: '1.75rem', fontFamily: 'Outfit' }}>₹{plan.yearlyPrice.toLocaleString('en-IN')}</span>
+                          <span className="text-secondary small">/year</span>
+                        </div>
+
+                        {/* Features List */}
+                        <div className="flex-grow-1 my-3">
+                          <ul className="list-unstyled d-flex flex-column gap-2 mb-0" style={{ fontSize: '0.78rem' }}>
+                            {plan.features.map((feat, idx) => (
+                              <li className="d-flex align-items-center gap-2 text-dark" key={idx}>
+                                <i className="fa-solid fa-circle-check text-success" style={{ color: '#22c55e', fontSize: '0.8rem' }}></i>
+                                <span>{feat}</span>
+                              </li>
+                            ))}
+
+                            {/* Disabled features for Starter */}
+                            {isStarter && (
+                              <>
+                                <li className="d-flex align-items-center gap-2 text-muted text-decoration-line-through" style={{ opacity: 0.5 }}>
+                                  <i className="fa-solid fa-circle-xmark text-danger" style={{ color: '#ef4444', fontSize: '0.8rem' }}></i>
+                                  <span>Low Stock Alerts</span>
+                                </li>
+                                <li className="d-flex align-items-center gap-2 text-muted text-decoration-line-through" style={{ opacity: 0.5 }}>
+                                  <i className="fa-solid fa-circle-xmark text-danger" style={{ color: '#ef4444', fontSize: '0.8rem' }}></i>
+                                  <span>Customer Comments Board</span>
+                                </li>
+                              </>
+                            )}
+                          </ul>
+                        </div>
+
+                        {/* Action Button */}
+                        <div className="mt-4">
+                          {isActive ? (
+                            <button className="btn btn-outline-success w-100 py-1.5 fw-semibold d-flex align-items-center justify-content-center gap-1.5" style={{ fontSize: '0.75rem', borderRadius: '6px', borderColor: '#22c55e', color: '#22c55e', backgroundColor: 'transparent' }} disabled>
+                              <i className="fa-solid fa-check"></i> Current Active Plan
+                            </button>
+                          ) : (
+                            <button 
+                              className={isGrowth ? "btn btn-blue-primary w-100 py-1.5 fw-semibold border-0" : "btn btn-outline-secondary w-100 py-1.5 fw-semibold"} 
+                              style={isGrowth ? { fontSize: '0.75rem', borderRadius: '6px', backgroundColor: '#0EA5E9' } : { fontSize: '0.75rem', borderRadius: '6px', borderColor: '#cbd5e1', color: '#475569', backgroundColor: '#ffffff' }}
+                              onClick={() => handlePlanSelection(plan)}
+                            >
+                              {(plans.find(p => p.planName === currentSub?.planName)?.yearlyPrice || 0) < plan.yearlyPrice ? `Upgrade to ${plan.planName.split(' ')[0]}` : `Downgrade to ${plan.planName.split(' ')[0]}`}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Billing History Section */}
+              <div className="card border bg-white rounded-3 p-3.5 mb-4 shadow-sm" style={{ borderColor: '#cbd5e1' }}>
+                <h5 className="fw-bold mb-3.5 d-flex align-items-center gap-2" style={{ fontFamily: 'Outfit', fontSize: '0.92rem', color: '#0f172a' }}>
+                  <i className="fa-solid fa-history text-info" style={{ color: '#0ea5e9', fontSize: '1.05rem' }}></i>
+                  Billing & Invoice History
+                </h5>
+
+                {/* Filters */}
+                <div className="row g-3 mb-3.5">
+                  <div className="col-md-8">
+                    <div className="header-search-box d-flex align-items-center px-2.5 py-1.5 rounded-3 border" style={{ backgroundColor: '#ffffff', borderColor: '#cbd5e1' }}>
+                      <i className="fa-solid fa-magnifying-glass text-secondary me-2" style={{ color: '#64748b', fontSize: '0.8rem' }}></i>
+                      <input 
+                        type="text" 
+                        className="bg-transparent border-0 outline-none w-100" 
+                        style={{ fontSize: '0.78rem', color: '#0f172a' }} 
+                        placeholder="Search invoice number, plan name, payment..." 
+                        value={invoiceSearch}
+                        onChange={(e) => setInvoiceSearch(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-4">
+                    <select 
+                      className="form-control-premium-dark w-100" 
+                      style={{ fontSize: '0.78rem', padding: '0.45rem 0.75rem', height: '100%', borderColor: '#cbd5e1' }}
+                      value={invoiceStatusFilter}
+                      onChange={(e) => setInvoiceStatusFilter(e.target.value)}
+                    >
+                      <option value="All">All Invoices</option>
+                      <option value="Paid">Paid</option>
+                      <option value="Pending">Pending</option>
+                      <option value="Failed">Failed</option>
+                      <option value="Refunded">Refunded</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Invoices Table */}
+                <div className="table-responsive">
+                  <table className="table table-hover align-middle mb-0" style={{ borderCollapse: 'separate', borderSpacing: '0' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: '#f8fafc' }}>
+                        <th className="px-3 py-2.5 border-bottom text-secondary fw-bold text-uppercase" style={{ fontSize: '0.66rem', borderColor: '#cbd5e1' }}>Invoice ID</th>
+                        <th className="px-3 py-2.5 border-bottom text-secondary fw-bold text-uppercase" style={{ fontSize: '0.66rem', borderColor: '#cbd5e1' }}>Plan Name</th>
+                        <th className="px-3 py-2.5 border-bottom text-secondary fw-bold text-uppercase" style={{ fontSize: '0.66rem', borderColor: '#cbd5e1' }}>Amount</th>
+                        <th className="px-3 py-2.5 border-bottom text-secondary fw-bold text-uppercase" style={{ fontSize: '0.66rem', borderColor: '#cbd5e1' }}>Payment Method</th>
+                        <th className="px-3 py-2.5 border-bottom text-secondary fw-bold text-uppercase" style={{ fontSize: '0.66rem', borderColor: '#cbd5e1' }}>Status</th>
+                        <th className="px-3 py-2.5 border-bottom text-secondary fw-bold text-uppercase" style={{ fontSize: '0.66rem', borderColor: '#cbd5e1' }}>Billing Date</th>
+                        <th className="px-3 py-2.5 border-bottom text-secondary fw-bold text-uppercase" style={{ fontSize: '0.66rem', borderColor: '#cbd5e1' }}>Renewal Date</th>
+                        <th className="px-3 py-2.5 border-bottom text-secondary fw-bold text-uppercase text-end" style={{ fontSize: '0.66rem', borderColor: '#cbd5e1' }}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {loadingBilling ? (
+                        <tr>
+                          <td colSpan="8" className="text-center py-4 text-secondary small">
+                            <i className="fa-solid fa-circle-notch fa-spin me-2 text-info"></i> Loading billing history...
+                          </td>
+                        </tr>
+                      ) : billingHistory.length === 0 ? (
+                        <tr>
+                          <td colSpan="8" className="text-center py-4 text-secondary small">
+                            <i className="fa-solid fa-folder-open mb-2 d-block text-secondary" style={{ fontSize: '1.5rem' }}></i> No invoices found matching filters
+                          </td>
+                        </tr>
+                      ) : (
+                        billingHistory.map((inv) => {
+                          let badgeClass = 'bg-success bg-opacity-10 text-success border border-success border-opacity-20';
+                          if (inv.status === 'Pending') badgeClass = 'bg-warning bg-opacity-10 text-warning border border-warning border-opacity-20';
+                          else if (inv.status === 'Failed') badgeClass = 'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-20';
+                          else if (inv.status === 'Refunded') badgeClass = 'bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-20';
+
+                          return (
+                            <tr key={inv._id}>
+                              <td className="px-3 py-2.5 border-bottom font-monospace fw-semibold text-dark" style={{ fontSize: '0.74rem', borderColor: '#e2e8f0' }}>#{inv.invoiceNumber}</td>
+                              <td className="px-3 py-2.5 border-bottom text-dark fw-bold" style={{ fontSize: '0.76rem', borderColor: '#e2e8f0' }}>{inv.planName}</td>
+                              <td className="px-3 py-2.5 border-bottom text-dark fw-extrabold" style={{ fontSize: '0.76rem', borderColor: '#e2e8f0' }}>₹{inv.amount.toLocaleString('en-IN')}</td>
+                              <td className="px-3 py-2.5 border-bottom text-secondary" style={{ fontSize: '0.74rem', borderColor: '#e2e8f0' }}>{inv.paymentMethod}</td>
+                              <td className="px-3 py-2.5 border-bottom" style={{ borderColor: '#e2e8f0' }}>
+                                <span className={`badge px-2 py-0.5 rounded-pill ${badgeClass}`} style={{ fontSize: '0.62rem' }}>{inv.status}</span>
+                              </td>
+                              <td className="px-3 py-2.5 border-bottom text-secondary" style={{ fontSize: '0.74rem', borderColor: '#e2e8f0' }}>{new Date(inv.billingDate).toLocaleDateString()}</td>
+                              <td className="px-3 py-2.5 border-bottom text-secondary" style={{ fontSize: '0.74rem', borderColor: '#e2e8f0' }}>{new Date(inv.expiryDate).toLocaleDateString()}</td>
+                              <td className="px-3 py-2.5 border-bottom text-end" style={{ borderColor: '#e2e8f0' }}>
+                                <button 
+                                  className="btn btn-sm btn-outline-info p-1 px-2.5" 
+                                  style={{ fontSize: '0.68rem', borderRadius: '4px', borderColor: '#0ea5e9', color: '#0ea5e9' }}
+                                  onClick={() => {
+                                    playSynthSound('click');
+                                    window.open(getAvatarUrl(`/api/billing/invoice/${inv._id}?token=${localStorage.getItem('token')}`), '_blank');
+                                  }}
+                                >
+                                  <i className="fa-solid fa-print me-1"></i> View / Print
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Plan Change Confirmation Modal */}
+          {showPlanChangeModal && selectedPlanToChange && (
+            <div 
+              className="modal-backdrop-custom" 
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 1000
+              }}
+            >
+              <div 
+                className="modal-card-custom bg-white rounded-3 shadow-lg" 
+                style={{
+                  width: '100%',
+                  maxWidth: '450px',
+                  border: '1px solid #cbd5e1',
+                  overflow: 'hidden',
+                  animation: 'scaleUp 0.2s ease-out'
+                }}
+              >
+                {/* Modal Header */}
+                <div className="p-3.5 border-bottom d-flex align-items-center justify-content-between bg-white">
+                  <h3 className="fw-bold mb-0 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '1.05rem', color: '#0f172a' }}>
+                    <i className="fa-solid fa-circle-question text-info me-2.5" style={{ color: '#0EA5E9', fontSize: '1.15rem' }}></i>
+                    Confirm Subscription Change
+                  </h3>
+                  <button 
+                    type="button" 
+                    className="btn-close" 
+                    style={{ border: 'none', background: 'transparent', fontSize: '1.1rem', color: '#64748b', cursor: 'pointer' }}
+                    onClick={() => { playSynthSound('click'); setShowPlanChangeModal(false); }}
+                  >
+                    <i className="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+
+                {/* Modal Body */}
+                <div className="p-4">
+                  <p className="text-secondary small mb-3.5" style={{ fontSize: '0.78rem' }}>
+                    Are you sure you want to change your inventory license package?
+                  </p>
+                  
+                  <div className="d-flex flex-column gap-2.5 p-3 rounded-3 bg-light border mb-4" style={{ fontSize: '0.78rem' }}>
+                    <div className="d-flex justify-content-between">
+                      <span className="text-secondary">Current Plan:</span>
+                      <span className="fw-bold text-dark">{currentSub?.planName || user?.plan_name || 'Starter Shop'}</span>
+                    </div>
+                    <div className="d-flex justify-content-between">
+                      <span className="text-secondary">Selected Plan:</span>
+                      <span className="fw-bold text-info" style={{ color: '#0ea5e9' }}>{selectedPlanToChange.planName}</span>
+                    </div>
+                    <div className="d-flex justify-content-between border-top pt-2 mt-1">
+                      <span className="text-secondary fw-semibold">Price Difference:</span>
+                      <span className="fw-extrabold text-success" style={{ fontSize: '0.9rem' }}>
+                        ₹{(selectedPlanToChange.yearlyPrice - (plans.find(p => p.planName === currentSub?.planName)?.yearlyPrice || 0)).toLocaleString('en-IN')}/year
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="d-flex justify-content-end gap-2.5">
+                    <button 
+                      type="button" 
+                      className="btn btn-outline-secondary px-4 py-1.5 fw-semibold" 
+                      style={{ fontSize: '0.75rem', borderRadius: '6px', borderColor: '#cbd5e1', backgroundColor: '#ffffff', color: '#475569' }} 
+                      onClick={() => { playSynthSound('click'); setShowPlanChangeModal(false); }}
+                      disabled={planChanging}
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      type="button" 
+                      className="btn btn-info text-white fw-bold px-4 py-1.5 border-0" 
+                      style={{ backgroundColor: '#0EA5E9', borderRadius: '6px', fontSize: '0.75rem' }}
+                      onClick={handleConfirmPlanChange}
+                      disabled={planChanging}
+                    >
+                      {planChanging ? (
+                        <><i className="fa-solid fa-spinner fa-spin me-1.5"></i> Updating...</>
+                      ) : (
+                        'Confirm Change'
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* PAGE: Account Settings */}
+          {activeTab === 'settings' && (
+            <div className="settings-view animate-fade-in" style={{ animation: 'fadeIn 0.25s ease-out' }}>
+              
+              {/* Header Breadcrumbs */}
+              <div className="d-flex align-items-center justify-content-between mb-4">
+                <div>
+                  <h1 className="fw-bold mb-0.5" style={{ fontFamily: 'Outfit', fontSize: '1.25rem', color: '#0f172a' }}>Account Settings</h1>
+                  <nav aria-label="breadcrumb">
+                    <ol className="breadcrumb mb-0" style={{ fontSize: '0.72rem' }}>
+                      <li className="breadcrumb-item"><a href="#dashboard" className="text-decoration-none" style={{ color: '#0ea5e9' }} onClick={() => setActiveTab('dashboard')}>Dashboard</a></li>
+                      <li className="breadcrumb-item active" aria-current="page" style={{ color: '#64748b' }}>Settings</li>
+                    </ol>
+                  </nav>
+                </div>
+              </div>
+
+              {/* Two Column Cards */}
+              <div className="row g-4 mb-4">
+                
+                {/* Left Card: Merchant Profile */}
+                <div className="col-lg-5">
+                  <div className="card border bg-white rounded-3 p-4 shadow-sm h-100" style={{ borderColor: '#cbd5e1' }}>
+                    <h5 className="fw-bold mb-4 d-flex align-items-center gap-2" style={{ fontFamily: 'Outfit', fontSize: '0.92rem', color: '#0f172a' }}>
+                      <i className="fa-solid fa-address-card text-info" style={{ color: '#0ea5e9', fontSize: '1.05rem' }}></i>
+                      Merchant Profile
+                    </h5>
+
+                    {/* Avatar Upload Display */}
+                    <div className="d-flex flex-column align-items-center text-center mb-4">
+                      <div className="position-relative mb-3">
+                        <div className="user-avatar-upload rounded-circle d-flex align-items-center justify-content-center fw-semibold text-info bg-light border" style={{ width: '100px', height: '100px', fontSize: '2.5rem', overflow: 'hidden' }}>
+                          {profileAvatar ? (
+                            <img src={getAvatarUrl(profileAvatar)} alt="Avatar" className="w-100 h-100" style={{ objectFit: 'cover' }} />
+                          ) : (
+                            userInitial()
+                          )}
+                        </div>
+                        {isSettingsUploading && (
+                          <div className="position-absolute w-100 h-100 rounded-circle top-0 left-0 bg-dark bg-opacity-50 d-flex flex-column align-items-center justify-content-center text-white" style={{ zIndex: 5 }}>
+                            <span className="small fw-bold">{settingsUploadProgress}%</span>
+                            <div className="progress w-75 mt-1" style={{ height: '4px' }}>
+                              <div className="progress-bar bg-info" style={{ width: `${settingsUploadProgress}%` }}></div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="d-flex gap-2 mb-3.5">
+                        <label className="btn btn-sm btn-outline-info px-3 py-1.5 fw-semibold d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', borderColor: '#0ea5e9', color: '#0ea5e9', cursor: 'pointer', backgroundColor: '#ffffff' }}>
+                          <i className="fa-solid fa-camera"></i> Change Photo
+                          <input type="file" accept="image/jpeg,image/jpg,image/png,image/webp" onChange={onFileChange} style={{ display: 'none' }} />
+                        </label>
+                        {profileAvatar && (
+                          <button className="btn btn-sm btn-outline-danger px-3 py-1.5 fw-semibold d-flex align-items-center gap-1.5" style={{ fontSize: '0.72rem', borderColor: '#ef4444', color: '#ef4444', backgroundColor: '#ffffff' }} onClick={handleRemoveAvatar}>
+                            <i className="fa-solid fa-trash-can"></i> Remove
+                          </button>
+                        )}
+                      </div>
+
+                      <h4 className="fw-bold text-dark mb-1" style={{ fontFamily: 'Outfit', fontSize: '1.05rem' }}>{profileName || 'Merchant Account'}</h4>
+                      <span className="badge bg-info bg-opacity-10 text-info border border-info border-opacity-20 px-2.5 py-1 mb-4" style={{ color: '#0ea5e9', fontSize: '0.68rem', borderRadius: '4px' }}>
+                        {user?.plan_name || 'Starter Shop'} Plan
+                      </span>
+                    </div>
+
+                    {/* Metadata items */}
+                    <div className="d-flex flex-column gap-3 mb-4" style={{ fontSize: '0.78rem' }}>
+                      <div className="d-flex justify-content-between border-bottom pb-2">
+                        <span className="text-secondary d-flex align-items-center gap-1.5">
+                          <i className="fa-regular fa-envelope"></i> Email Address
+                        </span>
+                        <span className="fw-bold text-dark">{profileEmail || 'N/A'}</span>
+                      </div>
+                      <div className="d-flex justify-content-between border-bottom pb-2">
+                        <span className="text-secondary d-flex align-items-center gap-1.5">
+                          <i className="fa-regular fa-calendar-check"></i> Registered On
+                        </span>
+                        <span className="fw-bold text-dark">{user?.registeredAt ? new Date(user.registeredAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}</span>
+                      </div>
+                      <div className="d-flex justify-content-between">
+                        <span className="text-secondary d-flex align-items-center gap-1.5">
+                          <i className="fa-regular fa-id-card"></i> Active Status
+                        </span>
+                        <span className="badge bg-success bg-opacity-10 text-success border border-success border-opacity-20 px-2.5 py-1" style={{ fontSize: '0.68rem', borderRadius: '4px' }}>
+                          Active License
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* SaaS Access Code details */}
+                    <div className="p-3 rounded-3 border" style={{ backgroundColor: '#f8fafc', borderColor: '#e2e8f0' }}>
+                      <div className="d-flex align-items-center justify-content-between">
+                        <div className="d-flex align-items-center gap-2">
+                          <i className="fa-solid fa-key text-info" style={{ color: '#0ea5e9' }}></i>
+                          <div>
+                            <div className="text-secondary" style={{ fontSize: '0.66rem', fontWeight: '500' }}>SaaS Access Code</div>
+                            <div className="font-monospace fw-bold text-dark mt-0.5" style={{ fontSize: '0.8rem' }}>
+                              {showSettingsSaasCode ? saasCode : 'ZIM-••••-••••'}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="d-flex gap-2">
+                          <button className="btn btn-sm btn-light border p-1" style={{ width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={handleToggleSettingsSaasCode} title="Toggle Visibility">
+                            <i className={`fa-regular ${showSettingsSaasCode ? 'fa-eye-slash' : 'fa-eye'} text-secondary`}></i>
+                          </button>
+                          <button className="btn btn-sm btn-light border p-1" style={{ width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={handleCopyCode} title="Copy Access Code">
+                            <i className="fa-regular fa-copy text-secondary"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
+                {/* Right Card: Change Security Password */}
+                <div className="col-lg-7">
+                  <div className="card border bg-white rounded-3 p-4 shadow-sm h-100" style={{ borderColor: '#cbd5e1' }}>
+                    <h5 className="fw-bold mb-4 d-flex align-items-center gap-2" style={{ fontFamily: 'Outfit', fontSize: '0.92rem', color: '#0f172a' }}>
+                      <i className="fa-solid fa-shield-halved text-info" style={{ color: '#0ea5e9', fontSize: '1.05rem' }}></i>
+                      Change Security Password
+                    </h5>
+
+                    <form onSubmit={handleChangePasswordSubmit}>
+                      <div className="form-group mb-3">
+                        <label className="form-label mb-1 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Current Password <span className="text-danger">*</span></label>
+                        <div className="position-relative">
+                          <input 
+                            type={showCurrentPassword ? "text" : "password"} 
+                            className="form-control-premium-dark pe-5" 
+                            placeholder="Enter current password" 
+                            value={currentPassword}
+                            onChange={(e) => setCurrentPassword(e.target.value)}
+                            required
+                          />
+                          <button type="button" className="btn position-absolute end-0 top-50 translate-middle-y border-0 pe-3 text-secondary" onClick={() => setShowCurrentPassword(!showCurrentPassword)}>
+                            <i className={`fa-regular ${showCurrentPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="form-group mb-3">
+                        <label className="form-label mb-1 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>New Password <span className="text-danger">*</span></label>
+                        <div className="position-relative">
+                          <input 
+                            type={showNewPassword ? "text" : "password"} 
+                            className="form-control-premium-dark pe-5" 
+                            placeholder="Enter new password (min. 8 characters)" 
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            required
+                          />
+                          <button type="button" className="btn position-absolute end-0 top-50 translate-middle-y border-0 pe-3 text-secondary" onClick={() => setShowNewPassword(!showNewPassword)}>
+                            <i className={`fa-regular ${showNewPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                          </button>
+                        </div>
+                        <div className="text-muted mt-1" style={{ fontSize: '0.66rem' }}>
+                          Password must contain: min 8 characters, 1 uppercase, 1 lowercase, 1 number, and 1 special character.
+                        </div>
+                      </div>
+
+                      <div className="form-group mb-4">
+                        <label className="form-label mb-1 fw-semibold text-secondary" style={{ fontSize: '0.72rem' }}>Confirm New Password <span className="text-danger">*</span></label>
+                        <div className="position-relative">
+                          <input 
+                            type={showConfirmPassword ? "text" : "password"} 
+                            className="form-control-premium-dark pe-5" 
+                            placeholder="Confirm new password" 
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            required
+                          />
+                          <button type="button" className="btn position-absolute end-0 top-50 translate-middle-y border-0 pe-3 text-secondary" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                            <i className={`fa-regular ${showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="d-flex justify-content-end gap-2 border-top pt-3.5">
+                        <button type="button" className="btn btn-outline-secondary px-3.5 py-1.5 fw-semibold" style={{ fontSize: '0.75rem', borderRadius: '6px', borderColor: '#cbd5e1', backgroundColor: '#ffffff', color: '#475569' }} onClick={handleResetPasswordForm}>
+                          Reset Form
+                        </button>
+                        <button type="submit" className="btn btn-info text-white fw-bold px-4 py-1.5 border-0 d-flex align-items-center gap-1.5" style={{ backgroundColor: '#0EA5E9', borderRadius: '6px', fontSize: '0.75rem' }} disabled={passwordUpdating}>
+                          {passwordUpdating ? (
+                            <><i className="fa-solid fa-spinner fa-spin"></i> Updating...</>
+                          ) : (
+                            <><i className="fa-solid fa-lock"></i> Update Security</>
+                          )}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Security Audit & Activity Timelines */}
+              <div className="row g-4">
+                
+                {/* Security Audit Logs */}
+                <div className="col-md-6">
+                  <div className="card border bg-white rounded-3 p-3.5 shadow-sm" style={{ borderColor: '#cbd5e1' }}>
+                    <h5 className="fw-bold mb-3.5 d-flex align-items-center gap-2" style={{ fontFamily: 'Outfit', fontSize: '0.92rem', color: '#0f172a' }}>
+                      <i className="fa-solid fa-user-shield text-info" style={{ color: '#0ea5e9', fontSize: '1.05rem' }}></i>
+                      Security Password Audit Logs
+                    </h5>
+
+                    <div className="table-responsive" style={{ maxHeight: '250px', overflowY: 'auto' }}>
+                      <table className="table table-hover align-middle mb-0" style={{ fontSize: '0.72rem' }}>
+                        <thead>
+                          <tr style={{ backgroundColor: '#f8fafc' }}>
+                            <th className="px-2.5 py-2 border-bottom text-secondary text-uppercase fw-bold" style={{ fontSize: '0.62rem', borderColor: '#e2e8f0' }}>Browser</th>
+                            <th className="px-2.5 py-2 border-bottom text-secondary text-uppercase fw-bold" style={{ fontSize: '0.62rem', borderColor: '#e2e8f0' }}>Device</th>
+                            <th className="px-2.5 py-2 border-bottom text-secondary text-uppercase fw-bold" style={{ fontSize: '0.62rem', borderColor: '#e2e8f0' }}>IP Address</th>
+                            <th className="px-2.5 py-2 border-bottom text-secondary text-uppercase fw-bold" style={{ fontSize: '0.62rem', borderColor: '#e2e8f0' }}>Timestamp</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {loadingAuditLogs ? (
+                            <tr>
+                              <td colSpan="4" className="text-center py-3 text-secondary small">
+                                <i className="fa-solid fa-circle-notch fa-spin me-2 text-info"></i> Loading audit records...
+                              </td>
+                            </tr>
+                          ) : securityAuditLogs.length === 0 ? (
+                            <tr>
+                              <td colSpan="4" className="text-center py-3 text-secondary small">
+                                No security logs recorded
+                              </td>
+                            </tr>
+                          ) : (
+                            securityAuditLogs.map((log) => (
+                              <tr key={log._id}>
+                                <td className="px-2.5 py-2 border-bottom text-dark fw-semibold" style={{ borderColor: '#f1f5f9' }}>{log.browser}</td>
+                                <td className="px-2.5 py-2 border-bottom text-dark" style={{ borderColor: '#f1f5f9' }}>
+                                  <span className="badge bg-light text-dark border px-2 py-0.5" style={{ fontSize: '0.62rem', borderRadius: '4px' }}>
+                                    {log.device}
+                                  </span>
+                                </td>
+                                <td className="px-2.5 py-2 border-bottom font-monospace text-secondary" style={{ borderColor: '#f1f5f9' }}>{log.ipAddress}</td>
+                                <td className="px-2.5 py-2 border-bottom text-secondary" style={{ borderColor: '#f1f5f9' }}>{new Date(log.timestamp).toLocaleString()}</td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Activity Timeline */}
+                <div className="col-md-6">
+                  <div className="card border bg-white rounded-3 p-3.5 shadow-sm" style={{ borderColor: '#cbd5e1' }}>
+                    <h5 className="fw-bold mb-3.5 d-flex align-items-center gap-2" style={{ fontFamily: 'Outfit', fontSize: '0.92rem', color: '#0f172a' }}>
+                      <i className="fa-solid fa-timeline text-info" style={{ color: '#0ea5e9', fontSize: '1.05rem' }}></i>
+                      Account Activity Timeline
+                    </h5>
+
+                    <div className="d-flex flex-column gap-3" style={{ maxHeight: '250px', overflowY: 'auto', paddingRight: '5px' }}>
+                      {loadingTimeline ? (
+                        <div className="text-center py-4 text-secondary small">
+                          <i className="fa-solid fa-circle-notch fa-spin me-2 text-info"></i> Loading timeline...
+                        </div>
+                      ) : activityTimeline.length === 0 ? (
+                        <div className="text-center py-4 text-secondary small">
+                          No recent activities logged
+                        </div>
+                      ) : (
+                        activityTimeline.map((act) => {
+                          let iconClass = 'fa-circle-dot text-secondary';
+                          let iconBg = 'rgba(100, 116, 139, 0.1)';
+                          
+                          if (act.type === 'avatar_updated') {
+                            iconClass = 'fa-camera text-info';
+                            iconBg = 'rgba(14, 165, 233, 0.1)';
+                          } else if (act.type === 'password_change') {
+                            iconClass = 'fa-key text-warning';
+                            iconBg = 'rgba(234, 179, 8, 0.1)';
+                          } else if (act.type === 'plan_upgrade' || act.type === 'plan_downgrade') {
+                            iconClass = 'fa-star text-success';
+                            iconBg = 'rgba(34, 197, 94, 0.1)';
+                          } else if (act.type === 'saas_code_viewed') {
+                            iconClass = 'fa-eye text-primary';
+                            iconBg = 'rgba(59, 130, 246, 0.1)';
+                          }
+
+                          return (
+                            <div className="d-flex gap-3 align-items-start" key={act._id}>
+                              <div className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: '28px', height: '28px', backgroundColor: iconBg }}>
+                                <i className={`fa-solid ${iconClass}`} style={{ fontSize: '0.78rem' }}></i>
+                              </div>
+                              <div style={{ fontSize: '0.74rem', minWidth: 0 }}>
+                                <div className="fw-bold text-dark">{act.title}</div>
+                                <div className="text-secondary text-truncate mt-0.5" style={{ fontSize: '0.7rem' }}>{act.description}</div>
+                                <div className="text-muted font-monospace mt-1" style={{ fontSize: '0.62rem' }}>{new Date(act.timestamp).toLocaleString()}</div>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+          )}
+
+          {/* Image Crop Modal */}
+          {cropModalOpen && cropImageSrc && (
+            <div 
+              className="modal-backdrop-custom" 
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                backgroundColor: 'rgba(0, 0, 0, 0.65)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 1100
+              }}
+            >
+              <div 
+                className="modal-card-custom bg-white rounded-3 shadow-lg" 
+                style={{
+                  width: '95%',
+                  maxWidth: '480px',
+                  border: '1px solid #cbd5e1',
+                  overflow: 'hidden',
+                  animation: 'scaleUp 0.2s ease-out'
+                }}
+              >
+                {/* Modal Header */}
+                <div className="p-3 border-bottom d-flex align-items-center justify-content-between bg-white">
+                  <h3 className="fw-bold mb-0 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '1.05rem', color: '#0f172a' }}>
+                    <i className="fa-solid fa-crop text-info me-2.5" style={{ color: '#0EA5E9', fontSize: '1.15rem' }}></i>
+                    Crop Profile Photo
+                  </h3>
+                  <button 
+                    type="button" 
+                    className="btn-close" 
+                    style={{ border: 'none', background: 'transparent', fontSize: '1.1rem', color: '#64748b', cursor: 'pointer' }}
+                    onClick={() => { playSynthSound('click'); setCropModalOpen(false); }}
+                  >
+                    <i className="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+
+                {/* Modal Body */}
+                <div className="p-3">
+                  <div className="position-relative w-100" style={{ height: '280px', backgroundColor: '#333' }}>
+                    <Cropper
+                      image={cropImageSrc}
+                      crop={crop}
+                      zoom={zoom}
+                      aspect={1}
+                      cropShape="round"
+                      showGrid={false}
+                      onCropChange={setCrop}
+                      onZoomChange={setZoom}
+                      onCropComplete={(croppedArea, croppedAreaPixels) => setCroppedAreaPixels(croppedAreaPixels)}
+                    />
+                  </div>
+
+                  {/* Zoom Slider */}
+                  <div className="mt-3.5 mb-4 d-flex align-items-center gap-3">
+                    <span className="small text-secondary fw-semibold" style={{ fontSize: '0.72rem' }}>Zoom:</span>
+                    <input 
+                      type="range" 
+                      value={zoom} 
+                      min={1} 
+                      max={3} 
+                      step={0.1} 
+                      aria-label="Zoom" 
+                      className="form-range" 
+                      onChange={(e) => setZoom(parseFloat(e.target.value))} 
+                    />
+                  </div>
+
+                  <div className="d-flex justify-content-end gap-2.5">
+                    <button 
+                      type="button" 
+                      className="btn btn-outline-secondary px-4 py-1.5 fw-semibold" 
+                      style={{ fontSize: '0.75rem', borderRadius: '6px', borderColor: '#cbd5e1', backgroundColor: '#ffffff', color: '#475569' }} 
+                      onClick={() => { playSynthSound('click'); setCropModalOpen(false); }}
+                      disabled={isSettingsUploading}
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      type="button" 
+                      className="btn btn-info text-white fw-bold px-4 py-1.5 border-0" 
+                      style={{ backgroundColor: '#0EA5E9', borderRadius: '6px', fontSize: '0.75rem' }}
+                      onClick={handleCropAndUpload}
+                      disabled={isSettingsUploading}
+                    >
+                      {isSettingsUploading ? (
+                        <><i className="fa-solid fa-spinner fa-spin me-1.5"></i> Uploading {settingsUploadProgress}%</>
+                      ) : (
+                        'Crop & Save'
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Render Fallback for other tabs */}
-          {activeTab !== 'dashboard' && activeTab !== 'billing' && activeTab !== 'products' && activeTab !== 'sales' && activeTab !== 'purchases' && activeTab !== 'categories' && activeTab !== 'suppliers' && activeTab !== 'customers' && activeTab !== 'reports' && (
+          {activeTab !== 'dashboard' && activeTab !== 'billing' && activeTab !== 'sales' && activeTab !== 'purchases' && activeTab !== 'categories' && activeTab !== 'suppliers' && activeTab !== 'customers' && activeTab !== 'reports' && activeTab !== 'billing-subscription' && activeTab !== 'settings' && (
             <div className="p-5 text-center rounded-4 border bg-white" style={{ borderColor: '#cbd5e1', margin: '3rem auto', maxWidth: '500px', boxShadow: '0 4px 6px -1px rgba(14, 165, 233, 0.05)' }}>
               <i className="fa-solid fa-screwdriver-wrench text-secondary mb-3" style={{ fontSize: '3rem', color: '#94a3b8' }}></i>
               <h4 className="fw-bold text-dark text-capitalize" style={{ fontFamily: 'Outfit', fontSize: '1.1rem' }}>{activeTab.replace('-', ' ')} Page</h4>
@@ -5135,7 +5813,7 @@ const DashboardPage = () => {
                 {/* Modal Header */}
                 <div className="p-3 border-bottom d-flex align-items-center justify-content-between" style={{ backgroundColor: '#ffffff' }}>
                   <h3 className="fw-bold mb-0 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '1.05rem', color: '#0f172a' }}>
-                    <i className="fa-solid fa-file-invoice-dollar text-primary me-2.5" style={{ color: '#007BFF', fontSize: '1.2rem' }}></i>
+                    <i className="fa-solid fa-file-invoice-dollar text-primary me-2.5" style={{ color: '#0EA5E9', fontSize: '1.2rem' }}></i>
                     Record New Sale
                   </h3>
                   <button 
@@ -5223,7 +5901,7 @@ const DashboardPage = () => {
                         className="d-flex flex-column align-items-center justify-content-center border border-dashed rounded-3 p-3 text-center position-relative"
                         style={{
                           minHeight: '140px',
-                          borderColor: saleDragOver ? '#007BFF' : '#cbd5e1',
+                          borderColor: saleDragOver ? '#0EA5E9' : '#cbd5e1',
                           backgroundColor: saleDragOver ? 'rgba(0, 123, 255, 0.05)' : '#f8fafc',
                           transition: 'all 0.2s ease',
                           cursor: 'pointer'
@@ -5247,7 +5925,7 @@ const DashboardPage = () => {
                           </div>
                         ) : (
                           <>
-                            <i className="fa-solid fa-cloud-arrow-up text-primary mb-1.5" style={{ fontSize: '1.8rem', color: '#007BFF' }}></i>
+                            <i className="fa-solid fa-cloud-arrow-up text-primary mb-1.5" style={{ fontSize: '1.8rem', color: '#0EA5E9' }}></i>
                             <div className="fw-bold text-dark mb-0.5" style={{ fontSize: '0.78rem' }}>Drag & drop receipt here</div>
                             <div className="text-secondary small" style={{ fontSize: '0.68rem' }}>or click to browse</div>
                             <div className="text-muted mt-1" style={{ fontSize: '0.6rem' }}>JPG, PNG or WEBP (Max. 2MB)</div>
@@ -5284,7 +5962,7 @@ const DashboardPage = () => {
                     <button 
                       type="submit" 
                       className="btn text-white fw-bold px-4 py-1.5 border-0" 
-                      style={{ backgroundColor: '#007BFF', borderRadius: '6px', fontSize: '0.75rem' }}
+                      style={{ backgroundColor: '#0EA5E9', borderRadius: '6px', fontSize: '0.75rem' }}
                     >
                       <i className="fa-solid fa-save me-1.5"></i> Save Invoice
                     </button>
@@ -5324,7 +6002,7 @@ const DashboardPage = () => {
                 {/* Modal Header */}
                 <div className="p-3 border-bottom d-flex align-items-center justify-content-between" style={{ backgroundColor: '#ffffff' }}>
                   <h3 className="fw-bold mb-0 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '1.05rem', color: '#0f172a' }}>
-                    <i className="fa-solid fa-circle-info text-primary me-2.5" style={{ color: '#007BFF', fontSize: '1.1rem' }}></i>
+                    <i className="fa-solid fa-circle-info text-primary me-2.5" style={{ color: '#0EA5E9', fontSize: '1.1rem' }}></i>
                     Invoice Details: {selectedInvoiceDetails.invoice_number}
                   </h3>
                   <button 
@@ -5432,7 +6110,7 @@ const DashboardPage = () => {
                 {/* Modal Header */}
                 <div className="p-3 border-bottom d-flex align-items-center justify-content-between" style={{ backgroundColor: '#ffffff' }}>
                   <h3 className="fw-bold mb-0 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '1.05rem', color: '#0f172a' }}>
-                    <i className="fa-solid fa-truck text-primary me-2.5" style={{ color: '#007BFF', fontSize: '1.2rem' }}></i>
+                    <i className="fa-solid fa-truck text-primary me-2.5" style={{ color: '#0EA5E9', fontSize: '1.2rem' }}></i>
                     Record New Purchase
                   </h3>
                   <button 
@@ -5527,7 +6205,7 @@ const DashboardPage = () => {
                     <button 
                       type="submit" 
                       className="btn text-white fw-bold px-4 py-1.5 border-0" 
-                      style={{ backgroundColor: '#007BFF', borderRadius: '6px', fontSize: '0.75rem' }}
+                      style={{ backgroundColor: '#0EA5E9', borderRadius: '6px', fontSize: '0.75rem' }}
                     >
                       <i className="fa-solid fa-save me-1.5"></i> Save Record
                     </button>
@@ -5567,7 +6245,7 @@ const DashboardPage = () => {
                 {/* Modal Header */}
                 <div className="p-3 border-bottom d-flex align-items-center justify-content-between" style={{ backgroundColor: '#ffffff' }}>
                   <h3 className="fw-bold mb-0 d-flex align-items-center" style={{ fontFamily: 'Outfit', fontSize: '1.05rem', color: '#0f172a' }}>
-                    <i className="fa-solid fa-circle-info text-primary me-2.5" style={{ color: '#007BFF', fontSize: '1.1rem' }}></i>
+                    <i className="fa-solid fa-circle-info text-primary me-2.5" style={{ color: '#0EA5E9', fontSize: '1.1rem' }}></i>
                     Purchase Details: {selectedPurchaseDetails.purchase_number}
                   </h3>
                   <button 
