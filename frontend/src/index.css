@@ -1611,7 +1611,7 @@ a:hover {
 
 .lp-mobile-menu hr { border-color: rgba(255,255,255,0.1); margin: 4px 0; }
 
-/* ─────────────── HERO ─────────────── */
+/* ───────────────── HERO ───────────────── */
 .lp-hero {
   min-height: 100vh;
   background: linear-gradient(135deg, #020617 0%, #0f172a 40%, #0c1a2e 100%);
@@ -1620,6 +1620,31 @@ a:hover {
   padding-top: 64px;
   position: relative;
   overflow: hidden;
+}
+
+/* layered ambient glows for particle depth */
+.lp-hero::before {
+  content: '';
+  position: absolute;
+  top: -10%;
+  left: -10%;
+  width: 60%;
+  height: 70%;
+  background: radial-gradient(ellipse, rgba(14,165,233,0.06) 0%, transparent 65%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.lp-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -10%;
+  right: -10%;
+  width: 55%;
+  height: 65%;
+  background: radial-gradient(ellipse, rgba(56,189,248,0.05) 0%, transparent 65%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .lp-hero-bg-glow {
@@ -1631,6 +1656,13 @@ a:hover {
   height: 500px;
   background: radial-gradient(ellipse, rgba(14, 165, 233, 0.12) 0%, transparent 70%);
   pointer-events: none;
+  z-index: 2;
+}
+
+/* particle canvas sits at z-index 1; hero content layer floats above at 3 */
+.lp-hero-content-layer {
+  position: relative;
+  z-index: 3;
 }
 
 .lp-hero-inner {
@@ -1640,6 +1672,7 @@ a:hover {
   align-items: center;
   padding: 80px 24px;
 }
+
 
 .lp-hero-badge {
   display: inline-block;

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../context/AuthContext';
+import ParticleField from '../components/ParticleField';
 
 /* ── tiny helpers ── */
 const useCountUp = (target, duration = 2000, start = false) => {
@@ -257,8 +258,10 @@ const LandingPage = () => {
 
       {/* ─── SECTION 1: HERO ─── */}
       <section id="hero" className="lp-hero">
+        {/* Google Antigravity-style particle field */}
+        <ParticleField />
         <div className="lp-hero-bg-glow"></div>
-        <div className="lp-container lp-hero-inner">
+        <div className="lp-container lp-hero-inner lp-hero-content-layer">
           {/* left */}
           <div className="lp-hero-content">
             <div className="lp-hero-badge">🚀 Trusted by 500+ Businesses Across India</div>
